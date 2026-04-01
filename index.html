@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr" id="htmlRoot">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeoLearn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map.css">
+</head>
+<body>
+  <div id="loading-screen">
+    <div class="loader-content">
+      <div class="loader-globe">🌍</div>
+      <p id="loadingText">Chargement de GeoLearn...</p>
+    </div>
+  </div>
+
+  <nav id="navbar">
+    <a href="#/" class="nav-brand">
+      <span class="nav-logo">🌍</span>
+      <span class="nav-title">GeoLearn</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#/" class="nav-link" id="navHome">Accueil</a>
+      <a href="#/drapeaux" class="nav-link" id="navFlags">Pays</a>
+      <div class="nav-dropdown">
+        <button class="nav-link nav-dropdown-btn" id="navQuizBtn">Quiz <span class="arrow">▾</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="#/quiz/drapeaux" class="nav-dropdown-item" id="navQuizFlags">Quiz Drapeaux</a>
+          <a href="#/quiz/capitales" class="nav-dropdown-item" id="navQuizCap">Quiz Capitales</a>
+          <a href="#/quiz/carte" class="nav-dropdown-item" id="navQuizMap">Quiz Carte</a>
+          <a href="#/quiz/cauchemar" class="nav-dropdown-item" id="navQuizNight">Quiz Cauchemar</a>
+        </div>
+      </div>
+      <a href="#/carte" class="nav-link" id="navMap">Carte du Monde</a>
+      <a href="#/stats" class="nav-link" id="navStats">Stats</a>
+      <a href="#/succes" class="nav-link" id="navAch">Progression</a>
+      <a href="#/classement" class="nav-link" id="navLeaderboard">Classement</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-right">
+      <div class="lang-switch" id="langSwitch">
+        <button class="lang-switch-btn" data-lang="fr" title="Français">FR</button>
+        <span class="lang-switch-sep">|</span>
+        <button class="lang-switch-btn" data-lang="en" title="English">EN</button>
+      </div>
+      <button id="authBtn" class="nav-auth-btn">Connexion</button>
+      <a href="#/profil" id="navProfileBtn" style="display:none">👤</a>
+    </div>
+  </nav>
+
+  <main id="app"></main>
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/modules/i18n.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script src="js/data/countries.js"></script>
+  <script src="js/data/countryDetails.js"></script>
+  <script src="js/modules/router.js"></script>
+  <script src="js/modules/ui.js"></script>
+  <script src="js/modules/flagList.js"></script>
+  <script src="js/modules/quizEngine.js"></script>
+  <script src="js/modules/quizFlags.js"></script>
+  <script src="js/modules/quizCapitals.js"></script>
+  <script src="js/modules/worldMap.js"></script>
+  <script src="js/modules/quizMap.js"></script>
+  <script src="js/modules/quizNightmare.js"></script>
+  <script src="js/modules/profile.js"></script>
+  <script src="js/modules/achievements.js"></script>
+  <script src="js/modules/rankBadges.js"></script>
+  <script src="js/modules/leaderboard.js"></script>
+  <script src="js/modules/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
