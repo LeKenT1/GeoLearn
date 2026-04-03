@@ -984,6 +984,14 @@ GL.Profile = {
   // URL zoomée pour la navbar (zoom x1.8 sur le haut)
   navbarUrl(av) { return this.avatarUrl(av, 32, 180); },
 
+  // Retry automatique si une image DiceBear échoue à charger (3 tentatives, délai croissant)
+  _imgRetry(img) {
+    const n = +(img.dataset.retries || 0);
+    if (n >= 3) return;
+    img.dataset.retries = n + 1;
+    setTimeout(() => { const s = img.src; img.src = ''; img.src = s; }, 1200 * (n + 1));
+  },
+
   // ===== WELCOME MODAL =====
   showWelcomeModal(onDone) {
     const self = this;
@@ -1061,20 +1069,20 @@ GL.Profile = {
     const url = this.navbarUrl(profile.avatar);
     const displayName = profile.isGuest ? 'Invité' : profile.name;
     const xp = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
-    const rankTier = GL.UI ? GL.UI.getRankInfo(xp).tier : { name: 'Bronze' };
-    const rankEntry = (GL.RankBadges ? GL.RankBadges.RANKS : []).find(r => r.name === rankTier.name) || { key: 'bronze' };
+    const rankEntry = (GL.RankBadges ? [...GL.RankBadges.RANKS].reverse().find(r => xp >= r.min) : null) || { key: 'bronze' };
     const rankKey = rankEntry.key || 'bronze';
     const activeTitle = GL.Achievements ? GL.Achievements.getActiveTitle() : null;
     const navTitleHtml = (() => {
       if (!activeTitle) return '';
-      const text = activeTitle.tier === 5 ? `🌟 ${activeTitle.title}` : activeTitle.title;
+      const text = activeTitle.tier === 5 ? `🌟 ${GL.Achievements._achTitle(activeTitle)}` : GL.Achievements._achTitle(activeTitle);
       const cls = activeTitle.tier === 5 ? 'ach-title-ultimate'
         : ['', 'ach-title-plastic', 'ach-title-bronze', 'ach-title-silver', 'ach-title-gold'][activeTitle.tier] || '';
       return `<span class="nav-avatar-title-text ${cls}">${text}</span>`;
     })();
     btn.innerHTML = `
       <span class="nav-rank-frame nav-rank-frame--${rankKey}">
-        <img src="${url}" alt="${displayName}" class="nav-avatar-img" width="32" height="32">
+        <img src="${url}" alt="${displayName}" class="nav-avatar-img" width="32" height="32"
+          onerror="GL.Profile._imgRetry(this)">
       </span>
       <span class="nav-avatar-info">
         <span class="nav-avatar-name"${profile.nameColor ? ` style="color:${profile.nameColor}"` : ''}>${displayName}</span>
@@ -1099,7 +1107,7 @@ GL.Profile = {
             <div class="cb-option-img-wrap">
               <img src="${self.previewUrl(feature, o.val, 80, baseAv)}"
                 alt="" width="80" height="80" loading="eager"
-                onerror="this.closest('.cb-option-btn').style.display='none'">
+                onerror="GL.Profile._imgRetry(this)">
               ${current === o.val ? '<span class="cb-check">✓</span>' : ''}
             </div>
             <span>${o.label}</span>
@@ -1126,7 +1134,8 @@ GL.Profile = {
         return `<button class="cb-option-btn ${isActive ? 'active' : ''}"
           data-feature="seed" data-val="${seed}" title="${seed}">
           <div class="cb-option-img-wrap">
-            <img src="${url}" alt="${seed}" width="80" height="80" loading="eager">
+            <img src="${url}" alt="${seed}" width="80" height="80" loading="eager"
+              onerror="GL.Profile._imgRetry(this)">
             ${isActive ? '<span class="cb-check">✓</span>' : ''}
           </div>
           <span>${seed}</span>
@@ -1149,11 +1158,10 @@ GL.Profile = {
 
     // ── Rang actuel ───────────────────────────────────────────────────────
     const _xp = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
-    const _rankTier = GL.UI ? GL.UI.getRankInfo(_xp).tier : { name: 'Bronze', color: '#cd7f32' };
-    const _rankEntry = (GL.RankBadges ? GL.RankBadges.RANKS : []).find(r => r.name === _rankTier.name) || { key: 'bronze' };
+    const _rankEntry = (GL.RankBadges ? [...GL.RankBadges.RANKS].reverse().find(r => _xp >= r.min) : null) || { key: 'bronze', name: 'Bronze', color: '#cd7f32' };
     const _rankKey = _rankEntry.key || 'bronze';
     const _rankTiers = GL.UI ? GL.UI.RANK_TIERS : [];
-    const _rankName = _rankTier.name;
+    const _rankName = _rankEntry.name;
 
     const styleOptionsHtml = () => {
       switch (styleId) {
@@ -1588,6 +1596,7 @@ GL.Profile = {
               <img id="cbAvatarPreview" class="rank-badge-av-img" src="${self.avatarUrl(av, 160)}" alt="Avatar">
             </div>
             <div class="cb-name-edit">
+              ${(profile.isGuest || !profile.name) ? `<p class="profile-save-hint">Entre ton prénom pour sauvegarder tes stats et apparaître dans le classement !</p>` : ''}
               <input class="profile-input" id="cbNameInput"
                 type="text" value="${profile.isGuest ? '' : profile.name}"
                 placeholder="${self._t('profile.welcome.placeholder')}" maxlength="20">
@@ -1647,6 +1656,19 @@ GL.Profile = {
     });
 
     // ── Clic sur une option ou swatch ─────────────────────────────────────
+    const PRESET_STYLE_ATTRS = {
+      'bottts':         ['botttsEyes','botttsMouth','botttsFace','botttsSides','botttsTop','botttsTexture'],
+      'fun-emoji':      ['emojiEyes','emojiMouth'],
+      'pixel-art':      ['pixelHair','pixelHairColor','pixelSkinColor','pixelClothing','pixelEyes','pixelMouthHappy','pixelMouthSad','pixelAccessories','pixelBeard','pixelGlasses','pixelHat'],
+      'adventurer':     ['advSkinColor','advHair','advHairColor','advEyes','advMouth','advEyebrows','advEarrings','advGlasses'],
+      'lorelei':        ['lorSkinColor','lorHair','lorEyes','lorMouth','lorHairColor','lorEyebrows','lorHead','lorNose','lorBeard','lorEarrings','lorGlasses'],
+      'big-smile':      ['bsmileSkinColor','bsmileHair','bsmileEyes','bsmileMouth','bsmileHairColor','bsmileAccessories'],
+      'notionists':     ['notionSkinColor','notionHair','notionHairColor','notionEyes','notionLips','notionBrows','notionNose','notionBody','notionBeard','notionBodyIcon','notionGesture','notionGlasses'],
+      'toon-head':      ['toonheadSkinColor','toonheadHairColor','toonheadEyes','toonheadEyebrows','toonheadMouth','toonheadClothes','toonheadClothesColor','toonheadHair','toonheadRearHair','toonheadBeard'],
+      'dylan':          ['dylanSkinColor','dylanHair','dylanHairColor','dylanMood'],
+      'croodles':       ['croodlesTop','croodlesTopColor','croodlesFace','croodlesEyes','croodlesMouth','croodlesNose','croodlesBeard','croodlesMustache'],
+      'bottts-neutral': ['btntEyes','btntMouth'],
+    };
     if (self._optionClickHandler) container.removeEventListener('click', self._optionClickHandler);
     const optionClickHandler = e => {
       const btn = e.target.closest('[data-feature][data-val]');
@@ -1655,6 +1677,16 @@ GL.Profile = {
       if (!feature) return;
 
       profile.avatar[feature] = val;
+
+      // Sélection d'un preset : effacer les attributs du style pour correspondre à l'image affichée
+      if (feature === 'seed') {
+        (PRESET_STYLE_ATTRS[styleId] || []).forEach(a => delete profile.avatar[a]);
+        self.save(profile);
+        self.updateNavAvatar(profile);
+        self.render(container);
+        return;
+      }
+
       self.save(profile);
       self.updateNavAvatar(profile);
       preview.src = self.avatarUrl(profile.avatar, 160);
@@ -1684,6 +1716,7 @@ GL.Profile = {
       if (newName) { profile.name = newName; profile.isGuest = false; }
       self.save(profile);
       self.updateNavAvatar(profile);
+      if (newName && window.GL && GL.Auth) GL.Auth.onProfileNameSet(newName);
     });
 
     // ── Avatar aléatoire ──────────────────────────────────────────────────

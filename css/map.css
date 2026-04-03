@@ -395,3 +395,35 @@
   .map-left-panel { display: none; }
   .quiz-map-question-bar { padding: 0.75rem 1rem; }
 }
+
+@media (max-width: 540px) {
+  .map-info-panel {
+    width: calc(100% - 1.5rem);
+    max-width: 300px;
+    top: auto;
+    bottom: 3.5rem;
+    right: 0.75rem;
+    left: auto;
+    padding: 0.75rem;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .map-search-bar {
+    width: calc(100% - 2rem);
+    max-width: 240px;
+  }
+  .map-controls {
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+  .map-ctrl-btn { width: 32px; height: 32px; font-size: 0.9rem; }
+  .map-info-name { font-size: 0.95rem; }
+  .map-info-flag .fi { height: 55px !important; }
+  .quiz-map-prompt-value { font-size: 1rem; }
+  .quiz-map-prompt .fi { width: 56px !important; height: 37px !important; }
+}
+
+@media (max-width: 380px) {
+  .map-search-bar { max-width: 200px; }
+  .map-info-panel { max-width: calc(100% - 1rem); right: 0.5rem; }
+}

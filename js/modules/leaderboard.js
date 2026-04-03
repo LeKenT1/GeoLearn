@@ -2,23 +2,6 @@ window.GL = window.GL || {};
 
 GL.Leaderboard = {
 
-  // ── Fake players ───────────────────────────────────────────────────────────
-  // titleTier: 1=Plastique 2=Bronze 3=Argent 4=Or 5=Ultime
-  FAKE_PLAYERS: [
-    { id: 'f1',  name: 'GéoMaître',    xp: 950, style: 'avataaars',  seed: 'Felix',  bgColor: '4f63ff', title: 'Légende Vivante',        titleTier: 5 },
-    { id: 'f2',  name: 'AtlasKing',    xp: 847, style: 'pixel-art',  seed: 'Henry',  bgColor: 'c1f4c5', title: 'Maître de l\'Atlas',      titleTier: 5 },
-    { id: 'f3',  name: 'CaptainGlobe', xp: 640, style: 'bottts',     seed: 'r0b0t',  bgColor: 'b6e3f4', title: 'Globe-Trotter',           titleTier: 4 },
-    { id: 'f4',  name: 'MapWizard',    xp: 520, style: 'fun-emoji',  seed: 'Kira',   bgColor: 'ffd5dc', title: 'Sage des Cartes',         titleTier: 4 },
-    { id: 'f5',  name: 'FlagHunter',   xp: 410, style: 'adventurer', seed: 'Grace',  bgColor: 'ffdfbf', title: 'Chasseur de Drapeaux',    titleTier: 4 },
-    { id: 'f6',  name: 'CapitalQueen', xp: 320, style: 'lorelei',    seed: 'Sophia', bgColor: 'd1d4f9', title: 'Reine des Capitales',     titleTier: 3 },
-    { id: 'f7',  name: 'NightmareKid', xp: 280, style: 'pixel-art',  seed: 'Nate',   bgColor: '1a2234', title: 'Survivant du Cauchemar',  titleTier: 3 },
-    { id: 'f8',  name: 'QuizNinja',    xp: 210, style: 'bottts',     seed: 'Leo',    bgColor: 'a7ffc4', title: 'Géographe Confirmé',      titleTier: 3 },
-    { id: 'f9',  name: 'WorldWatcher', xp: 175, style: 'fun-emoji',  seed: 'Mia',    bgColor: 'ffffb1', title: 'Observateur Mondial',     titleTier: 2 },
-    { id: 'f10', name: 'GlobeTrotter', xp: 130, style: 'avataaars',  seed: 'Jake',   bgColor: 'c0aede', title: 'Voyageur Passionné',      titleTier: 2 },
-    { id: 'f11', name: 'MapNewbie',    xp:  80, style: 'adventurer', seed: 'Oliver', bgColor: 'b6e3f4', title: 'Apprenti Géographe',      titleTier: 1 },
-    { id: 'f12', name: 'FirstSteps',   xp:  30, style: 'fun-emoji',  seed: 'Amaya',  bgColor: 'ffd5dc', title: 'En Route !',              titleTier: 1 },
-  ],
-
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   _fakeAvatarUrl(player, size) {
@@ -139,7 +122,7 @@ GL.Leaderboard = {
     const rawName     = profile ? (profile.isGuest ? null : profile.name) : null;
     const realName    = rawName || 'Vous';
     const activeTitle = GL.Achievements ? GL.Achievements.getActiveTitle() : null;
-    const realTitle   = activeTitle ? activeTitle.title : null;
+    const realTitle   = activeTitle ? GL.Achievements._achTitle(activeTitle) : null;
     const realTitleTier = activeTitle ? activeTitle.tier : 0;
 
     const realPlayer = {
@@ -151,7 +134,7 @@ GL.Leaderboard = {
     };
 
     // Tri global
-    const all  = [...this.FAKE_PLAYERS, realPlayer].sort((a, b) => b.xp - a.xp);
+    const all  = [realPlayer].sort((a, b) => b.xp - a.xp);
     const top3 = all.slice(0, 3);
     const rest = all.slice(3);
 

@@ -159,6 +159,7 @@ GL.QuizFlags = {
       }
       session.startTime = Date.now();
       session.peakBefore = GL.UI.getStats().rankedXP || 0;
+      session.discoveredBefore = GL.UI.computeDiscovered(GL.UI.getStats());
       this.session = session;
       this.renderQuestion(container);
     });
@@ -457,17 +458,20 @@ GL.QuizFlags = {
     let rankData = null;
     if (session.config.ranked) {
       const peakBefore = session.peakBefore || 0;
-      const peakAfter = GL.UI.getStats().rankedXP || 0;
+      const discoveredBefore = session.discoveredBefore || 0;
+      const statsAfter = GL.UI.getStats();
+      const peakAfter = statsAfter.rankedXP || 0;
+      const discoveredAfter = GL.UI.computeDiscovered(statsAfter);
       const gained = peakAfter - peakBefore;
-      const { tier, tierIndex, next } = GL.UI.getRankInfo(peakAfter);
-      const prevInfo = GL.UI.getRankInfo(peakBefore);
+      const { tier, tierIndex, next } = GL.UI.getRankInfo(peakAfter, discoveredAfter);
+      const prevInfo = GL.UI.getRankInfo(peakBefore, discoveredBefore);
       const rankUp = tierIndex > prevInfo.tierIndex;
       const TOTAL = GL.UI.RANK_XP_MAX;
       const tierEnd = next ? next.min - 1 : TOTAL;
       const tierRange = tierEnd - tier.min;
       const beforePct = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakBefore - tier.min) / tierRange * 100)) : 100;
       const afterPct  = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakAfter  - tier.min) / tierRange * 100)) : 100;
-      rankData = { tier, next, gained, rankUp, beforePct, afterPct };
+      rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter };
     }
 
     const rankHtml = rankData ? this._rankCardHtml(rankData, t) : '';
@@ -515,8 +519,6 @@ GL.QuizFlags = {
 
           <div class="results-buttons">
             <button class="btn btn-primary" id="retryBtn">${t('result.retry')}</button>
-            <a href="#/quiz/drapeaux" class="btn btn-secondary">${t('result.modify')}</a>
-            <a href="#/" class="btn btn-ghost">${t('result.home')}</a>
           </div>
         </div>
       </div>
@@ -536,7 +538,9 @@ GL.QuizFlags = {
     container.querySelector('#retryBtn').addEventListener('click', () => {
       const newSession = GL.QuizEngine.buildSession({ type: 'flags', ...session.config });
       if (newSession) {
-        newSession.peakBefore = GL.UI.getStats().rankedXP || 0;
+        const retryStats = GL.UI.getStats();
+        newSession.peakBefore = retryStats.rankedXP || 0;
+        newSession.discoveredBefore = GL.UI.computeDiscovered(retryStats);
         this.session = newSession;
         this.renderQuestion(container);
       }
@@ -551,6 +555,17 @@ GL.QuizFlags = {
     const xpGained = rankData.gained > 0
       ? `<span style="color:var(--success);font-weight:700;">${t('result.rank.xp.gained').replace('{n}', rankData.gained).replace('{s}', rankData.gained > 1 ? 's' : '')}</span>`
       : `<span style="color:var(--text-muted);">${t('result.rank.xp.none')}</span>`;
+    const isNextLegend = rankData.next?.key === 'legend';
+    const isCurrentLegend = rankData.tier.key === 'legend';
+    const total = GL.UI ? GL.UI.TOTAL_UNIQUE : 591;
+    const discBefore = isNextLegend || isCurrentLegend ? Math.round((rankData.discoveredBefore || 0) / total * 100) : rankData.beforePct;
+    const discAfter  = isNextLegend || isCurrentLegend ? Math.round((rankData.discoveredAfter  || 0) / total * 100) : rankData.afterPct;
+    const barLabel   = isNextLegend
+      ? `<span>${tierName}</span><span>${nextName} (${rankData.discoveredAfter || 0}/${total})</span>`
+      : isCurrentLegend
+        ? `<span>${tierName}</span><span>${t('result.rank.max')}</span>`
+        : `<span>${tierName} (${rankData.tier.min})</span>${nextName ? `<span>${nextName} (${rankData.next.min})</span>` : `<span>${t('result.rank.max')}</span>`}`;
+
     return `
       <div class="rank-card" style="--rank-color:${rankData.tier.color};">
         ${rankData.rankUp ? `<div class="rank-up-badge">${t('result.rank.up').replace('{icon}', rankData.tier.icon).replace('{name}', tierName)}</div>` : ''}
@@ -558,12 +573,9 @@ GL.QuizFlags = {
         <div class="rank-icon">${rankData.tier.icon}</div>
         <div class="rank-name">${tierName}</div>
         <div class="rank-bar-track" style="height:14px;">
-          <div class="rank-bar-fill" id="rankBarFill" style="width:${rankData.beforePct}%;transition:none;"></div>
+          <div class="rank-bar-fill" id="rankBarFill" style="width:${discBefore}%;transition:none;"></div>
         </div>
-        <div class="rank-tier-labels">
-          <span>${tierName} (${rankData.tier.min})</span>
-          ${nextName ? `<span>${nextName} (${rankData.next.min})</span>` : `<span>${t('result.rank.max')}</span>`}
-        </div>
+        <div class="rank-tier-labels">${barLabel}</div>
         <div style="margin-top:0.6rem;font-size:0.875rem;">${xpGained}</div>
       </div>`;
   },

@@ -433,7 +433,7 @@ GL.RankBadges = {
           <div class="rb-medal">${svgHtml}</div>
         </div>
         <div class="rb-name">${rank.name}</div>
-        ${showXP  ? `<div class="rb-xp-req">${rank.min === 0 ? 'Départ · 0 Pts' : rank.min + ' Pts'}</div>` : ''}
+        ${showXP  ? `<div class="rb-xp-req">${rank.key === 'legend' ? '591 découvertes' : (rank.min === 0 ? 'Départ · 0 Pts' : rank.min + ' Pts')}</div>` : ''}
         ${showDesc ? `<div class="rb-desc">${rank.desc}</div>` : ''}
       </div>`;
   },
@@ -541,8 +541,12 @@ GL.RankBadges = {
 
   render(container) {
     const ranks = this.RANKS;
-    const currentXP = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
+    const stats = GL.UI ? GL.UI.getStats() : {};
+    const currentXP = stats.rankedXP || 0;
+    const discoveredCount = GL.UI ? GL.UI.computeDiscovered(stats) : 0;
+    const totalUnique = GL.UI ? GL.UI.TOTAL_UNIQUE : 591;
     const currentTierName = GL.UI ? GL.UI.getRankInfo(currentXP).tier.name : 'Bronze';
+    const isLegend = currentTierName === 'Légende' || currentTierName === 'Legend';
 
     container.innerHTML = `
       <div class="page">
@@ -550,16 +554,26 @@ GL.RankBadges = {
         <p class="page-subtitle">${this._t('ranks.subtitle')}</p>
 
         <div class="rb-test-grid">
-          ${ranks.map(r => `
-            <div class="rb-test-card" style="${r.min <= currentXP ? `border-color:${r.color}66;` : ''}">
+          ${ranks.map(r => {
+            const isLegendCard = r.key === 'legend';
+            const unlocked = isLegendCard ? (discoveredCount >= totalUnique) : (r.min <= currentXP);
+            const isCurrent = r.name === currentTierName;
+            let statusHtml;
+            if (isCurrent) {
+              statusHtml = `<span class="rb-current-label" style="background:${r.color};">${this._t('ranks.your_rank')}</span>`;
+            } else if (isLegendCard) {
+              statusHtml = `<span style="font-size:0.65rem;color:var(--text-muted);">🔍 ${discoveredCount}/${totalUnique} découvertes</span>`;
+            } else if (!unlocked) {
+              statusHtml = `<span style="font-size:0.65rem;color:var(--text-muted);">🔒 ${this._t('ranks.pts_missing').replace('{n}', r.min - currentXP)}</span>`;
+            } else {
+              statusHtml = `<span style="font-size:0.65rem;color:var(--success);">${this._t('ranks.unlocked')}</span>`;
+            }
+            return `
+            <div class="rb-test-card" style="${unlocked ? `border-color:${r.color}66;` : ''}">
               ${this.badgeHtml(r, { size: 110, showDesc: true, showXP: true })}
-              ${r.name === currentTierName
-                ? `<span class="rb-current-label" style="background:${r.color};">${this._t('ranks.your_rank')}</span>`
-                : (r.min > currentXP
-                    ? `<span style="font-size:0.65rem;color:var(--text-muted);">🔒 ${this._t('ranks.pts_missing').replace('{n}', r.min - currentXP)}</span>`
-                    : `<span style="font-size:0.65rem;color:var(--success);">${this._t('ranks.unlocked')}</span>`)}
-            </div>
-          `).join('')}
+              ${statusHtml}
+            </div>`;
+          }).join('')}
         </div>
 
         <div class="rb-simulator">
@@ -582,13 +596,13 @@ GL.RankBadges = {
     // Initialize prevTierIndex from the slider's starting value (no animation on load)
     let prevTierIndex = (() => {
       const xp = parseInt(slider.value, 10);
-      const info = GL.UI ? GL.UI.getRankInfo(xp) : { tier: this.RANKS[0] };
+      const info = GL.UI ? GL.UI.getRankInfo(xp, 0) : { tier: this.RANKS[0] };
       return this.RANKS.findIndex(r => r.name === info.tier.name);
     })();
 
     const update = () => {
       const xp   = parseInt(slider.value, 10);
-      const info = GL.UI ? GL.UI.getRankInfo(xp) : { tier: this.RANKS[0], next: this.RANKS[1] };
+      const info = GL.UI ? GL.UI.getRankInfo(xp, 0) : { tier: this.RANKS[0], next: this.RANKS[1] };
       const rank = this.RANKS.find(r => r.name === info.tier.name) || this.RANKS[0];
       const tierIndex = this.RANKS.indexOf(rank);
 

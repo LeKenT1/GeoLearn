@@ -333,13 +333,30 @@ GL.App = {
   _rankCardHtml(stats) {
     const t = this._t.bind(this);
     const xp = stats.rankedXP || 0;
+    const discovered = GL.UI.computeDiscovered(stats);
+    const totalUnique = GL.UI.TOTAL_UNIQUE;
     const { tier, next } = GL.UI.getRankInfo(xp);
-    const TOTAL = GL.UI.RANK_XP_MAX;
-    const tierEnd = next ? next.min - 1 : TOTAL;
-    const tierRange = tierEnd - tier.min;
-    const tierPct = tierRange > 0 ? Math.min(100, Math.round((xp - tier.min) / tierRange * 100)) : 100;
+    const isNextLegend = next?.key === 'legend';
+    const isCurrentLegend = tier.key === 'legend';
     const tierName = GL.UI.tierName(tier);
     const nextName = next ? GL.UI.tierName(next) : null;
+    let tierPct, barLabels, masteredLine;
+    if (isCurrentLegend) {
+      tierPct = 100;
+      barLabels = `<span>${tierName}</span><span>${t('result.rank.max')}</span>`;
+      masteredLine = `${t('stats.rank.xp').replace('{n}', xp)} · ${discovered}/${totalUnique} découvertes · ${t('stats.rank.max')}`;
+    } else if (isNextLegend) {
+      tierPct = Math.round(discovered / totalUnique * 100);
+      barLabels = `<span>${tierName}</span><span>${nextName} (${discovered}/${totalUnique})</span>`;
+      masteredLine = `${t('stats.rank.xp').replace('{n}', xp)} · ${discovered}/${totalUnique} découvertes pour Légende`;
+    } else {
+      const TOTAL = GL.UI.RANK_XP_MAX;
+      const tierEnd = next ? next.min - 1 : TOTAL;
+      const tierRange = tierEnd - tier.min;
+      tierPct = tierRange > 0 ? Math.min(100, Math.round((xp - tier.min) / tierRange * 100)) : 100;
+      barLabels = `<span>${tierName} (${tier.min} Pts)</span>${nextName ? `<span>${nextName} (${next.min} Pts)</span>` : `<span>${t('result.rank.max')}</span>`}`;
+      masteredLine = `${t('stats.rank.xp').replace('{n}', xp)}${nextName ? ' ' + t('stats.rank.next').replace('{n}', next.min) : ' ' + t('stats.rank.max')}`;
+    }
     return `
       <div class="rank-card" style="--rank-color:${tier.color};">
         <div class="rank-icon">${tier.icon}</div>
@@ -347,13 +364,8 @@ GL.App = {
         <div class="rank-bar-track">
           <div class="rank-bar-fill" style="width:${tierPct}%;"></div>
         </div>
-        <div class="rank-tier-labels">
-          <span>${tierName} (${tier.min} Pts)</span>
-          ${nextName ? `<span>${nextName} (${next.min} Pts)</span>` : `<span>${t('result.rank.max')}</span>`}
-        </div>
-        <div class="rank-mastered-line">
-          ${t('stats.rank.xp').replace('{n}', xp)}${nextName ? ' ' + t('stats.rank.next').replace('{n}', next.min) : ' ' + t('stats.rank.max')}
-        </div>
+        <div class="rank-tier-labels">${barLabels}</div>
+        <div class="rank-mastered-line">${masteredLine}</div>
       </div>`;
   },
 

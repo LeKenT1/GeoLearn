@@ -143,7 +143,8 @@ GL.QuizMap = {
         streak: 0,
         maxStreak: 0,
         wrongAnswers: [],
-        peakBefore: GL.UI.getStats().rankedXP || 0
+        peakBefore: GL.UI.getStats().rankedXP || 0,
+        discoveredBefore: GL.UI.computeDiscovered(GL.UI.getStats())
       };
 
       this.renderQuiz(container);
@@ -345,17 +346,20 @@ GL.QuizMap = {
     let rankData = null;
     if (session.config.ranked) {
       const peakBefore = session.peakBefore || 0;
-      const peakAfter = GL.UI.getStats().rankedXP || 0;
+      const discoveredBefore = session.discoveredBefore || 0;
+      const statsAfter = GL.UI.getStats();
+      const peakAfter = statsAfter.rankedXP || 0;
+      const discoveredAfter = GL.UI.computeDiscovered(statsAfter);
       const gained = peakAfter - peakBefore;
-      const { tier, tierIndex, next } = GL.UI.getRankInfo(peakAfter);
-      const prevInfo = GL.UI.getRankInfo(peakBefore);
+      const { tier, tierIndex, next } = GL.UI.getRankInfo(peakAfter, discoveredAfter);
+      const prevInfo = GL.UI.getRankInfo(peakBefore, discoveredBefore);
       const rankUp = tierIndex > prevInfo.tierIndex;
       const TOTAL = GL.UI.RANK_XP_MAX;
       const tierEnd = next ? next.min - 1 : TOTAL;
       const tierRange = tierEnd - tier.min;
       const beforePct = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakBefore - tier.min) / tierRange * 100)) : 100;
       const afterPct  = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakAfter  - tier.min) / tierRange * 100)) : 100;
-      rankData = { tier, next, gained, rankUp, beforePct, afterPct };
+      rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter };
     }
 
     const rankHtml = rankData ? GL.QuizFlags._rankCardHtml(rankData, t) : '';
@@ -397,8 +401,6 @@ GL.QuizMap = {
 
           <div class="results-buttons">
             <button class="btn btn-primary" id="retryMapBtn">${t('result.retry')}</button>
-            <a href="#/quiz/carte" class="btn btn-secondary">${t('result.modify')}</a>
-            <a href="#/" class="btn btn-ghost">${t('result.home')}</a>
           </div>
         </div>
       </div>

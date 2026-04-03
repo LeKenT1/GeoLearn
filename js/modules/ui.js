@@ -91,6 +91,12 @@ GL.UI = {
       if (live > (stats.peakMastered || 0)) stats.peakMastered = live;
       // 1 XP par bonne réponse en mode classement
       if (correct) stats.rankedXP = (stats.rankedXP || 0) + 1;
+      // Discovered : bonne réponse unique (jamais réinitialisé)
+      if (correct) {
+        if (!stats.discovered) stats.discovered = {};
+        if (!stats.discovered[countryCode]) stats.discovered[countryCode] = {};
+        if (!stats.discovered[countryCode][type]) stats.discovered[countryCode][type] = true;
+      }
     }
     // Score de difficulté : raté = +1, trouvé = /2
     if (!stats.diffScore) stats.diffScore = {};
@@ -106,6 +112,18 @@ GL.UI = {
       if ((m[code].flag     || 0) >= 3) count++;
       if ((m[code].capital  || 0) >= 3) count++;
       if ((m[code].map      || 0) >= 3) count++;
+    }
+    return count;
+  },
+
+  TOTAL_UNIQUE: 197 * 3, // 591 — tous les pays × tous les types (flag, capital, map)
+  computeDiscovered(stats) {
+    const d = (stats || {}).discovered || {};
+    let count = 0;
+    for (const code in d) {
+      if (d[code].flag)    count++;
+      if (d[code].capital) count++;
+      if (d[code].map)     count++;
     }
     return count;
   },
@@ -127,11 +145,15 @@ GL.UI = {
   },
   RANK_XP_MAX: 1000, // valeur affichée comme cap pour la barre de Légende
 
-  getRankInfo(peak) {
+  getRankInfo(xp, discoveredCount) {
+    const disc = (discoveredCount !== undefined) ? discoveredCount : this.computeDiscovered(this.getStats());
     const tiers = this.RANK_TIERS;
     let tierIndex = 0;
     for (let i = tiers.length - 1; i >= 0; i--) {
-      if ((peak || 0) >= tiers[i].min) { tierIndex = i; break; }
+      if (i === tiers.length - 1) {
+        // Légende : il faut avoir trouvé chaque question unique au moins une fois
+        if (disc >= this.TOTAL_UNIQUE) { tierIndex = i; break; }
+      } else if ((xp || 0) >= tiers[i].min) { tierIndex = i; break; }
     }
     return { tier: tiers[tierIndex], tierIndex, next: tiers[tierIndex + 1] || null };
   },

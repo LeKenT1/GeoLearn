@@ -603,8 +603,6 @@ GL.QuizNightmare = {
 
           <div class="results-buttons">
             <button class="btn btn-primary" id="retryNightmareBtn">${t('result.retry')}</button>
-            <a href="#/quiz/cauchemar" class="btn btn-secondary">${t('result.modify')}</a>
-            <a href="#/" class="btn btn-ghost">${t('result.home')}</a>
           </div>
         </div>
       </div>

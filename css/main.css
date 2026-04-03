@@ -627,6 +627,7 @@ img { max-width: 100%; display: block; }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
+  #navbar { padding: 0 1rem; }
   .nav-toggle { display: flex; }
   .nav-right { padding-left: 0.5rem; border-left: none; gap: 0.4rem; }
   .nav-links {
@@ -681,6 +682,11 @@ img { max-width: 100%; display: block; }
 @media (max-width: 480px) {
   .continent-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .country-progress-list { grid-template-columns: 1fr; }
+  .stats-grid-5 { grid-template-columns: repeat(2, 1fr); }
+  .page-title { font-size: 1.65rem; }
+  .page-subtitle { font-size: 0.875rem; margin-bottom: 1.25rem; }
+  .home-stats { gap: 1rem; padding: 1rem; }
+  .home-stat-number { font-size: 1.8rem; }
 }
 
 /* ========== HOME PAGE V2 ========== */

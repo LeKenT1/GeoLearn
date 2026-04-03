@@ -62,161 +62,161 @@ GL.Achievements = {
   // tier 5 = ultimate (rainbow).
   GROUPS: [
     {
-      id: 'africa', label: 'Afrique', emoji: '🌍', colorVar: '--africa',
+      id: 'africa', label: 'Afrique', labelEn: 'Africa', emoji: '🌍', colorVar: '--africa',
       current: cs => cs.continentProgress.Africa,
       max: 100, unit: '%',
       achievements: [
-        { id: 'africa_25',  title: 'Curieux d\'Afrique',    tier: 1, threshold: 25  },
-        { id: 'africa_50',  title: 'Explorateur d\'Afrique', tier: 2, threshold: 50  },
-        { id: 'africa_75',  title: 'Aventurier d\'Afrique', tier: 3, threshold: 75  },
-        { id: 'africa_100', title: 'Champion d\'Afrique',   tier: 4, threshold: 100 },
+        { id: 'africa_25',  title: 'Curieux d\'Afrique',    titleEn: 'Africa Curious',      tier: 1, threshold: 25  },
+        { id: 'africa_50',  title: 'Explorateur d\'Afrique', titleEn: 'Africa Explorer',    tier: 2, threshold: 50  },
+        { id: 'africa_75',  title: 'Aventurier d\'Afrique', titleEn: 'Africa Adventurer',   tier: 3, threshold: 75  },
+        { id: 'africa_100', title: 'Champion d\'Afrique',   titleEn: 'Africa Champion',     tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'americas', label: 'Amériques', emoji: '🌎', colorVar: '--americas',
+      id: 'americas', label: 'Amériques', labelEn: 'Americas', emoji: '🌎', colorVar: '--americas',
       current: cs => cs.continentProgress.Americas,
       max: 100, unit: '%',
       achievements: [
-        { id: 'americas_25',  title: 'Curieux des Amériques',    tier: 1, threshold: 25  },
-        { id: 'americas_50',  title: 'Explorateur des Amériques', tier: 2, threshold: 50  },
-        { id: 'americas_75',  title: 'Aventurier des Amériques', tier: 3, threshold: 75  },
-        { id: 'americas_100', title: 'Champion des Amériques',   tier: 4, threshold: 100 },
+        { id: 'americas_25',  title: 'Curieux des Amériques',    titleEn: 'Americas Curious',     tier: 1, threshold: 25  },
+        { id: 'americas_50',  title: 'Explorateur des Amériques', titleEn: 'Americas Explorer',   tier: 2, threshold: 50  },
+        { id: 'americas_75',  title: 'Aventurier des Amériques', titleEn: 'Americas Adventurer',  tier: 3, threshold: 75  },
+        { id: 'americas_100', title: 'Champion des Amériques',   titleEn: 'Americas Champion',    tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'asia', label: 'Asie', emoji: '🌏', colorVar: '--asia',
+      id: 'asia', label: 'Asie', labelEn: 'Asia', emoji: '🌏', colorVar: '--asia',
       current: cs => cs.continentProgress.Asia,
       max: 100, unit: '%',
       achievements: [
-        { id: 'asia_25',  title: 'Curieux d\'Asie',    tier: 1, threshold: 25  },
-        { id: 'asia_50',  title: 'Explorateur d\'Asie', tier: 2, threshold: 50  },
-        { id: 'asia_75',  title: 'Aventurier d\'Asie', tier: 3, threshold: 75  },
-        { id: 'asia_100', title: 'Champion d\'Asie',   tier: 4, threshold: 100 },
+        { id: 'asia_25',  title: 'Curieux d\'Asie',    titleEn: 'Asia Curious',      tier: 1, threshold: 25  },
+        { id: 'asia_50',  title: 'Explorateur d\'Asie', titleEn: 'Asia Explorer',    tier: 2, threshold: 50  },
+        { id: 'asia_75',  title: 'Aventurier d\'Asie', titleEn: 'Asia Adventurer',   tier: 3, threshold: 75  },
+        { id: 'asia_100', title: 'Champion d\'Asie',   titleEn: 'Asia Champion',     tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'europe', label: 'Europe', emoji: '🌍', colorVar: '--europe',
+      id: 'europe', label: 'Europe', labelEn: 'Europe', emoji: '🌍', colorVar: '--europe',
       current: cs => cs.continentProgress.Europe,
       max: 100, unit: '%',
       achievements: [
-        { id: 'europe_25',  title: 'Curieux d\'Europe',    tier: 1, threshold: 25  },
-        { id: 'europe_50',  title: 'Explorateur d\'Europe', tier: 2, threshold: 50  },
-        { id: 'europe_75',  title: 'Aventurier d\'Europe', tier: 3, threshold: 75  },
-        { id: 'europe_100', title: 'Champion d\'Europe',   tier: 4, threshold: 100 },
+        { id: 'europe_25',  title: 'Curieux d\'Europe',    titleEn: 'Europe Curious',      tier: 1, threshold: 25  },
+        { id: 'europe_50',  title: 'Explorateur d\'Europe', titleEn: 'Europe Explorer',    tier: 2, threshold: 50  },
+        { id: 'europe_75',  title: 'Aventurier d\'Europe', titleEn: 'Europe Adventurer',   tier: 3, threshold: 75  },
+        { id: 'europe_100', title: 'Champion d\'Europe',   titleEn: 'Europe Champion',     tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'oceania', label: 'Océanie', emoji: '🌐', colorVar: '--oceania',
+      id: 'oceania', label: 'Océanie', labelEn: 'Oceania', emoji: '🌏', colorVar: '--oceania',
       current: cs => cs.continentProgress.Oceania,
       max: 100, unit: '%',
       achievements: [
-        { id: 'oceania_25',  title: 'Curieux d\'Océanie',    tier: 1, threshold: 25  },
-        { id: 'oceania_50',  title: 'Explorateur d\'Océanie', tier: 2, threshold: 50  },
-        { id: 'oceania_75',  title: 'Aventurier d\'Océanie', tier: 3, threshold: 75  },
-        { id: 'oceania_100', title: 'Champion d\'Océanie',   tier: 4, threshold: 100 },
+        { id: 'oceania_25',  title: 'Curieux d\'Océanie',    titleEn: 'Oceania Curious',     tier: 1, threshold: 25  },
+        { id: 'oceania_50',  title: 'Explorateur d\'Océanie', titleEn: 'Oceania Explorer',   tier: 2, threshold: 50  },
+        { id: 'oceania_75',  title: 'Aventurier d\'Océanie', titleEn: 'Oceania Adventurer',  tier: 3, threshold: 75  },
+        { id: 'oceania_100', title: 'Champion d\'Océanie',   titleEn: 'Oceania Champion',    tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'flags', label: 'Drapeaux', emoji: '🏁', colorVar: '--accent',
+      id: 'flags', label: 'Drapeaux', labelEn: 'Flags', emoji: '🏁', colorVar: '--accent',
       current: cs => Math.round(cs.typeMastered.flag / cs.total * 100),
       max: 100, unit: '%',
       achievements: [
-        { id: 'flags_25',  title: 'Apprenti Étendard', tier: 1, threshold: 25  },
-        { id: 'flags_50',  title: 'Étendard',          tier: 2, threshold: 50  },
-        { id: 'flags_75',  title: 'Expert Étendard',   tier: 3, threshold: 75  },
-        { id: 'flags_100', title: 'Grand Étendard',    tier: 4, threshold: 100 },
+        { id: 'flags_25',  title: 'Apprenti Étendard', titleEn: 'Flag Apprentice',      tier: 1, threshold: 25  },
+        { id: 'flags_50',  title: 'Étendard',          titleEn: 'Standard Bearer',      tier: 2, threshold: 50  },
+        { id: 'flags_75',  title: 'Expert Étendard',   titleEn: 'Flag Expert',          tier: 3, threshold: 75  },
+        { id: 'flags_100', title: 'Grand Étendard',    titleEn: 'Grand Standard Bearer', tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'capitals', label: 'Capitales', emoji: '🏛️', colorVar: '--accent',
+      id: 'capitals', label: 'Capitales', labelEn: 'Capitals', emoji: '🏛️', colorVar: '--accent',
       current: cs => Math.round(cs.typeMastered.capital / cs.total * 100),
       max: 100, unit: '%',
       achievements: [
-        { id: 'capitals_25',  title: 'Apprenti Diplomate', tier: 1, threshold: 25  },
-        { id: 'capitals_50',  title: 'Diplomate',          tier: 2, threshold: 50  },
-        { id: 'capitals_75',  title: 'Expert Diplomate',   tier: 3, threshold: 75  },
-        { id: 'capitals_100', title: 'Grand Diplomate',    tier: 4, threshold: 100 },
+        { id: 'capitals_25',  title: 'Apprenti Diplomate', titleEn: 'Diplomat Apprentice', tier: 1, threshold: 25  },
+        { id: 'capitals_50',  title: 'Diplomate',          titleEn: 'Diplomat',            tier: 2, threshold: 50  },
+        { id: 'capitals_75',  title: 'Expert Diplomate',   titleEn: 'Expert Diplomat',     tier: 3, threshold: 75  },
+        { id: 'capitals_100', title: 'Grand Diplomate',    titleEn: 'Grand Diplomat',      tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'map', label: 'Carte', emoji: '📍', colorVar: '--accent',
+      id: 'map', label: 'Carte', labelEn: 'Map', emoji: '📍', colorVar: '--accent',
       current: cs => Math.round(cs.typeMastered.map / cs.total * 100),
       max: 100, unit: '%',
       achievements: [
-        { id: 'map_25',  title: 'Apprenti Cartographe', tier: 1, threshold: 25  },
-        { id: 'map_50',  title: 'Cartographe',          tier: 2, threshold: 50  },
-        { id: 'map_75',  title: 'Expert Cartographe',   tier: 3, threshold: 75  },
-        { id: 'map_100', title: 'Grand Cartographe',   tier: 4, threshold: 100 },
+        { id: 'map_25',  title: 'Apprenti Cartographe', titleEn: 'Cartography Apprentice', tier: 1, threshold: 25  },
+        { id: 'map_50',  title: 'Cartographe',          titleEn: 'Cartographer',           tier: 2, threshold: 50  },
+        { id: 'map_75',  title: 'Expert Cartographe',   titleEn: 'Expert Cartographer',    tier: 3, threshold: 75  },
+        { id: 'map_100', title: 'Grand Cartographe',    titleEn: 'Grand Cartographer',     tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'nightmare', label: 'Quiz Cauchemar', emoji: '💀', colorVar: null,
+      id: 'nightmare', label: 'Quiz Cauchemar', labelEn: 'Nightmare Quiz', emoji: '💀', colorVar: null,
       colorHex: '#9b59b6',
       current: cs => cs.nightmareGood,
       max: 25, unit: ' quiz réussis (≥ 50%)',
       achievements: [
-        { id: 'nightmare_1',  title: 'Survivant',              tier: 1, threshold: 1  },
-        { id: 'nightmare_5',  title: 'Guerrier du Cauchemar',  tier: 2, threshold: 5  },
-        { id: 'nightmare_10', title: 'Seigneur du Cauchemar',  tier: 3, threshold: 10 },
-        { id: 'nightmare_25', title: 'Maître de l\'Enfer',     tier: 4, threshold: 25 },
+        { id: 'nightmare_1',  title: 'Survivant',              titleEn: 'Survivor',        tier: 1, threshold: 1  },
+        { id: 'nightmare_5',  title: 'Guerrier du Cauchemar',  titleEn: 'Nightmare Warrior', tier: 2, threshold: 5  },
+        { id: 'nightmare_10', title: 'Seigneur du Cauchemar',  titleEn: 'Nightmare Lord',  tier: 3, threshold: 10 },
+        { id: 'nightmare_25', title: 'Maître de l\'Enfer',     titleEn: 'Hell Master',     tier: 4, threshold: 25 },
       ]
     },
     {
-      id: 'streak', label: 'Série (classé)', emoji: '🔥', colorVar: null,
+      id: 'streak', label: 'Série (classé)', labelEn: 'Streak (ranked)', emoji: '🔥', colorVar: null,
       colorHex: '#ff6b35',
       current: cs => cs.maxStreak,
       max: 50, unit: ' bonnes réponses d\'affilée (classé)',
       achievements: [
-        { id: 'streak_5',  title: 'En Feu',       tier: 1, threshold: 5  },
-        { id: 'streak_10', title: 'Torche Vivante', tier: 2, threshold: 10 },
-        { id: 'streak_25', title: 'Invincible',    tier: 3, threshold: 25 },
-        { id: 'streak_50', title: 'Inarrêtable',   tier: 4, threshold: 50 },
+        { id: 'streak_5',  title: 'En Feu',        titleEn: 'On Fire',       tier: 1, threshold: 5  },
+        { id: 'streak_10', title: 'Torche Vivante', titleEn: 'Living Torch', tier: 2, threshold: 10 },
+        { id: 'streak_25', title: 'Invincible',     titleEn: 'Invincible',   tier: 3, threshold: 25 },
+        { id: 'streak_50', title: 'Inarrêtable',    titleEn: 'Unstoppable',  tier: 4, threshold: 50 },
       ]
     },
     {
-      id: 'quizcount', label: 'Quiz complétés', emoji: '🎯', colorVar: '--accent',
+      id: 'quizcount', label: 'Quiz complétés', labelEn: 'Completed Quizzes', emoji: '🎯', colorVar: '--accent',
       current: cs => cs.quizCount,
       max: 100, unit: ' quiz',
       achievements: [
-        { id: 'quiz_5',   title: 'Studieux',    tier: 1, threshold: 5   },
-        { id: 'quiz_20',  title: 'intello',     tier: 2, threshold: 20  },
-        { id: 'quiz_50',  title: 'fast learner', tier: 3, threshold: 50  },
-        { id: 'quiz_100', title: 'Maître Quiz',  tier: 4, threshold: 100 },
+        { id: 'quiz_5',   title: 'Studieux',     titleEn: 'Studious',     tier: 1, threshold: 5   },
+        { id: 'quiz_20',  title: 'intello',      titleEn: 'Nerd',         tier: 2, threshold: 20  },
+        { id: 'quiz_50',  title: 'fast learner', titleEn: 'Fast Learner', tier: 3, threshold: 50  },
+        { id: 'quiz_100', title: 'Maître Quiz',  titleEn: 'Quiz Master',  tier: 4, threshold: 100 },
       ]
     },
     {
-      id: 'questions', label: 'Questions répondues', emoji: '📝', colorVar: '--accent',
+      id: 'questions', label: 'Questions répondues', labelEn: 'Questions Answered', emoji: '📝', colorVar: '--accent',
       current: cs => cs.totalQuestions,
       max: 2500, unit: ' questions',
       achievements: [
-        { id: 'questions_100',  title: 'Apprenti',      tier: 1, threshold: 100  },
-        { id: 'questions_500',  title: 'Studieux',      tier: 2, threshold: 500  },
-        { id: 'questions_1000', title: 'Acharné',       tier: 3, threshold: 1000 },
-        { id: 'questions_2500', title: 'Encyclopédiste', tier: 4, threshold: 2500 },
+        { id: 'questions_100',  title: 'Apprenti',       titleEn: 'Apprentice',    tier: 1, threshold: 100  },
+        { id: 'questions_500',  title: 'Studieux',       titleEn: 'Studious',      tier: 2, threshold: 500  },
+        { id: 'questions_1000', title: 'Acharné',        titleEn: 'Dedicated',     tier: 3, threshold: 1000 },
+        { id: 'questions_2500', title: 'Encyclopédiste', titleEn: 'Encyclopedist', tier: 4, threshold: 2500 },
       ]
     },
     {
-      id: 'login', label: 'Connexions', emoji: '📅', colorVar: null,
+      id: 'login', label: 'Connexions', labelEn: 'Logins', emoji: '📅', colorVar: null,
       colorHex: '#2ecc71',
       current: cs => cs.loginDays,
       max: 11, unit: ' jours joués',
       achievements: [
-        { id: 'login_2',  title: 'Assidu',    tier: 1, threshold: 2  },
-        { id: 'login_5',  title: 'Fidèle',    tier: 2, threshold: 5  },
-        { id: 'login_8',  title: 'Dédié',     tier: 3, threshold: 8  },
-        { id: 'login_11', title: 'Passionné', tier: 4, threshold: 11 },
+        { id: 'login_2',  title: 'Assidu',    titleEn: 'Assiduous',  tier: 1, threshold: 2  },
+        { id: 'login_5',  title: 'Fidèle',    titleEn: 'Faithful',   tier: 2, threshold: 5  },
+        { id: 'login_8',  title: 'Dédié',     titleEn: 'Dedicated',  tier: 3, threshold: 8  },
+        { id: 'login_11', title: 'Passionné', titleEn: 'Passionate', tier: 4, threshold: 11 },
       ]
     },
     {
-      id: 'xp', label: 'Pts Classement', emoji: '⭐', colorVar: null,
+      id: 'xp', label: 'Pts Classement', labelEn: 'Ranked Pts', emoji: '⭐', colorVar: null,
       colorHex: '#ffd700',
       current: cs => cs.rankedXP,
       max: 800, unit: ' Pts',
       achievements: [
-        { id: 'xp_50',  title: 'Novice',    tier: 1, threshold: 50  },
-        { id: 'xp_150', title: 'Confirmé',  tier: 2, threshold: 150 },
-        { id: 'xp_300', title: 'Expert',    tier: 3, threshold: 300 },
-        { id: 'xp_800', title: 'Légende',   tier: 4, threshold: 800 },
+        { id: 'xp_50',  title: 'Novice',    titleEn: 'Novice',     tier: 1, threshold: 50  },
+        { id: 'xp_150', title: 'Confirmé',  titleEn: 'Confirmed',  tier: 2, threshold: 150 },
+        { id: 'xp_300', title: 'Expert',    titleEn: 'Expert',     tier: 3, threshold: 300 },
+        { id: 'xp_800', title: 'Légende',   titleEn: 'Legend',     tier: 4, threshold: 800 },
       ]
     },
   ],
@@ -225,6 +225,7 @@ GL.Achievements = {
   ULTIMATE: {
     id: 'ultimate', label: 'Succès Ultime', emoji: '🌟',
     title: 'Maître du Monde',
+    titleEn: 'World Master',
     tier: 5,
     desc: 'Débloquer tous les succès Or (100%)',
   },
@@ -314,14 +315,28 @@ GL.Achievements = {
   // ─── Title badge HTML (used in profile) ─────────────────────────────────────
   titleBadgeHtml(titleDef) {
     if (!titleDef) return '';
+    const label = this._achTitle(titleDef);
     if (titleDef.tier === 5) {
-      return `<span class="ach-title-badge ach-title-ultimate">🌟 ${titleDef.title}</span>`;
+      return `<span class="ach-title-badge ach-title-ultimate">🌟 ${label}</span>`;
     }
     const tierClass = ['', 'ach-title-plastic', 'ach-title-bronze', 'ach-title-silver', 'ach-title-gold'][titleDef.tier] || '';
-    return `<span class="ach-title-badge ${tierClass}">${titleDef.title}</span>`;
+    return `<span class="ach-title-badge ${tierClass}">${label}</span>`;
   },
 
   _t(key) { return GL.I18N ? GL.I18N.t(key) : key; },
+
+  // Returns the localized title for an achievement/ultimate definition
+  _achTitle(def) {
+    if (!def) return '';
+    if (GL.I18N && GL.I18N.lang === 'en' && def.titleEn) return def.titleEn;
+    return def.title;
+  },
+
+  // Returns the localized label for a group
+  _groupLabel(g) {
+    if (GL.I18N && GL.I18N.lang === 'en' && g.labelEn) return g.labelEn;
+    return g.label;
+  },
 
   // ─── Render achievements page ────────────────────────────────────────────────
   render(container) {
@@ -360,9 +375,8 @@ GL.Achievements = {
             <div class="ach-row-left">
               <span class="ach-tier-pip ${ti.cls}"></span>
               <div class="ach-row-text">
-                <span class="ach-row-title ${done && a.tier === 4 ? 'ach-title-diamond' : ''}"
-                      ${done && a.tier === 4 ? '' : ''}>
-                  ${done ? '' : '🔒 '}<strong>${a.title}</strong>
+                <span class="ach-row-title">
+                  ${done ? '' : '🔒 '}<strong class="${done && a.tier === 4 ? 'ach-title-diamond' : ''}">${this._achTitle(a)}</strong>
                 </span>
                 <span class="ach-row-tier">${ti.label} · ${a.threshold}${g.unit}</span>
               </div>
@@ -379,7 +393,7 @@ GL.Achievements = {
         <div class="ach-group-card">
           <div class="ach-group-header">
             <span class="ach-group-emoji">${g.emoji}</span>
-            <span class="ach-group-label">${g.label}</span>
+            <span class="ach-group-label">${this._groupLabel(g)}</span>
             <span class="ach-group-val" style="color:${color};">${val}${g.unit === '%' ? '%' : ''}</span>
           </div>
           <div class="ach-group-bar-track">
@@ -409,8 +423,8 @@ GL.Achievements = {
                 <span class="ach-tier-pip ach-tier-ultimate"></span>
                 <div class="ach-row-text">
                   ${ultimateUnlocked
-                    ? `<span class="ach-title-ultimate ach-row-title"><strong>🌟 ${t('ach.ultimate.title')}</strong></span>`
-                    : `<span class="ach-row-title">🔒 <strong>${t('ach.ultimate.title')}</strong></span>`}
+                    ? `<span class="ach-row-title"><strong class="ach-title-ultimate">🌟 ${this._achTitle(this.ULTIMATE)}</strong></span>`
+                    : `<span class="ach-row-title">🔒 <strong>${this._achTitle(this.ULTIMATE)}</strong></span>`}
                   <span class="ach-row-tier">${t('ach.tier.ultimate')} · ${t('ach.ultimate.desc')}</span>
                 </div>
               </div>
@@ -438,10 +452,13 @@ GL.Achievements = {
         const isPassed = xp >= r.min;
         const isActive = r.name === currentTier.name;
         const label = GL.UI ? GL.UI.tierName(r) : r.name;
+        const rbEntry = GL.RankBadges ? GL.RankBadges.RANKS.find(rb => rb.name === r.name) : null;
+        const badgeSvg = rbEntry && GL.RankBadges ? GL.RankBadges.svgFrameOnly(rbEntry.key) : r.icon;
+        const glowVars = isPassed ? `--dot-glow:${r.color};--icon-glow:${r.color};` : '';
         return `
-          <div class="rank-pb-marker${isActive ? ' active' : ''}" style="left:${posPct}%;">
-            <div class="rank-pb-dot" style="background:${isPassed ? r.color : 'var(--bg-surface)'};border-color:${r.color};${isActive ? 'box-shadow:0 0 8px ' + r.color + ';' : ''}"></div>
-            <div class="rank-pb-icon">${r.icon}</div>
+          <div class="rank-pb-marker${isActive ? ' active' : ''}" style="left:${posPct}%;${glowVars}">
+            <div class="rank-pb-dot" style="background:${isPassed ? r.color : 'var(--bg-surface)'};border-color:${r.color};${isActive ? `box-shadow:0 0 8px ${r.color};` : ''}"></div>
+            <div class="rank-pb-icon rank-pb-icon--${isPassed ? 'unlocked' : 'locked'}">${badgeSvg}</div>
             <div class="rank-pb-label" style="color:${isPassed ? r.color : 'var(--text-muted)'};">${label}</div>
           </div>`;
       }).join('');
@@ -455,7 +472,7 @@ GL.Achievements = {
           <div class="rank-pb-title">${t('result.rank.progress')}</div>
           <div class="rank-pb-track-wrap">
             <div class="rank-pb-track">
-              <div class="rank-pb-fill" style="width:${fillPct}%;background:${currentTier.color};"></div>
+              <div class="rank-pb-fill" style="width:${fillPct}%;--rank-fill-color:${currentTier.color};"></div>
             </div>
             ${markers}
           </div>
@@ -475,10 +492,6 @@ GL.Achievements = {
         </p>
 
         <p class="ach-hint">${t('ach.hint')}</p>
-
-        <div style="text-align:right;margin-bottom:0.5rem;">
-          <button class="btn btn-sm btn-secondary" id="achDebugUnlockBtn" style="font-size:0.75rem;opacity:0.5;">${t('ach.unlock.all')}</button>
-        </div>
 
         <h3 class="ach-section-title">${t('ach.section.continents')}</h3>
         <div class="ach-grid">
@@ -512,14 +525,5 @@ GL.Achievements = {
       });
     });
 
-    // ── Debug : tout débloquer ──
-    const debugBtn = container.querySelector('#achDebugUnlockBtn');
-    if (debugBtn) {
-      debugBtn.addEventListener('click', () => {
-        this._debugUnlockAll();
-        GL.UI.toast(t('ach.unlocked'), 'success');
-        this.render(container);
-      });
-    }
   },
 };
