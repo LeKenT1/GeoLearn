@@ -7,6 +7,18 @@ GL.Router = {
   init(routes) {
     this.routes = routes;
     window.addEventListener('hashchange', () => this.resolve());
+
+    // Force re-render when clicking a nav link that points to the current route
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href^="#"]');
+      if (!link) return;
+      const path = link.getAttribute('href').slice(1);
+      if (path === window.location.hash.slice(1)) {
+        e.preventDefault();
+        this.resolve();
+      }
+    });
+
     this.resolve();
   },
 
@@ -15,6 +27,8 @@ GL.Router = {
   },
 
   resolve() {
+    if (GL._onRouteLeave) { GL._onRouteLeave(); GL._onRouteLeave = null; }
+
     const hash = window.location.hash.slice(1) || '/';
     const app = document.getElementById('app');
 
@@ -51,6 +65,8 @@ GL.Router = {
     this.currentPath = hash;
     this.updateActiveLink(hash);
     handler(app, params);
+
+    if (GL.Achievements) GL.Achievements.updateNavDot();
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });

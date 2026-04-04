@@ -69,7 +69,7 @@ GL.UI = {
     try { return JSON.parse(localStorage.getItem('gl_stats') || 'null'); } catch(e) { return null; }
   },
   defaultStats() {
-    return { totalQuestions: 0, totalCorrect: 0, maxStreak: 0, quizHistory: [], countriesStats: {}, mastery: {}, peakMastered: 0, rankedXP: 0, diffScore: {} };
+    return { totalQuestions: 0, totalCorrect: 0, maxStreak: 0, currentStreak: 0, quizHistory: [], countriesStats: {}, mastery: {}, discovered: {}, peakMastered: 0, rankedXP: 0, diffScore: {} };
   },
   getStats() {
     return this.loadStats() || this.defaultStats();
@@ -133,12 +133,12 @@ GL.UI = {
   },
 
   RANK_TIERS: [
-    { name: 'Bronze',  nameEn: 'Bronze',   min: 0,   color: '#cd7f32', icon: '🥉' },
-    { name: 'Argent',  nameEn: 'Silver',   min: 50,  color: '#a8a9ad', icon: '🥈' },
-    { name: 'Or',      nameEn: 'Gold',     min: 150, color: '#ffd700', icon: '🥇' },
-    { name: 'Platine', nameEn: 'Platinum', min: 300, color: '#d0d0d0', icon: '💎' },
-    { name: 'Diamant', nameEn: 'Diamond',  min: 500, color: '#88eeff', icon: '💠' },
-    { name: 'Légende', nameEn: 'Legend',   min: 800, color: '#ff9f43', icon: '👑' },
+    { name: 'Bronze',  nameEn: 'Bronze',   key: 'bronze',  min: 0,   color: '#cd7f32', icon: '🥉' },
+    { name: 'Argent',  nameEn: 'Silver',   key: 'silver',  min: 50,  color: '#a8a9ad', icon: '🥈' },
+    { name: 'Or',      nameEn: 'Gold',     key: 'gold',    min: 150, color: '#ffd700', icon: '🥇' },
+    { name: 'Platine', nameEn: 'Platinum', key: 'platine', min: 300, color: '#d0d0d0', icon: '💎' },
+    { name: 'Diamant', nameEn: 'Diamond',  key: 'diamond', min: 500, color: '#88eeff', icon: '💠' },
+    { name: 'Légende', nameEn: 'Legend',   key: 'legend',  min: 800, color: '#ff9f43', icon: '👑' },
   ],
   tierName(tier) {
     return (window.GL && GL.I18N && GL.I18N.lang === 'en') ? (tier.nameEn || tier.name) : tier.name;
@@ -163,12 +163,53 @@ GL.UI = {
     if (stats.quizHistory.length > 20) stats.quizHistory = stats.quizHistory.slice(0, 20);
     this.saveStats(stats);
   },
+
+  animateRankBar(container, rankData) {
+    setTimeout(() => {
+      const fill = container.querySelector('#rankBarFill');
+      const counter = container.querySelector('#rankXpCounter');
+      if (!fill) return;
+      fill.style.transition = 'width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      fill.style.width = rankData.afterPct + '%';
+      if (counter) {
+        const startVal = rankData.peakBefore || 0;
+        const endVal = rankData.peakAfter || 0;
+        if (endVal > startVal) {
+          const duration = 1500;
+          const startTime = performance.now();
+          const tickEvery = Math.max(1, Math.ceil(rankData.gained / 5));
+          let lastTickVal = startVal;
+          const animate = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(startVal + (endVal - startVal) * eased);
+            counter.textContent = current + ' XP';
+            if (current - lastTickVal >= tickEvery) {
+              GL.Audio.playXpTick();
+              lastTickVal = current;
+            }
+            if (progress < 1) requestAnimationFrame(animate);
+            else counter.textContent = endVal + ' XP';
+          };
+          requestAnimationFrame(animate);
+        } else {
+          counter.textContent = endVal + ' XP';
+        }
+      }
+    }, 250);
+  },
   updateMaxStreak(streak) {
     const stats = this.getStats();
     if (streak > (stats.maxStreak || 0)) {
       stats.maxStreak = streak;
       this.saveStats(stats);
     }
+  },
+  saveCurrentStreak(streak) {
+    const stats = this.getStats();
+    stats.currentStreak = streak;
+    this.saveStats(stats);
   },
 
   // ===== FORMAT HELPERS =====
@@ -316,6 +357,25 @@ GL.Audio = {
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
       osc.start(t);
       osc.stop(t + 0.4);
+    } catch(e) {}
+  },
+
+  playXpTick() {
+    try {
+      const ctx = this._getCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 900;
+      const t = ctx.currentTime;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.07, t + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      osc.start(t);
+      osc.stop(t + 0.1);
     } catch(e) {}
   }
 };

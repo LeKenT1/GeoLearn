@@ -136,7 +136,6 @@ GL.RankBadges = {
   _svgBronze(u) {
     const C = 50, R = 38;
     const hex      = this._poly(C, C, 6, R);
-    const ring     = this._sunburst(C, C, 12, R - 1, R - 7);
     const innerHex = this._poly(C, C, 6, R - 8);
     return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -145,18 +144,12 @@ GL.RankBadges = {
       <stop offset="50%"  stop-color="#b8701e"/>
       <stop offset="100%" stop-color="#6e3808"/>
     </linearGradient>
-    <linearGradient id="br${u}b" x1="20%" y1="5%" x2="80%" y2="95%">
-      <stop offset="0%"   stop-color="#e8a84a"/>
-      <stop offset="100%" stop-color="#9a5010"/>
-    </linearGradient>
     <radialGradient id="br${u}s" cx="36%" cy="28%" r="42%">
       <stop offset="0%"   stop-color="rgba(255,240,200,0.55)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </radialGradient>
     ${this._earthDefs(u)}
   </defs>
-  <!-- Outer toothed ring -->
-  <path d="${ring}" fill="url(#br${u}b)"/>
   <!-- Hex body -->
   <path d="${hex}"  fill="url(#br${u}a)"/>
   <!-- Inner engraved ring -->
@@ -174,7 +167,6 @@ GL.RankBadges = {
   _svgSilver(u) {
     const C = 50, R = 38;
     const hex      = this._poly(C, C, 6, R);
-    const ring     = this._sunburst(C, C, 14, R - 1, R - 7);
     const innerHex = this._poly(C, C, 6, R - 8);
     return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -183,17 +175,12 @@ GL.RankBadges = {
       <stop offset="50%"  stop-color="#9a9ba2"/>
       <stop offset="100%" stop-color="#50515a"/>
     </linearGradient>
-    <linearGradient id="sl${u}b" x1="20%" y1="5%" x2="80%" y2="95%">
-      <stop offset="0%"   stop-color="#d8d9e0"/>
-      <stop offset="100%" stop-color="#6a6b74"/>
-    </linearGradient>
     <radialGradient id="sl${u}s" cx="36%" cy="28%" r="42%">
       <stop offset="0%"   stop-color="rgba(255,255,255,0.65)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </radialGradient>
     ${this._earthDefs(u)}
   </defs>
-  <path d="${ring}" fill="url(#sl${u}b)"/>
   <path d="${hex}"  fill="url(#sl${u}a)"/>
   <path d="${innerHex}" stroke="rgba(220,222,240,0.5)" stroke-width="1.5" fill="none"/>
   ${this._earthIcon(u)}
@@ -207,7 +194,6 @@ GL.RankBadges = {
   _svgGold(u) {
     const C = 50, R = 38;
     const hex      = this._poly(C, C, 6, R);
-    const ring     = this._sunburst(C, C, 16, R - 1, R - 6);
     const innerHex = this._poly(C, C, 6, R - 7);
     return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -216,17 +202,12 @@ GL.RankBadges = {
       <stop offset="45%"  stop-color="#ffd700"/>
       <stop offset="100%" stop-color="#a06800"/>
     </linearGradient>
-    <linearGradient id="go${u}b" x1="20%" y1="5%" x2="80%" y2="95%">
-      <stop offset="0%"   stop-color="#ffe45a"/>
-      <stop offset="100%" stop-color="#c07800"/>
-    </linearGradient>
     <radialGradient id="go${u}s" cx="36%" cy="26%" r="44%">
       <stop offset="0%"   stop-color="rgba(255,255,220,0.65)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </radialGradient>
     ${this._earthDefs(u)}
   </defs>
-  <path d="${ring}" fill="url(#go${u}b)"/>
   <path d="${hex}"  fill="url(#go${u}a)"/>
   <path d="${innerHex}" stroke="rgba(255,240,100,0.45)" stroke-width="1.5" fill="none"/>
   ${this._earthIcon(u)}
@@ -241,8 +222,8 @@ GL.RankBadges = {
   _svgPlatine(u) {
     const C = 50, R = 35;
     const hex      = this._poly(C, C, 6, R);
-    const ring     = this._sunburst(C, C, 18, R - 1, R - 6);
-    const innerHex = this._poly(C, C, 6, R - 7);
+    const ring     = this._sunburst(C, C, 12, R - 1, R - 7);
+    const innerHex = this._poly(C, C, 6, R - 8);
     return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="pl${u}a" x1="20%" y1="5%" x2="80%" y2="95%">
@@ -300,9 +281,9 @@ GL.RankBadges = {
    */
   _svgDiamond(u) {
     const C = 50, R = 35;
-    const body      = this._poly(C, C, 8, R, -Math.PI / 8);
-    const ring      = this._sunburst(C, C, 16, R - 1, R - 6, -Math.PI / 8);
-    const innerBody = this._poly(C, C, 8, R - 7, -Math.PI / 8);
+    const body      = this._poly(C, C, 6, R);
+    const ring      = this._sunburst(C, C, 18, R - 1, R - 6);
+    const innerBody = this._poly(C, C, 6, R - 7);
     return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="di${u}a" x1="20%" y1="5%" x2="80%" y2="95%">
@@ -347,14 +328,6 @@ GL.RankBadges = {
   <path d="${body}" fill="url(#di${u}s)"/>
   <!-- Secondary reflection -->
   <path d="${body}" fill="url(#di${u}s2)"/>
-  <!-- Sparkle stars at cardinal tips of the badge -->
-  <path d="M50,8.5 L51,11 L53.5,12 L51,13 L50,15.5 L49,13 L46.5,12 L49,11 Z" fill="rgba(255,255,255,0.95)"/>
-  <path d="M88,46.5 L89,49 L91.5,50 L89,51 L88,53.5 L87,51 L84.5,50 L87,49 Z" fill="rgba(255,255,255,0.88)"/>
-  <path d="M50,84.5 L51,87 L53.5,88 L51,89 L50,91.5 L49,89 L46.5,88 L49,87 Z" fill="rgba(255,255,255,0.80)"/>
-  <path d="M12,46.5 L13,49 L15.5,50 L13,51 L12,53.5 L11,51 L8.5,50 L11,49 Z"  fill="rgba(255,255,255,0.75)"/>
-  <!-- Tiny accent sparkles at diagonal tips -->
-  <path d="M76,21 L76.6,22.8 L78.4,23.4 L76.6,24 L76,25.8 L75.4,24 L73.6,23.4 L75.4,22.8 Z" fill="rgba(200,240,255,0.85)"/>
-  <path d="M24,74 L24.6,75.8 L26.4,76.4 L24.6,77 L24,78.8 L23.4,77 L21.6,76.4 L23.4,75.8 Z" fill="rgba(200,240,255,0.70)"/>
 </svg>`;
   },
 
@@ -452,82 +425,168 @@ GL.RankBadges = {
     overlay.appendChild(flash);
 
     // Radial lines burst
+    // Atmospheric background glow (rank color)
+    const bgGlow = document.createElement('div');
+    bgGlow.className = 'lu-bg-glow';
+    bgGlow.style.background = `radial-gradient(ellipse 65% 55% at 50% 50%, ${rank.color}2a 0%, ${rank.color}10 40%, transparent 72%)`;
+    overlay.appendChild(bgGlow);
+
+    // Radial lines burst
     const linesWrap = document.createElement('div');
     linesWrap.className = 'lu-lines-wrap';
-    const lineCount = 16;
-    for (let i = 0; i < lineCount; i++) {
-      const angle = (i / lineCount) * 360;
-      const len = 120 + Math.random() * 180;
+    for (let i = 0; i < 28; i++) {
+      const angle = (i / 28) * 360;
+      const len = 80 + Math.random() * 400;
       const l = document.createElement('div');
       l.className = 'lu-line';
       l.style.cssText = `
-        transform: translate(-50%, -50%) rotate(${angle}deg);
-        background: ${rank.color};
-        box-shadow: 0 0 6px ${rank.color};
+        transform: translate(-50%,-50%) rotate(${angle}deg);
+        background: linear-gradient(90deg, ${rank.color}cc, transparent);
         --len: ${len}px;
-        --dur: ${0.4 + Math.random() * 0.35}s;
-        --delay: ${0.1 + Math.random() * 0.2}s;
+        --dur: ${0.4 + Math.random() * 0.6}s;
+        --delay: ${Math.random() * 0.1}s;
       `;
       linesWrap.appendChild(l);
     }
     overlay.appendChild(linesWrap);
 
-    // Badge
-    const badgeWrap = document.createElement('div');
-    badgeWrap.className = 'lu-badge-wrap';
-    badgeWrap.innerHTML = this.badgeHtml(rank, { size: 160, showDesc: false, showXP: false });
-    overlay.appendChild(badgeWrap);
-
-    // Title
-    const title = document.createElement('div');
-    title.className = 'lu-title';
-    title.style.textShadow = `0 0 40px ${rank.color}, 0 0 80px ${rank.color}88`;
-    title.textContent = this._t('ranks.levelup');
-    overlay.appendChild(title);
-
-    // Rank name
-    const rankName = document.createElement('div');
-    rankName.className = 'lu-rank-name';
-    rankName.style.color = rank.color;
-    rankName.style.textShadow = `0 0 20px ${rank.color}`;
-    rankName.textContent = rank.name;
-    overlay.appendChild(rankName);
-
-    // Particles
-    const colors = [rank.color, '#ffffff', '#ffffa0'];
-    for (let i = 0; i < 32; i++) {
+    // Confetti particles
+    const pColors = [rank.color, '#ffffff', '#ffffd4', rank.color + 'bb'];
+    for (let i = 0; i < 55; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const dist = 100 + Math.random() * 260;
-      const tx = Math.cos(angle) * dist;
-      const ty = Math.sin(angle) * dist;
-      const size = 3 + Math.random() * 7;
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      const dist = 60 + Math.random() * 460;
+      const size = 2 + Math.random() * 8;
+      const color = pColors[Math.floor(Math.random() * pColors.length)];
       const p = document.createElement('div');
       p.className = 'lu-particle';
       p.style.cssText = `
-        width: ${size}px; height: ${size}px;
-        background: ${color};
-        box-shadow: 0 0 ${size * 2}px ${color};
-        --tx: ${tx}px; --ty: ${ty}px;
-        --dur: ${0.55 + Math.random() * 0.7}s;
-        --delay: ${Math.random() * 0.25}s;
+        width:${size}px; height:${size}px;
+        background:${color};
+        box-shadow:0 0 ${size * 2.5}px ${color};
+        --tx:${(Math.cos(angle) * dist).toFixed(1)}px;
+        --ty:${(Math.sin(angle) * dist).toFixed(1)}px;
+        --dur:${(0.8 + Math.random() * 1.3).toFixed(2)}s;
+        --delay:${(Math.random() * 0.35).toFixed(2)}s;
       `;
       overlay.appendChild(p);
     }
 
-    // Dismiss hint
+    // ─── Main panel ───────────────────────────────────────────────────────────
+    const panel = document.createElement('div');
+    panel.className = 'lu-panel';
+    // CSS vars drive all child colors
+    panel.style.cssText = `
+      --lc: ${rank.color};
+      --lc18: ${rank.color}18;
+      --lc33: ${rank.color}33;
+      --lc44: ${rank.color}44;
+      --lc55: ${rank.color}55;
+      --lc66: ${rank.color}66;
+      --lc88: ${rank.color}88;
+      --lcaa: ${rank.color}aa;
+      border-color: ${rank.color}77;
+    `;
+
+    // Corner L-shaped accents
+    ['tl','tr','bl','br'].forEach(pos => {
+      const c = document.createElement('div');
+      c.className = `lu-corner lu-corner-${pos}`;
+      panel.appendChild(c);
+    });
+
+    // Top inner glow line (1px highlight at top edge)
+    const topGlow = document.createElement('div');
+    topGlow.className = 'lu-panel-topglow';
+    panel.appendChild(topGlow);
+
+    // ── Header: ——— NIVEAU SUPÉRIEUR ———
+    const header = document.createElement('div');
+    header.className = 'lu-panel-header';
+
+    const hL = document.createElement('div');
+    hL.className = 'lu-header-line lu-header-line-l';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'lu-title';
+    titleEl.textContent = this._t('ranks.levelup');
+    const hR = document.createElement('div');
+    hR.className = 'lu-header-line lu-header-line-r';
+
+    header.appendChild(hL);
+    header.appendChild(titleEl);
+    header.appendChild(hR);
+    panel.appendChild(header);
+
+    // ── Ornate divider helper: ──◆──
+    const mkDiv = (delayS) => {
+      const d = document.createElement('div');
+      d.className = 'lu-divider';
+      d.style.animationDelay = delayS + 's';
+      d.innerHTML = `
+        <div class="lu-divider-line lu-divider-line-l"></div>
+        <div class="lu-divider-gem">◆</div>
+        <div class="lu-divider-line lu-divider-line-r"></div>
+      `;
+      return d;
+    };
+    panel.appendChild(mkDiv(0.42));
+
+    // ── Badge section (orb + stars + badge)
+    const badgeSection = document.createElement('div');
+    badgeSection.className = 'lu-badge-section';
+
+    const orb = document.createElement('div');
+    orb.className = 'lu-badge-orb';
+    orb.style.background = `radial-gradient(circle, ${rank.color}44 0%, ${rank.color}18 45%, transparent 72%)`;
+    badgeSection.appendChild(orb);
+
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 - Math.PI / 2;
+      const r = 108;
+      const star = document.createElement('div');
+      star.className = 'lu-badge-star';
+      star.style.cssText = `
+        left: calc(50% + ${(Math.cos(a) * r).toFixed(1)}px);
+        top:  calc(50% + ${(Math.sin(a) * r).toFixed(1)}px);
+        animation-delay: ${(0.65 + i * 0.06).toFixed(2)}s, ${(1.4 + i * 0.18).toFixed(2)}s;
+      `;
+      star.textContent = '✦';
+      badgeSection.appendChild(star);
+    }
+
+    const badgeWrap = document.createElement('div');
+    badgeWrap.className = 'lu-badge-wrap';
+    badgeWrap.innerHTML = this.badgeHtml(rank, { size: 160, showDesc: false, showXP: false });
+    badgeSection.appendChild(badgeWrap);
+    panel.appendChild(badgeSection);
+
+    // ── Rank name (large, pulsing glow)
+    const rankName = document.createElement('div');
+    rankName.className = 'lu-rank-name';
+    rankName.textContent = rank.name.toUpperCase();
+    panel.appendChild(rankName);
+
+    // ── Rank description
+    if (rank.desc) {
+      const rankDesc = document.createElement('div');
+      rankDesc.className = 'lu-rank-desc';
+      rankDesc.textContent = rank.desc;
+      panel.appendChild(rankDesc);
+    }
+
+    panel.appendChild(mkDiv(0.88));
+
+    // ── Dismiss hint
     const dismiss = document.createElement('div');
     dismiss.className = 'lu-dismiss';
     dismiss.textContent = this._t('ranks.dismiss');
-    overlay.appendChild(dismiss);
+    panel.appendChild(dismiss);
 
+    overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
-    // Fanfare trompette via GL.Audio
-    try { GL.Audio && GL.Audio.playLevelUp && GL.Audio.playLevelUp(); } catch(e) {}
 
     overlay.addEventListener('click', () => this._dismissLevelUp(overlay), { once: true });
-    setTimeout(() => this._dismissLevelUp(overlay), 4000);
+    setTimeout(() => this._dismissLevelUp(overlay), 7000);
   },
 
   _dismissLevelUp(overlay) {

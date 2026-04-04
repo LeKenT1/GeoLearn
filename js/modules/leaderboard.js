@@ -77,7 +77,7 @@ GL.Leaderboard = {
         <div class="lb-av-area">
           <div class="lb-podium-crown">${crown}</div>
           ${this._avatarFrameHtml(player, frameSize, avSize)}
-          <div class="lb-podium-name${player.isReal ? ' lb-you-name' : ''}">${player.name}</div>
+          <div class="lb-podium-name${player.isReal ? ' lb-you-name' : ''}" title="${player.name}"><span>${player.name}</span></div>
           <div class="lb-podium-title-text">${this._titleHtml(player.title, tier)}</div>
         </div>
         <div class="lb-score-card${isFirst ? ' lb-score-card-1' : ''}">
@@ -101,7 +101,7 @@ GL.Leaderboard = {
           ${this._avatarFrameHtml(player, 78, 42)}
         </div>
         <div class="lb-row-info">
-          <div class="lb-row-name${player.isReal ? ' lb-you-name' : ''}">${player.name}</div>
+          <div class="lb-row-name${player.isReal ? ' lb-you-name' : ''}" title="${player.name}"><span>${player.name}</span></div>
           <div class="lb-row-title">${this._titleHtml(player.title, tier)}</div>
         </div>
         <div class="lb-row-xp-cell">
@@ -175,14 +175,13 @@ GL.Leaderboard = {
 
       </div>`;
 
-    // Défilement des titres trop larges dans le podium
-    requestAnimationFrame(() => {
-      container.querySelectorAll('.lb-podium-title-text').forEach(el => {
+    // Défilement des éléments trop larges (titres + noms)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      container.querySelectorAll('.lb-podium-title-text, .lb-podium-name, .lb-row-name').forEach(el => {
         const span = el.querySelector('span');
         if (!span) return;
-        // Rendre la span block le temps de mesurer sa largeur réelle
         span.style.display = 'inline-block';
-        const overflow = span.offsetWidth - el.clientWidth;
+        const overflow = el.scrollWidth - el.clientWidth;
         if (overflow > 2) {
           el.style.setProperty('--lb-scroll-dist', `-${overflow}px`);
           el.classList.add('lb-marquee');
@@ -190,6 +189,6 @@ GL.Leaderboard = {
           span.style.display = '';
         }
       });
-    });
+    }));
   },
 };

@@ -1,22 +1,53 @@
 window.GL = window.GL || {};
 
 GL.Achievements = {
-  TITLE_KEY: 'gl_active_title',
+  TITLE_KEY:  'gl_active_title',
+  SEEN_KEY:   'gl_seen_titles',
+
+  // ─── Notification helpers ────────────────────────────────────────────────────
+
+  _getSeenIds() {
+    try { return new Set(JSON.parse(localStorage.getItem(this.SEEN_KEY) || '[]')); }
+    catch { return new Set(); }
+  },
+
+  _markSeen(id) {
+    const seen = this._getSeenIds();
+    if (seen.has(id)) return;
+    seen.add(id);
+    localStorage.setItem(this.SEEN_KEY, JSON.stringify([...seen]));
+    this.updateNavDot();
+  },
+
+  // Returns unlocked IDs not yet seen by the user
+  _getNewTitles() {
+    const unlocked = new Set(this.getUnlockedIds());
+    const seen = this._getSeenIds();
+    return [...unlocked].filter(id => !seen.has(id));
+  },
+
+  // Show/hide the red dot on the "Progression" nav link
+  updateNavDot() {
+    const el = document.getElementById('navAch');
+    if (!el) return;
+    el.classList.toggle('has-notif', this._getNewTitles().length > 0);
+  },
 
   // ─── Compute live stats needed for all checks ───────────────────────────────
   computeStats() {
     const stats = GL.UI.getStats();
     const mastery = stats.mastery || {};
+    const discovered = stats.discovered || {};
     const total = GL.COUNTRIES.length;
 
-    // Mastery per type globally (mastery[code][type] >= 1 = learned once)
+    // Mastery per type globally — uses discovered (never decreases) so progression never goes backwards
     const typeMastered = { flag: 0, capital: 0, map: 0 };
     GL.COUNTRIES.forEach(co => {
-      const m = mastery[co.code];
-      if (!m) return;
-      if ((m.flag     || 0) >= 1) typeMastered.flag++;
-      if ((m.capital  || 0) >= 1) typeMastered.capital++;
-      if ((m.map      || 0) >= 1) typeMastered.map++;
+      const d = discovered[co.code];
+      if (!d) return;
+      if (d.flag)    typeMastered.flag++;
+      if (d.capital) typeMastered.capital++;
+      if (d.map)     typeMastered.map++;
     });
 
     // Continent progress: % of countries with at least one correct answer (any type)
@@ -38,7 +69,7 @@ GL.Achievements = {
 
     // Nightmare quizzes passed at ≥ 50%
     const nightmareGood = (stats.quizHistory || []).filter(
-      h => h.type === 'nightmare' && h.total > 0 && (h.score / h.total) >= 0.5
+      h => h.type === 'nightmare' && h.total > 0 && (h.score / h.total) >= 1
     ).length;
 
     return {
@@ -153,7 +184,7 @@ GL.Achievements = {
       id: 'nightmare', label: 'Quiz Cauchemar', labelEn: 'Nightmare Quiz', emoji: '💀', colorVar: null,
       colorHex: '#9b59b6',
       current: cs => cs.nightmareGood,
-      max: 25, unit: ' quiz réussis (≥ 50%)',
+      max: 25, unit: ' quiz réussis', unitEn: ' quizzes passed',
       achievements: [
         { id: 'nightmare_1',  title: 'Survivant',              titleEn: 'Survivor',        tier: 1, threshold: 1  },
         { id: 'nightmare_5',  title: 'Guerrier du Cauchemar',  titleEn: 'Nightmare Warrior', tier: 2, threshold: 5  },
@@ -165,10 +196,10 @@ GL.Achievements = {
       id: 'streak', label: 'Série (classé)', labelEn: 'Streak (ranked)', emoji: '🔥', colorVar: null,
       colorHex: '#ff6b35',
       current: cs => cs.maxStreak,
-      max: 50, unit: ' bonnes réponses d\'affilée (classé)',
+      max: 50, unit: ' bonnes réponses d\'affilée', unitEn: ' correct answers in a row',
       achievements: [
         { id: 'streak_5',  title: 'En Feu',        titleEn: 'On Fire',       tier: 1, threshold: 5  },
-        { id: 'streak_10', title: 'Torche Vivante', titleEn: 'Living Torch', tier: 2, threshold: 10 },
+        { id: 'streak_10', title: 'Torche Humaine', titleEn: 'Living Torch', tier: 2, threshold: 10 },
         { id: 'streak_25', title: 'Invincible',     titleEn: 'Invincible',   tier: 3, threshold: 25 },
         { id: 'streak_50', title: 'Inarrêtable',    titleEn: 'Unstoppable',  tier: 4, threshold: 50 },
       ]
@@ -176,7 +207,7 @@ GL.Achievements = {
     {
       id: 'quizcount', label: 'Quiz complétés', labelEn: 'Completed Quizzes', emoji: '🎯', colorVar: '--accent',
       current: cs => cs.quizCount,
-      max: 100, unit: ' quiz',
+      max: 100, unit: ' quiz', unitEn: ' quizzes',
       achievements: [
         { id: 'quiz_5',   title: 'Studieux',     titleEn: 'Studious',     tier: 1, threshold: 5   },
         { id: 'quiz_20',  title: 'intello',      titleEn: 'Nerd',         tier: 2, threshold: 20  },
@@ -199,7 +230,7 @@ GL.Achievements = {
       id: 'login', label: 'Connexions', labelEn: 'Logins', emoji: '📅', colorVar: null,
       colorHex: '#2ecc71',
       current: cs => cs.loginDays,
-      max: 11, unit: ' jours joués',
+      max: 11, unit: ' jours joués', unitEn: ' days played',
       achievements: [
         { id: 'login_2',  title: 'Assidu',    titleEn: 'Assiduous',  tier: 1, threshold: 2  },
         { id: 'login_5',  title: 'Fidèle',    titleEn: 'Faithful',   tier: 2, threshold: 5  },
@@ -338,6 +369,12 @@ GL.Achievements = {
     return g.label;
   },
 
+  // Returns the localized unit for a group
+  _groupUnit(g) {
+    if (GL.I18N && GL.I18N.lang === 'en' && g.unitEn) return g.unitEn;
+    return g.unit;
+  },
+
   // ─── Render achievements page ────────────────────────────────────────────────
   render(container) {
     const t = this._t.bind(this);
@@ -360,17 +397,20 @@ GL.Achievements = {
     ];
 
     // ── Group card HTML ──
+    const newTitles = new Set(this._getNewTitles());
     const groupCardHtml = (g) => {
       const val = g.current(cs);
       const color = g.colorVar ? `var(${g.colorVar})` : g.colorHex;
       const barPct = Math.min(100, Math.round(val / g.max * 100));
+      const unit = this._groupUnit(g);
 
       const achRows = g.achievements.map(a => {
         const done = val >= a.threshold;
         const isEquipped = equipped === a.id;
         const ti = TIER_INFO[a.tier];
+        const isNew = done && newTitles.has(a.id);
         return `
-          <div class="ach-row ${done ? 'ach-row-unlocked' : 'ach-row-locked'}"
+          <div class="ach-row ${done ? 'ach-row-unlocked' : 'ach-row-locked'}${isNew ? ' ach-row-new' : ''}"
                data-ach-id="${a.id}" ${done ? 'role="button" tabindex="0"' : ''}>
             <div class="ach-row-left">
               <span class="ach-tier-pip ${ti.cls}"></span>
@@ -378,14 +418,15 @@ GL.Achievements = {
                 <span class="ach-row-title">
                   ${done ? '' : '🔒 '}<strong class="${done && a.tier === 4 ? 'ach-title-diamond' : ''}">${this._achTitle(a)}</strong>
                 </span>
-                <span class="ach-row-tier">${ti.label} · ${a.threshold}${g.unit}</span>
+                <span class="ach-row-tier">${ti.label} · ${a.threshold}${unit}</span>
               </div>
             </div>
             ${done ? `
               <button class="ach-equip-btn ${isEquipped ? 'active' : ''}" data-equip="${a.id}">
                 ${isEquipped ? t('ach.equipped') : t('ach.equip')}
               </button>` : `
-              <span class="ach-row-progress-text">${val} / ${a.threshold}${g.unit}</span>`}
+              <span class="ach-row-progress-text">${val} / ${a.threshold}${unit}</span>`}
+            ${isNew ? '<span class="ach-notif-dot"></span>' : ''}
           </div>`;
       }).join('');
 
@@ -401,7 +442,7 @@ GL.Achievements = {
             ${g.achievements.map(a => `
               <div class="ach-group-bar-mark ${val >= a.threshold ? 'passed' : ''}"
                    style="left:${Math.round(a.threshold / g.max * 100)}%;"
-                   title="${a.threshold}${g.unit}"></div>`).join('')}
+                   title="${a.threshold}${unit}"></div>`).join('')}
           </div>
           <div class="ach-rows">${achRows}</div>
         </div>`;
@@ -410,6 +451,7 @@ GL.Achievements = {
     // ── Ultimate card HTML ──
     const ultimateCardHtml = () => {
       const isEquipped = equipped === 'ultimate';
+      const isNew = ultimateUnlocked && newTitles.has('ultimate');
       return `
         <div class="ach-group-card ach-group-ultimate ${ultimateUnlocked ? 'ach-group-ultimate-unlocked' : ''}">
           <div class="ach-group-header">
@@ -417,7 +459,7 @@ GL.Achievements = {
             <span class="ach-group-label" style="font-size:1.1rem;">${t('ach.ultimate.label')}</span>
           </div>
           <div class="ach-rows">
-            <div class="ach-row ${ultimateUnlocked ? 'ach-row-unlocked' : 'ach-row-locked'}"
+            <div class="ach-row ${ultimateUnlocked ? 'ach-row-unlocked' : 'ach-row-locked'}${isNew ? ' ach-row-new' : ''}"
                  data-ach-id="ultimate" ${ultimateUnlocked ? 'role="button" tabindex="0"' : ''}>
               <div class="ach-row-left">
                 <span class="ach-tier-pip ach-tier-ultimate"></span>
@@ -433,6 +475,7 @@ GL.Achievements = {
                   ${isEquipped ? t('ach.equipped') : t('ach.equip')}
                 </button>` : `
                 <span class="ach-row-progress-text">${unlockedCount - (ultimateUnlocked ? 1 : 0)} / ${totalAch - 1}</span>`}
+              ${isNew ? '<span class="ach-notif-dot"></span>' : ''}
             </div>
           </div>
         </div>`;
@@ -464,19 +507,19 @@ GL.Achievements = {
       }).join('');
 
       const nextInfo = currentInfo.next;
-      const xpLine = t('stats.rank.xp').replace('{n}', xp)
-        + (nextInfo ? ' ' + t('stats.rank.next').replace('{n}', nextInfo.min) : ' ' + t('stats.rank.max'));
+      const nextLine = nextInfo ? t('stats.rank.next').replace('{n}', nextInfo.min) : t('stats.rank.max');
 
       return `
         <div class="rank-pb-section">
           <div class="rank-pb-title">${t('result.rank.progress')}</div>
+          <div class="rank-pb-xp-big" style="color:${currentTier.color};">${xp}<span class="rank-pb-xp-unit"> Pts</span></div>
+          <div class="rank-pb-info">${nextLine}</div>
           <div class="rank-pb-track-wrap">
             <div class="rank-pb-track">
               <div class="rank-pb-fill" style="width:${fillPct}%;--rank-fill-color:${currentTier.color};"></div>
             </div>
             ${markers}
           </div>
-          <div class="rank-pb-info">${xpLine}</div>
         </div>`;
     };
 
@@ -493,12 +536,12 @@ GL.Achievements = {
 
         <p class="ach-hint">${t('ach.hint')}</p>
 
-        <h3 class="ach-section-title">${t('ach.section.continents')}</h3>
+        <h3 class="ach-section-title">${t('ach.section.continents')} <span class="info-tooltip" data-tooltip="${t('ach.progress.info')}">ℹ️</span></h3>
         <div class="ach-grid">
           ${this.GROUPS.filter(g => ['africa','americas','asia','europe','oceania'].includes(g.id)).map(groupCardHtml).join('')}
         </div>
 
-        <h3 class="ach-section-title">${t('ach.section.quiztype')}</h3>
+        <h3 class="ach-section-title">${t('ach.section.quiztype')} <span class="info-tooltip" data-tooltip="${t('ach.progress.info')}">ℹ️</span></h3>
         <div class="ach-grid">
           ${this.GROUPS.filter(g => ['flags','capitals','map','nightmare'].includes(g.id)).map(groupCardHtml).join('')}
         </div>
@@ -524,6 +567,20 @@ GL.Achievements = {
         this.render(container);
       });
     });
+
+    // ── Dismiss notification dot on hover ──
+    container.querySelectorAll('.ach-row-new').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        const id = row.dataset.achId;
+        if (!id) return;
+        this._markSeen(id);
+        row.classList.remove('ach-row-new');
+        const dot = row.querySelector('.ach-notif-dot');
+        if (dot) dot.remove();
+      }, { once: true });
+    });
+
+    this.updateNavDot();
 
   },
 };

@@ -8,6 +8,13 @@ GL.QuizFlags = {
   _n(country) { return GL.I18N ? GL.I18N.name(country) : country.nameFr; },
   _cap(country) { return GL.I18N ? GL.I18N.capital(country) : country.capitalFr; },
 
+  // Proportions officielles width/height (3/2 = paysage standard pour la quasi-totalité des pays)
+  _FLAG_RATIOS: { 'mc': '4/5', 'ch': '1/1', 'va': '1/1', 'np': '4/5' },
+  _flagStyle(code, height, extra = '') {
+    const ratio = this._FLAG_RATIOS[code] || '3/2';
+    return `height:${height}px;aspect-ratio:${ratio};background-size:contain;background-position:center;background-repeat:no-repeat;display:inline-block;${extra}`;
+  },
+
   render(container) {
     this.cleanup();
     const t = this._t.bind(this);
@@ -227,7 +234,7 @@ GL.QuizFlags = {
       return `
         <div class="quiz-question-label">${q.label}</div>
         <div class="quiz-flag-container">
-          <span class="fi fi-${q.country.code}" style="width:160px;height:107px;background-size:cover;border-radius:8px;box-shadow:var(--shadow-md);display:inline-block;"></span>
+          <span class="fi fi-${q.country.code}" style="${this._flagStyle(q.country.code, 107, 'border-radius:8px;box-shadow:var(--shadow-md);')}"></span>
         </div>
       `;
     } else if (q.subtype === 'name-to-flag') {
@@ -241,7 +248,7 @@ GL.QuizFlags = {
         <div class="quiz-question-label">${q.label}</div>
         <div class="quiz-question-text">${this._n(q.country)}</div>
         <div class="quiz-flag-container" style="margin-top:0.75rem;">
-          <span class="fi fi-${q.country.code}" style="width:72px;height:48px;background-size:cover;border-radius:4px;box-shadow:var(--shadow-sm);display:inline-block;"></span>
+          <span class="fi fi-${q.country.code}" style="${this._flagStyle(q.country.code, 48, 'border-radius:4px;box-shadow:var(--shadow-sm);')}"></span>
         </div>
       `;
     } else if (q.subtype === 'capital-to-country') {
@@ -260,7 +267,7 @@ GL.QuizFlags = {
         if (q.subtype === 'name-to-flag') {
           return `<button class="quiz-option flag-option" data-code="${opt.code}" data-idx="${i}">
             <span class="option-key">${keys[i]}</span>
-            <span class="fi fi-${opt.code}" style="width:72px;height:48px;background-size:cover;border-radius:4px;display:inline-block;"></span>
+            <span class="fi fi-${opt.code}" style="${this._flagStyle(opt.code, 48, 'border-radius:4px;')}"></span>
           </button>`;
         } else if (q.subtype === 'country-to-capital' || q.subtype === 'capital-to-country') {
           const label = q.subtype === 'country-to-capital' ? this._cap(opt) : this._n(opt);
@@ -429,11 +436,13 @@ GL.QuizFlags = {
     const advance = () => {
       if (advanced) return;
       advanced = true;
+      GL._onRouteLeave = null;
       clearTimeout(autoTimer);
       session.currentIndex++;
       this.renderQuestion(container);
     };
     const autoTimer = setTimeout(advance, 2000);
+    GL._onRouteLeave = () => { advanced = true; clearTimeout(autoTimer); };
 
     actionsDiv.querySelector('#nextBtn').addEventListener('click', advance);
   },
@@ -448,6 +457,7 @@ GL.QuizFlags = {
 
     if (session.config.ranked) {
       GL.UI.updateMaxStreak(session.maxStreak);
+      GL.UI.saveCurrentStreak(session.streak);
       GL.UI.recordQuizResult('flags', session.score, total, session.config.continent);
     }
 
@@ -471,7 +481,7 @@ GL.QuizFlags = {
       const tierRange = tierEnd - tier.min;
       const beforePct = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakBefore - tier.min) / tierRange * 100)) : 100;
       const afterPct  = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakAfter  - tier.min) / tierRange * 100)) : 100;
-      rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter };
+      rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter, peakBefore, peakAfter };
     }
 
     const rankHtml = rankData ? this._rankCardHtml(rankData, t) : '';
@@ -505,7 +515,7 @@ GL.QuizFlags = {
               <div class="wrong-answers-title">${t('result.wrong.title').replace('{n}', session.wrongAnswers.length)}</div>
               ${session.wrongAnswers.map(w => `
                 <div class="wrong-answer-item">
-                  <span class="fi fi-${w.question.country.code}" style="width:72px;height:48px;background-size:cover;border-radius:4px;display:inline-block;flex-shrink:0;"></span>
+                  <span class="fi fi-${w.question.country.code}" style="${this._flagStyle(w.question.country.code, 48, 'border-radius:4px;flex-shrink:0;')}"></span>
                   <span style="flex:1;font-size:0.875rem;font-weight:600;">${this._n(w.question.country)}</span>
                   ${w.userInput ? `<span style="color:var(--error,#e53e3e);font-size:0.8rem;text-decoration:line-through;">${w.userInput}</span>` : ''}
                   ${w.question.subtype === 'country-to-capital' || w.question.subtype === 'country-to-capital-text' ?
@@ -524,15 +534,10 @@ GL.QuizFlags = {
       </div>
     `;
 
-    // Animate rank bar
-    if (rankData) {
-      setTimeout(() => {
-        const fill = container.querySelector('#rankBarFill');
-        if (fill) {
-          fill.style.transition = 'width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-          fill.style.width = rankData.afterPct + '%';
-        }
-      }, 250);
+    if (rankData) GL.UI.animateRankBar(container, rankData);
+    if (rankData && rankData.rankUp && GL.RankBadges) {
+      const rank = GL.RankBadges.RANKS.find(r => r.key === rankData.tier.key) || GL.RankBadges.RANKS[0];
+      setTimeout(() => GL.RankBadges._triggerLevelUp(rank), 2000);
     }
 
     container.querySelector('#retryBtn').addEventListener('click', () => {
@@ -566,17 +571,26 @@ GL.QuizFlags = {
         ? `<span>${tierName}</span><span>${t('result.rank.max')}</span>`
         : `<span>${tierName} (${rankData.tier.min})</span>${nextName ? `<span>${nextName} (${rankData.next.min})</span>` : `<span>${t('result.rank.max')}</span>`}`;
 
+    const _rbSvg = (GL.RankBadges && rankData.tier.key)
+      ? GL.RankBadges.svgFrameOnly(rankData.tier.key)
+      : rankData.tier.icon;
+    const _rbIconInline = (GL.RankBadges && rankData.tier.key)
+      ? `<span style="display:inline-block;width:1.3em;height:1.3em;vertical-align:middle;">${GL.RankBadges.svgFrameOnly(rankData.tier.key)}</span>`
+      : rankData.tier.icon;
     return `
       <div class="rank-card" style="--rank-color:${rankData.tier.color};">
-        ${rankData.rankUp ? `<div class="rank-up-badge">${t('result.rank.up').replace('{icon}', rankData.tier.icon).replace('{name}', tierName)}</div>` : ''}
+        ${rankData.rankUp ? `<div class="rank-up-badge">${t('result.rank.up').replace('{icon}', _rbIconInline).replace('{name}', tierName)}</div>` : ''}
         <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem;">${t('result.rank.progress')}</div>
-        <div class="rank-icon">${rankData.tier.icon}</div>
+        <div class="rank-icon">${_rbSvg}</div>
         <div class="rank-name">${tierName}</div>
         <div class="rank-bar-track" style="height:14px;">
           <div class="rank-bar-fill" id="rankBarFill" style="width:${discBefore}%;transition:none;"></div>
         </div>
         <div class="rank-tier-labels">${barLabel}</div>
-        <div style="margin-top:0.6rem;font-size:0.875rem;">${xpGained}</div>
+        <div style="margin-top:0.75rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem;">
+          <span id="rankXpCounter" style="font-size:1.4rem;font-weight:800;color:var(--rank-color,#cd7f32);letter-spacing:0.02em;">${(rankData.peakBefore || 0)} XP</span>
+          <span style="font-size:0.875rem;">${xpGained}</span>
+        </div>
       </div>`;
   },
 

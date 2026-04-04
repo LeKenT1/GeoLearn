@@ -23,16 +23,35 @@ GL.Profile = {
 
   // ===== OPTIONS UNIVERSELLES =====
   BG_COLORS: [
-    { val: 'b6e3f4', color: '#b6e3f4', label: 'Ciel'      },
-    { val: 'c0aede', color: '#c0aede', label: 'Lavande'   },
-    { val: 'd1d4f9', color: '#d1d4f9', label: 'Bluet'     },
-    { val: 'ffd5dc', color: '#ffd5dc', label: 'Rose'      },
-    { val: 'ffdfbf', color: '#ffdfbf', label: 'Pêche'     },
-    { val: 'c1f4c5', color: '#c1f4c5', label: 'Menthe'    },
-    { val: 'a7ffc4', color: '#a7ffc4', label: 'Vert'      },
-    { val: 'ffffb1', color: '#ffffb1', label: 'Jaune'     },
-    { val: '4f63ff', color: '#4f63ff', label: 'Bleu vif'  },
-    { val: '1a2234', color: '#1a2234', label: 'Nuit'      },
+    { val: 'b6e3f4', color: '#b6e3f4', label: 'Ciel'        },
+    { val: 'c0aede', color: '#c0aede', label: 'Lavande'     },
+    { val: 'd1d4f9', color: '#d1d4f9', label: 'Bluet'       },
+    { val: 'ffd5dc', color: '#ffd5dc', label: 'Rose'        },
+    { val: 'ffdfbf', color: '#ffdfbf', label: 'Pêche'       },
+    { val: 'c1f4c5', color: '#c1f4c5', label: 'Menthe'      },
+    { val: 'a7ffc4', color: '#a7ffc4', label: 'Vert'        },
+    { val: 'ffffb1', color: '#ffffb1', label: 'Jaune'       },
+    { val: '4f63ff', color: '#4f63ff', label: 'Bleu vif'    },
+    { val: 'ffffff', color: '#ffffff', label: 'Blanc'       },
+    { val: 'f0f0f0', color: '#f0f0f0', label: 'Gris clair'  },
+    { val: '8e8e8e', color: '#8e8e8e', label: 'Gris'        },
+    { val: '2d2d2d', color: '#2d2d2d', label: 'Ardoise'     },
+    { val: '000000', color: '#000000', label: 'Noir'        },
+    { val: 'ff5c5c', color: '#ff5c5c', label: 'Rouge'       },
+    { val: 'ff8c00', color: '#ff8c00', label: 'Orange'      },
+    { val: 'ffd700', color: '#ffd700', label: 'Or'          },
+    { val: '7fff00', color: '#7fff00', label: 'Lime'        },
+    { val: '00c8a0', color: '#00c8a0', label: 'Émeraude'    },
+    { val: '00bfff', color: '#00bfff', label: 'Cyan'        },
+    { val: '9747ff', color: '#9747ff', label: 'Violet'      },
+    { val: 'ff69b4', color: '#ff69b4', label: 'Fuchsia'     },
+    { val: 'f4a460', color: '#f4a460', label: 'Sable'       },
+    { val: 'deb887', color: '#deb887', label: 'Bois'        },
+    { val: 'a0522d', color: '#a0522d', label: 'Terre'       },
+    { val: '2e4a1e', color: '#2e4a1e', label: 'Forêt'       },
+    { val: '0d3b6e', color: '#0d3b6e', label: 'Océan'       },
+    { val: '4b0082', color: '#4b0082', label: 'Indigo'      },
+    { val: '8b0000', color: '#8b0000', label: 'Bordeaux'    },
   ],
 
   // ===== OPTIONS AVATAAARS (humain) =====
@@ -910,12 +929,9 @@ GL.Profile = {
         if (av.toonheadMouth)      p += `&mouth[]=${av.toonheadMouth}`;
         if (av.toonheadClothes)    p += `&clothes[]=${av.toonheadClothes}`;
         if (av.toonheadClothesColor) p += `&clothesColor[]=${av.toonheadClothesColor}`;
-        if (av.toonheadHair)       p += `&hair[]=${av.toonheadHair}&hairProbability=100`;
-        else                       p += `&hairProbability=0`;
-        if (av.toonheadRearHair)   p += `&rearHair[]=${av.toonheadRearHair}&rearHairProbability=100`;
-        else                       p += `&rearHairProbability=0`;
-        if (av.toonheadBeard)      p += `&beard[]=${av.toonheadBeard}&beardProbability=100`;
-        else                       p += `&beardProbability=0`;
+        if (av.toonheadHair)     p += `&hair[]=${av.toonheadHair}&hairProbability=100`;
+        if (av.toonheadRearHair) p += `&rearHair[]=${av.toonheadRearHair}&rearHairProbability=100`;
+        if (av.toonheadBeard)    p += `&beard[]=${av.toonheadBeard}&beardProbability=100`;
         return base('toon-head', p);
       }
 
@@ -982,20 +998,25 @@ GL.Profile = {
   },
 
   // URL zoomée pour la navbar (zoom x1.8 sur le haut)
-  navbarUrl(av) { return this.avatarUrl(av, 32, 180); },
+  navbarUrl(av) { return this.avatarUrl(av, 32); },
 
-  // Retry automatique si une image DiceBear échoue à charger (3 tentatives, délai croissant)
+  // Retry automatique si une image DiceBear échoue à charger (5 tentatives, délai croissant)
   _imgRetry(img) {
     const n = +(img.dataset.retries || 0);
-    if (n >= 3) return;
+    if (n >= 5) return;
     img.dataset.retries = n + 1;
-    setTimeout(() => { const s = img.src; img.src = ''; img.src = s; }, 1200 * (n + 1));
+    // Stocker l'URL d'origine (sans cache-buster) au premier retry
+    if (!img.dataset.origSrc) img.dataset.origSrc = img.src.replace(/[&?]_r=\d+/, '');
+    setTimeout(() => {
+      const base = img.dataset.origSrc;
+      const sep = base.includes('?') ? '&' : '?';
+      img.src = base + sep + '_r=' + Date.now();
+    }, 800 * (n + 1));
   },
 
   // ===== WELCOME MODAL =====
   showWelcomeModal(onDone) {
     const self = this;
-    const POOL = ['shortCurly','bob','curly','shortFlat','bun','sides','dreads','straight01','theCaesar'];
     const overlay = document.createElement('div');
     overlay.className = 'profile-modal-overlay';
     overlay.innerHTML = `
@@ -1017,20 +1038,12 @@ GL.Profile = {
     `;
     document.body.appendChild(overlay);
     const nameInput = overlay.querySelector('#welcomeNameInput');
-    const avatarImg = overlay.querySelector('#welcomeAvatarImg');
-    nameInput.addEventListener('input', () => {
-      nameInput.style.borderColor = '';
-      const seed = nameInput.value.trim();
-      const topIdx = seed ? seed.charCodeAt(0) % POOL.length : 0;
-      avatarImg.src = self.avatarUrl({ ...self.DEFAULT_AVATAR, top: POOL[topIdx] }, 100);
-    });
+    nameInput.addEventListener('input', () => { nameInput.style.borderColor = ''; });
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') overlay.querySelector('#welcomeStartBtn').click(); });
     overlay.querySelector('#welcomeStartBtn').addEventListener('click', () => {
       const name = nameInput.value.trim();
       if (!name) { nameInput.focus(); nameInput.style.borderColor = 'var(--error)'; return; }
       const profile = self.defaultProfile(name, false);
-      const topIdx = name.charCodeAt(0) % POOL.length;
-      profile.avatar.top = POOL[topIdx];
       self.save(profile);
       self._closeModal(overlay, () => { self.updateNavAvatar(profile); onDone && onDone(profile); });
     });
@@ -1085,7 +1098,7 @@ GL.Profile = {
           onerror="GL.Profile._imgRetry(this)">
       </span>
       <span class="nav-avatar-info">
-        <span class="nav-avatar-name"${profile.nameColor ? ` style="color:${profile.nameColor}"` : ''}>${displayName}</span>
+        <span class="nav-avatar-name" title="${displayName}"${profile.nameColor ? ` style="color:${profile.nameColor}"` : ''}>${displayName}</span>
         ${navTitleHtml}
       </span>
     `;
@@ -1596,12 +1609,27 @@ GL.Profile = {
               <img id="cbAvatarPreview" class="rank-badge-av-img" src="${self.avatarUrl(av, 160)}" alt="Avatar">
             </div>
             <div class="cb-name-edit">
-              ${(profile.isGuest || !profile.name) ? `<p class="profile-save-hint">Entre ton prénom pour sauvegarder tes stats et apparaître dans le classement !</p>` : ''}
+              ${(profile.isGuest || !profile.name) ? `<p class="profile-save-hint" id="cbSaveHint">Entre ton prénom pour sauvegarder tes stats et apparaître dans le classement !</p>` : ''}
               <input class="profile-input" id="cbNameInput"
                 type="text" value="${profile.isGuest ? '' : profile.name}"
-                placeholder="${self._t('profile.welcome.placeholder')}" maxlength="20">
+                placeholder="${(!profile.isGuest && profile.name) ? profile.name : self._t('profile.welcome.placeholder')}" maxlength="20">
+              <button class="btn btn-sm btn-primary cb-validate-btn" id="cbValidateBtn">Valider</button>
             </div>
 <button class="btn btn-sm btn-secondary" id="cbRandomBtn">${self._t('profile.random')}</button>
+            ${(() => {
+              if (!window.GL?.Auth?._client) return '';
+              if (GL.Auth.isGoogleUser()) {
+                return `<div class="btn-google-connected">
+                  <svg width="14" height="14" viewBox="0 0 48 48" style="vertical-align:middle;margin-right:5px;flex-shrink:0"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                  <span>${GL.Auth._user.email}</span>
+                  <button class="btn-google-signout" id="cbGoogleSignout" title="Se déconnecter">✕</button>
+                </div>`;
+              }
+              return `<button class="btn btn-sm btn-google" id="cbGoogleBtn">
+                <svg width="14" height="14" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                <span>Se connecter avec Google</span>
+              </button>`;
+            })()}
           </div>
 
           <!-- Panneau droit -->
@@ -1614,7 +1642,7 @@ GL.Profile = {
                   data-style-id="${s.id}" title="${s.desc}">
                   <div class="cb-style-card-avatar">
                     <img src="${s.id === 'avataaars'
-                        ? 'https://api.dicebear.com/9.x/avataaars/svg?seed=humanX92&size=52&backgroundColor=ffdfbf&top=shortWaved&hairColor=724133&skinColor=d08b5b&eyes=happy&eyebrows=raisedExcited&mouth=twinkle&facialHair=beardMedium&facialHairColor=724133&accessories=round&accessoriesColor=3c4f5c&clothing=shirtVNeck&clothingColor=65c9ff'
+                        ? 'https://api.dicebear.com/9.x/avataaars/svg?seed=humanX92&size=52&backgroundColor=b6e3f4&top=shortWaved&hairColor=724133&skinColor=d08b5b&eyes=happy&eyebrows=raisedExcited&mouth=twinkle&facialHair=beardMedium&facialHairColor=724133&accessories=round&accessoriesColor=3c4f5c&clothing=shirtVNeck&clothingColor=65c9ff'
                         : `https://api.dicebear.com/9.x/${s.id}/svg?seed=preview&size=52&backgroundColor=b6e3f4`}"
                       alt="${s.label}" width="52" height="52" loading="lazy">
                   </div>
@@ -1648,6 +1676,13 @@ GL.Profile = {
           if (!base.avatar.seed || base.avatar.seed === 'geolearn42') {
             base.avatar.seed = Math.random().toString(36).slice(2,8);
           }
+        }
+        if (base.avatar.style === 'toon-head' && !base.avatar.toonheadHair) {
+          base.avatar.toonheadHair      = 'sideComed';
+          base.avatar.toonheadEyes      = base.avatar.toonheadEyes      || 'happy';
+          base.avatar.toonheadEyebrows  = base.avatar.toonheadEyebrows  || 'neutral';
+          base.avatar.toonheadMouth     = base.avatar.toonheadMouth     || 'smile';
+          base.avatar.toonheadClothes   = base.avatar.toonheadClothes   || 'tShirt';
         }
         self.save(base);
         self.updateNavAvatar(base);
@@ -1711,12 +1746,20 @@ GL.Profile = {
     // ── Sauvegarde ────────────────────────────────────────────────────────
     const nameInput = container.querySelector('#cbNameInput');
 
-    nameInput.addEventListener('input', () => {
+    nameInput.addEventListener('input', () => { nameInput.style.borderColor = ''; });
+
+    const validateBtn = container.querySelector('#cbValidateBtn');
+    validateBtn.addEventListener('click', () => {
       const newName = nameInput.value.trim();
-      if (newName) { profile.name = newName; profile.isGuest = false; }
+      if (!newName) { nameInput.focus(); nameInput.style.borderColor = 'var(--error)'; return; }
+      profile.name = newName;
+      profile.isGuest = false;
       self.save(profile);
       self.updateNavAvatar(profile);
-      if (newName && window.GL && GL.Auth) GL.Auth.onProfileNameSet(newName);
+      if (window.GL && GL.Auth) GL.Auth.onProfileNameSet(newName);
+      const hint = container.querySelector('#cbSaveHint');
+      if (hint) hint.remove();
+      GL.UI.toast('Profil sauvegardé !', 'success');
     });
 
     // ── Avatar aléatoire ──────────────────────────────────────────────────
@@ -1887,6 +1930,28 @@ GL.Profile = {
         }
       });
     });
+
+    // ── Connexion Google ──────────────────────────────────────────────────────
+    const googleBtn   = container.querySelector('#cbGoogleBtn');
+    const googleSignout = container.querySelector('#cbGoogleSignout');
+    if (googleBtn) {
+      googleBtn.addEventListener('click', async () => {
+        googleBtn.disabled = true;
+        googleBtn.querySelector('span').textContent = 'Connexion…';
+        await GL.Auth.signInWithGoogle();
+        setTimeout(() => {
+          googleBtn.disabled = false;
+          googleBtn.querySelector('span').textContent = 'Se connecter avec Google';
+        }, 5000);
+      });
+    }
+    if (googleSignout) {
+      googleSignout.addEventListener('click', async () => {
+        await GL.Auth.signOut();
+        GL.UI.toast('Déconnecté de Google', 'info');
+        GL.Router.go('#/profil');
+      });
+    }
 
     // ── Masquer les sections dont toutes les images échouent ─────────────────
     const hideEmptySections = () => {

@@ -102,16 +102,20 @@ GL.QuizNightmare = {
       const selected = GL.QuizEngine.pickRandom(pool, Math.min(cfg.count, pool.length));
       const questions = selected.map(country => ({ country, stepResults: [null, null, null] }));
 
+      const peakBefore = GL.UI.getStats().rankedXP || 0;
+      const discoveredBefore = GL.UI.computeDiscovered(GL.UI.getStats());
       this.session = {
         questions,
         config: cfg,
         currentIndex: 0,
         score: 0,
         maxScore: questions.length * 3,
-        streak: 0,
+        streak: (GL.UI ? GL.UI.getStats().currentStreak : 0) || 0,
         maxStreak: 0,
         wrongAnswers: [],
-        startTime: Date.now()
+        startTime: Date.now(),
+        peakBefore,
+        discoveredBefore
       };
 
       this._renderQuestion(container);
@@ -311,14 +315,28 @@ GL.QuizNightmare = {
 
     if (submitBtn) submitBtn.addEventListener('click', handleSubmit);
     if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
+    let hintPending = false;
+    const showHint = () => {
+      const hintSrc = (GL.I18N && GL.I18N.lang === 'en') ? answerAlt : answer;
+      const hint = hintSrc.slice(0, Math.ceil(hintSrc.length / 3));
+      feedback.textContent = `${t('quiz.hint.prefix')}${hint}…"`;
+      hintShown = true;
+      hintPending = false;
+      hintBtn.textContent = t('quiz.btn.hint');
+      hintBtn.classList.remove('hint-btn--warn');
+      const rankedEl = container.querySelector('#rankedIndicator');
+      if (rankedEl) rankedEl.classList.add('ranked-indicator--voided');
+      if (input) input.focus();
+    };
     if (hintBtn) hintBtn.addEventListener('click', () => {
-      if (!hintShown && feedback) {
-        const hintSrc = (GL.I18N && GL.I18N.lang === 'en') ? answerAlt : answer;
-        const hint = hintSrc.slice(0, Math.ceil(hintSrc.length / 3));
-        feedback.textContent = `${t('quiz.hint.prefix')}${hint}…"`;
-        hintShown = true;
-        const rankedEl = container.querySelector('#rankedIndicator');
-        if (rankedEl) rankedEl.classList.add('ranked-indicator--voided');
+      if (answered || hintShown) return;
+      if (!hintPending) {
+        hintPending = true;
+        hintBtn.textContent = t('quiz.hint.confirm.btn');
+        hintBtn.classList.add('hint-btn--warn');
+        if (feedback) feedback.innerHTML = `<span class="quiz-hint-confirm-msg">${t('quiz.hint.confirm')}</span>`;
+      } else {
+        showHint();
       }
     });
 
@@ -426,10 +444,12 @@ GL.QuizNightmare = {
       const advance = () => {
         if (advanced) return;
         advanced = true;
+        GL._onRouteLeave = null;
         clearTimeout(autoTimer);
         this._renderStep(container, q, step + 1);
       };
       const autoTimer = setTimeout(advance, 2000);
+      GL._onRouteLeave = () => { advanced = true; clearTimeout(autoTimer); };
       actionsDiv.querySelector('#stepNextBtn').addEventListener('click', advance);
 
       this.keyHandler = (e) => { if (e.key === 'Enter') advance(); };
@@ -449,11 +469,13 @@ GL.QuizNightmare = {
           const advance = () => {
             if (advanced) return;
             advanced = true;
+            GL._onRouteLeave = null;
             clearTimeout(autoTimer);
             GL.WorldMap.cleanup();
             this._showCountrySummary(container, q);
           };
           const autoTimer = setTimeout(advance, 2500);
+          GL._onRouteLeave = () => { advanced = true; clearTimeout(autoTimer); };
           actionsDiv.querySelector('#stepNextBtn').addEventListener('click', advance);
 
           this.keyHandler = (e) => { if (e.key === 'Enter') advance(); };
@@ -524,11 +546,13 @@ GL.QuizNightmare = {
     const advance = () => {
       if (advanced) return;
       advanced = true;
+      GL._onRouteLeave = null;
       clearTimeout(autoTimer);
       session.currentIndex++;
       this._renderQuestion(container);
     };
     const autoTimer = setTimeout(advance, allCorrect ? 2000 : 3500);
+    GL._onRouteLeave = () => { advanced = true; clearTimeout(autoTimer); };
     container.querySelector('#nextCountryBtn').addEventListener('click', advance);
 
     this.keyHandler = (e) => { if (e.key === 'Enter') advance(); };
@@ -543,17 +567,34 @@ GL.QuizNightmare = {
 
     GL.WorldMap.cleanup();
     GL.UI.updateMaxStreak(session.maxStreak);
+    GL.UI.saveCurrentStreak(session.streak);
     GL.UI.recordQuizResult('nightmare', session.score, session.maxScore, session.config.continent);
 
     const resultTitle = pct >= 80 ? t('nightmare.great') : pct >= 60 ? t('nightmare.ok') : pct >= 40 ? t('nightmare.meh') : t('nightmare.fail');
     const stepLabels = [t('nightmare.step.name.short'), t('nightmare.step.capital.short'), t('nightmare.step.map.short')];
+
+    const peakBefore = session.peakBefore || 0;
+    const discoveredBefore = session.discoveredBefore || 0;
+    const statsAfter = GL.UI.getStats();
+    const peakAfter = statsAfter.rankedXP || 0;
+    const discoveredAfter = GL.UI.computeDiscovered(statsAfter);
+    const gained = peakAfter - peakBefore;
+    const { tier, tierIndex, next } = GL.UI.getRankInfo(peakAfter, discoveredAfter);
+    const prevInfo = GL.UI.getRankInfo(peakBefore, discoveredBefore);
+    const rankUp = tierIndex > prevInfo.tierIndex;
+    const tierEnd = next ? next.min - 1 : GL.UI.RANK_XP_MAX;
+    const tierRange = tierEnd - tier.min;
+    const beforePct = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakBefore - tier.min) / tierRange * 100)) : 100;
+    const afterPct  = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakAfter  - tier.min) / tierRange * 100)) : 100;
+    const rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter, peakBefore, peakAfter };
+    const rankHtml = GL.QuizFlags._rankCardHtml(rankData, t);
 
     container.innerHTML = `
       <div class="page">
         <div class="results-container">
           <div class="results-stars">${stars}</div>
           <div class="results-title">${resultTitle}</div>
-          <div class="results-subtitle">${t('quiz.nightmare.title')}</div>
+          <div class="results-subtitle">${t('quiz.ranked')} · ${t('quiz.nightmare.title')}</div>
           <div class="results-score-big">${pct}%</div>
 
           <div class="results-stats-row">
@@ -570,6 +611,8 @@ GL.QuizNightmare = {
               <div class="results-stat-label">${t('result.streak')}</div>
             </div>
           </div>
+
+          ${rankHtml}
 
           <div class="wrong-answers">
             <div class="wrong-answers-title">${t('nightmare.results')}</div>
@@ -607,6 +650,12 @@ GL.QuizNightmare = {
         </div>
       </div>
     `;
+
+    GL.UI.animateRankBar(container, rankData);
+    if (rankData.rankUp && GL.RankBadges) {
+      const rank = GL.RankBadges.RANKS.find(r => r.key === rankData.tier.key) || GL.RankBadges.RANKS[0];
+      setTimeout(() => GL.RankBadges._triggerLevelUp(rank), 2000);
+    }
 
     container.querySelector('#retryNightmareBtn').addEventListener('click', () => {
       GL.QuizNightmare.render(container);

@@ -66,6 +66,7 @@ GL.App = {
     });
 
     GL.Profile.init();
+    if (GL.Achievements) GL.Achievements.updateNavDot();
 
     // Initialiser Supabase Auth (si configuré)
     if (window.GL && GL.Auth) {
@@ -126,7 +127,7 @@ GL.App = {
               <span class="home-pill">🌍 ${totalCountries} ${t('home.stat.countries').toLowerCase()}</span>
               <span class="home-pill">🏁 ${t('home.pill.flags')}</span>
               <span class="home-pill">🏛️ ${t('home.pill.capitals')}</span>
-              <span class="home-pill">🗺️ ${t('home.pill.map')}</span>
+              <span class="home-pill">📍 ${t('home.pill.map')}</span>
               <span class="home-pill">🌐 ${totalContinents} ${t('home.stat.continents').toLowerCase()}</span>
             </div>
             <div class="hero-actions">
@@ -179,7 +180,7 @@ GL.App = {
               const { tier } = GL.UI.getRankInfo(xp);
               const tierName = GL.UI.tierName(tier);
               return `<div class="home-stat">
-                <div class="home-stat-number"><span class="rank-badge-mini" style="--rank-color:${tier.color};">${tier.icon} ${tierName}</span></div>
+                <div class="home-stat-number"><span class="rank-badge-mini" style="--rank-color:${tier.color};"><span style="display:inline-block;width:1.2em;height:1.2em;vertical-align:middle;">${GL.RankBadges ? GL.RankBadges.svgFrameOnly(tier.key) : tier.icon}</span> ${tierName}</span></div>
                 <div class="home-stat-label">${t('home.stat.rank')}</div>
               </div>`;
             })()}
@@ -267,7 +268,7 @@ GL.App = {
               </a>
               <a href="#/carte" style="text-decoration:none;">
                 <div class="feature-card">
-                  <div class="feature-card-icon">🗺️</div>
+                  <div class="feature-card-icon">📍</div>
                   <div class="feature-card-title">${t('feat.map.title')}</div>
                   <div class="feature-card-desc">${t('feat.map.desc')}</div>
                   <div class="feature-card-arrow">${t('feat.map.link')}</div>
@@ -340,32 +341,33 @@ GL.App = {
     const isCurrentLegend = tier.key === 'legend';
     const tierName = GL.UI.tierName(tier);
     const nextName = next ? GL.UI.tierName(next) : null;
-    let tierPct, barLabels, masteredLine;
+    let tierPct, barLabels, nextLine;
     if (isCurrentLegend) {
       tierPct = 100;
       barLabels = `<span>${tierName}</span><span>${t('result.rank.max')}</span>`;
-      masteredLine = `${t('stats.rank.xp').replace('{n}', xp)} · ${discovered}/${totalUnique} découvertes · ${t('stats.rank.max')}`;
+      nextLine = `${discovered}/${totalUnique} découvertes · ${t('stats.rank.max')}`;
     } else if (isNextLegend) {
       tierPct = Math.round(discovered / totalUnique * 100);
       barLabels = `<span>${tierName}</span><span>${nextName} (${discovered}/${totalUnique})</span>`;
-      masteredLine = `${t('stats.rank.xp').replace('{n}', xp)} · ${discovered}/${totalUnique} découvertes pour Légende`;
+      nextLine = `${discovered}/${totalUnique} découvertes pour Légende`;
     } else {
       const TOTAL = GL.UI.RANK_XP_MAX;
       const tierEnd = next ? next.min - 1 : TOTAL;
       const tierRange = tierEnd - tier.min;
       tierPct = tierRange > 0 ? Math.min(100, Math.round((xp - tier.min) / tierRange * 100)) : 100;
       barLabels = `<span>${tierName} (${tier.min} Pts)</span>${nextName ? `<span>${nextName} (${next.min} Pts)</span>` : `<span>${t('result.rank.max')}</span>`}`;
-      masteredLine = `${t('stats.rank.xp').replace('{n}', xp)}${nextName ? ' ' + t('stats.rank.next').replace('{n}', next.min) : ' ' + t('stats.rank.max')}`;
+      nextLine = nextName ? t('stats.rank.next').replace('{n}', next.min) : t('stats.rank.max');
     }
     return `
       <div class="rank-card" style="--rank-color:${tier.color};">
-        <div class="rank-icon">${tier.icon}</div>
+        <div class="rank-icon">${GL.RankBadges ? GL.RankBadges.svgFrameOnly(tier.key) : tier.icon}</div>
         <div class="rank-name">${tierName}</div>
+        <div class="rank-xp-big" style="color:${tier.color};">${xp}<span class="rank-xp-unit"> Pts</span></div>
+        <div class="rank-mastered-line">${nextLine}</div>
+        <div class="rank-tier-labels">${barLabels}</div>
         <div class="rank-bar-track">
           <div class="rank-bar-fill" style="width:${tierPct}%;"></div>
         </div>
-        <div class="rank-tier-labels">${barLabels}</div>
-        <div class="rank-mastered-line">${masteredLine}</div>
       </div>`;
   },
 
@@ -389,7 +391,7 @@ GL.App = {
           <text x="50" y="64" text-anchor="middle" font-size="14" font-weight="bold" style="fill:var(--text-primary);">${c.pct}%</text>
         </svg>
         <div class="continent-ring-name">${contLabel}</div>
-        <div class="continent-ring-sub">${c.total > 0 ? `${c.correct}/${c.total}` : t('stats.notplayed')}</div>
+        <div class="continent-ring-sub">${c.correct > 0 ? `${c.correct}/${c.maxTotal}` : t('stats.notplayed')}</div>
       </div>`;
   },
 
@@ -515,6 +517,7 @@ GL.App = {
 
     const continentData = GL.CONTINENTS.map(c => {
       const countries = GL.COUNTRIES.filter(co => co.continent === c);
+      const maxTotal = countries.length * 3;
       let cTotal = 0, cCorrect = 0;
       countries.forEach(co => {
         const s = stats.countriesStats[co.code];
@@ -522,8 +525,8 @@ GL.App = {
       });
       return {
         continent: c, continentFr: GL.CONTINENTS_FR[c],
-        total: cTotal, correct: cCorrect,
-        pct: cTotal > 0 ? Math.round(cCorrect / cTotal * 100) : 0,
+        total: cTotal, correct: cCorrect, maxTotal,
+        pct: Math.round(cCorrect / maxTotal * 100),
         countries
       };
     });
@@ -540,6 +543,7 @@ GL.App = {
     const hardCountries = Object.entries(stats.countriesStats || {})
       .filter(([, s]) => s.q >= 3)
       .map(([code, s]) => ({ code, pct: Math.round(s.c / s.q * 100), q: s.q }))
+      .filter(h => h.pct < 100)
       .sort((a, b) => a.pct - b.pct)
       .slice(0, 10);
 
@@ -583,7 +587,7 @@ GL.App = {
         </div>
 
         <div class="stats-section">
-          <h3 class="stats-section-title">${t('stats.type.title')}</h3>
+          <h3 class="stats-section-title">${t('stats.type.title')} <span class="info-tooltip" data-tooltip="${t('stats.type.info')}">ℹ️</span></h3>
           <p class="stats-section-hint">${t('stats.type.hint')}</p>
           <div class="type-cards-grid">
             ${this._typeCardHtml('flag', '🏁', t('stats.flags'), typeStats.flag)}
@@ -595,17 +599,25 @@ GL.App = {
 
         ${hardCountries.length > 0 ? `
           <div class="hard-countries">
-            <h3>${t('stats.hard.title')}</h3>
+            <h3 class="stats-section-title">${t('stats.hard.title')} <span class="info-tooltip" data-tooltip="${t('stats.hard.info')}">ℹ️</span></h3>
+            <p class="stats-section-hint">${t('stats.hard.hint')}</p>
             <div class="hard-country-list">
               ${hardCountries.map(h => {
                 const country = GL.COUNTRIES.find(c => c.code === h.code);
                 if (!country) return '';
-                return `<div class="hard-country-item">
-                  <span class="fi fi-${country.code}" style="width:36px;height:24px;background-size:cover;border-radius:2px;display:inline-block;"></span>
-                  <span style="font-size:0.875rem;font-weight:600;">${this._n(country)}</span>
-                  <span style="font-size:0.8rem;color:var(--text-muted);">(${this._cap(country)})</span>
-                  ${GL.UI.continentBadge(country.continent, country.continentFr)}
-                  <span class="hard-country-pct">${h.pct}%</span>
+                return `<div class="hard-country-entry">
+                  <div class="hard-country-item" data-code="${country.code}">
+                    <span class="fi fi-${country.code}" style="width:36px;height:24px;background-size:cover;border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+                    <span style="font-size:0.875rem;font-weight:600;">${this._n(country)}</span>
+                    <span style="font-size:0.8rem;color:var(--text-muted);">(${this._cap(country)})</span>
+                    ${GL.UI.continentBadge(country.continent, country.continentFr)}
+                    <div style="margin-left:auto;text-align:right;flex-shrink:0;line-height:1.3;">
+                      <div class="hard-country-pct">${h.pct}%</div>
+                      <div style="font-size:0.65rem;color:var(--text-muted);white-space:nowrap;">réussite globale</div>
+                    </div>
+                    <span class="hard-country-chevron">▸</span>
+                  </div>
+                  <div class="hard-country-detail" id="hard-detail-${country.code}" style="display:none;"></div>
                 </div>`;
               }).join('')}
             </div>
@@ -664,6 +676,48 @@ GL.App = {
         panel.innerHTML = this._continentDetailHtml(data, mastery);
         this._bindCountryClicks(panel);
         panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+
+    // Hard country clicks
+    container.querySelectorAll('.hard-country-item[data-code]').forEach(item => {
+      item.addEventListener('click', () => {
+        const code = item.dataset.code;
+        const detail = container.querySelector(`#hard-detail-${code}`);
+        const chevron = item.querySelector('.hard-country-chevron');
+        const isOpen = detail.style.display !== 'none';
+        container.querySelectorAll('.hard-country-detail').forEach(d => { d.style.display = 'none'; });
+        container.querySelectorAll('.hard-country-chevron').forEach(c => { c.textContent = '▸'; });
+        if (!isOpen) {
+          detail.style.display = 'block';
+          chevron.textContent = '▾';
+          const m = mastery[code] || {};
+          const types = [
+            { key: 'flag',    emoji: '🏁', label: t('stats.flags') },
+            { key: 'capital', emoji: '🏛️', label: t('stats.capitals') },
+            { key: 'map',     emoji: '📍', label: t('stats.map') },
+          ];
+          detail.innerHTML = `<div class="hard-country-detail-inner">
+            <div class="hard-detail-legend">
+              Niveau de maîtrise (✓ = +1 pt · ✗ = −1 pt) &nbsp;—&nbsp;
+              <span style="color:var(--error);">○○○</span> À retravailler &nbsp;
+              <span style="color:#f59e0b;">●○○</span> Débuté &nbsp;
+              <span style="color:var(--success);">●●○</span> En progression &nbsp;
+              <span style="color:var(--success);">●●●</span> Maîtrisé
+            </div>
+            ${types.map(tp => {
+              const val = m[tp.key];
+              const dots = val === undefined ? '—' : '●'.repeat(val) + '○'.repeat(3 - val);
+              const color = val === undefined ? 'var(--text-muted)' : val >= 2 ? 'var(--success)' : val === 1 ? '#f59e0b' : 'var(--error)';
+              const statusLabel = val === undefined ? 'Non joué' : val === 3 ? 'Maîtrisé' : val === 0 ? 'À retravailler' : `Niveau ${val}/3`;
+              return `<div class="hard-detail-type">
+                <span style="width:90px;flex-shrink:0;">${tp.emoji} ${tp.label}</span>
+                <span style="color:${color};font-weight:700;letter-spacing:3px;">${dots}</span>
+                <span style="color:${color};font-size:0.73rem;">${statusLabel}</span>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }
       });
     });
 

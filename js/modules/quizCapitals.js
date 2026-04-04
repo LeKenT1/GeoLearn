@@ -352,11 +352,13 @@ GL.QuizCapitals = {
     const advance = () => {
       if (advanced) return;
       advanced = true;
+      GL._onRouteLeave = null;
       clearTimeout(autoTimer);
       session.currentIndex++;
       this.renderQuestion(container);
     };
     const autoTimer = setTimeout(advance, 2000);
+    GL._onRouteLeave = () => { advanced = true; clearTimeout(autoTimer); };
     actionsDiv.querySelector('#nextBtn').addEventListener('click', advance);
   },
 
@@ -371,6 +373,7 @@ GL.QuizCapitals = {
 
     if (session.config.ranked) {
       GL.UI.updateMaxStreak(session.maxStreak);
+      GL.UI.saveCurrentStreak(session.streak);
       GL.UI.recordQuizResult('capitals', session.score, total, session.config.continent);
     }
 
@@ -392,7 +395,7 @@ GL.QuizCapitals = {
       const tierRange = tierEnd - tier.min;
       const beforePct = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakBefore - tier.min) / tierRange * 100)) : 100;
       const afterPct  = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakAfter  - tier.min) / tierRange * 100)) : 100;
-      rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter };
+      rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter, peakBefore, peakAfter };
     }
 
     const rankHtml = rankData ? GL.QuizFlags._rankCardHtml(rankData, t) : '';
@@ -440,14 +443,10 @@ GL.QuizCapitals = {
       </div>
     `;
 
-    if (rankData) {
-      setTimeout(() => {
-        const fill = container.querySelector('#rankBarFill');
-        if (fill) {
-          fill.style.transition = 'width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-          fill.style.width = rankData.afterPct + '%';
-        }
-      }, 250);
+    if (rankData) GL.UI.animateRankBar(container, rankData);
+    if (rankData && rankData.rankUp && GL.RankBadges) {
+      const rank = GL.RankBadges.RANKS.find(r => r.key === rankData.tier.key) || GL.RankBadges.RANKS[0];
+      setTimeout(() => GL.RankBadges._triggerLevelUp(rank), 2000);
     }
 
     container.querySelector('#retryBtn').addEventListener('click', () => {
