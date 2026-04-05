@@ -138,6 +138,7 @@ GL.Auth = {
     const activeTitle = localStorage.getItem('gl_active_title');
     const name = username || profile?.name || null;
 
+    console.log('[Auth] _push → user:', this._user.id, '| name:', name);
     const { error } = await this._client.from('user_data').upsert({
       user_id:      this._user.id,
       username:     name,
@@ -146,7 +147,12 @@ GL.Auth = {
       active_title: activeTitle,
       updated_at:   new Date().toISOString(),
     });
-    if (error) console.error('[Auth] push:', error.message);
+    if (error) {
+      console.error('[Auth] _push échoué:', error.message, error);
+      if (GL.UI?.toast) GL.UI.toast('Erreur sauvegarde : ' + error.message, 'error');
+    } else {
+      console.log('[Auth] _push OK pour:', name);
+    }
   },
 
   // ── Pull DB → local ─────────────────────────────────────────────────────────
