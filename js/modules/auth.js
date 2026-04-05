@@ -29,11 +29,7 @@ GL.Auth = {
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.GL_CONFIG;
     if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) return;
 
-    this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      realtime: { params: { eventsPerSecond: 0 } },
-    });
-    // On n'utilise pas le realtime — on déconnecte pour éviter les erreurs WebSocket
-    try { this._client.realtime.disconnect(); } catch(e) {}
+    this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Écouter les changements d'état (retour OAuth Google inclus)
     this._client.auth.onAuthStateChange(async (event, session) => {
@@ -131,14 +127,13 @@ GL.Auth = {
 
   // ── Push local → DB ─────────────────────────────────────────────────────────
   async _push(username) {
-    if (!this._user || !this._client) return;
-
     let profile = null;
     try { profile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
     const activeTitle = localStorage.getItem('gl_active_title');
     const name = username || profile?.name || null;
 
-    console.log('[Auth] _push → user:', this._user.id, '| name:', name);
+    console.log('[Auth] _push → user:', this._user?.id, '| client:', !!this._client, '| name:', name);
+    if (!this._user || !this._client) { console.error('[Auth] _push annulé : user ou client null'); return; }
     const { error } = await this._client.from('user_data').upsert({
       user_id:      this._user.id,
       username:     name,
