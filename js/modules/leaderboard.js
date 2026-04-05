@@ -39,7 +39,7 @@ GL.Leaderboard = {
   _avatarFrameHtml(player, frameSize, avSize) {
     const rk  = this._rankKey(player.xp);
     const svg = GL.RankBadges ? GL.RankBadges.svgFrameOnly(rk) : '';
-    const src = (player.isReal && player.avatarUrl)
+    const src = player.avatarUrl
       ? player.avatarUrl
       : this._fakeAvatarUrl(player, avSize * 2);
     const fallback = `https://api.dicebear.com/9.x/avataaars/svg?seed=default&size=${avSize * 2}`;
@@ -113,28 +113,83 @@ GL.Leaderboard = {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  render(container) {
-    const t = (k) => GL.I18N ? GL.I18N.t(k) : k;
-
-    // Joueur réel
-    const profile     = GL.Profile ? GL.Profile.get() : null;
-    const realXP      = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
-    const rawName     = profile ? (profile.isGuest ? null : profile.name) : null;
-    const realName    = rawName || 'Vous';
-    const activeTitle = GL.Achievements ? GL.Achievements.getActiveTitle() : null;
-    const realTitle   = activeTitle ? GL.Achievements._achTitle(activeTitle) : null;
+  _buildRealPlayer() {
+    const profile       = GL.Profile ? GL.Profile.get() : null;
+    const realXP        = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
+    const rawName       = profile ? (profile.isGuest ? null : profile.name) : null;
+    const realName      = rawName || 'Vous';
+    const activeTitle   = GL.Achievements ? GL.Achievements.getActiveTitle() : null;
+    const realTitle     = activeTitle ? GL.Achievements._achTitle(activeTitle) : null;
     const realTitleTier = activeTitle ? activeTitle.tier : 0;
-
-    const realPlayer = {
+    return {
       id: 'real', name: realName, xp: realXP, isReal: true,
       title: realTitle, titleTier: realTitleTier,
       avatarUrl: profile
         ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(profile.avatar), 160)
         : null,
     };
+  },
 
-    // Tri global
-    const all  = [realPlayer].sort((a, b) => b.xp - a.xp);
+  async _fetchRemotePlayers() {
+    const client = GL.Auth?._client;
+    if (!client) return [];
+    const { data, error } = await client
+      .from('user_data')
+      .select('user_id, username, stats, profile, active_title')
+      .not('username', 'is', null)
+      .order('stats->>rankedXP', { ascending: false })
+      .limit(100);
+    if (error) { console.error('[Leaderboard] fetch:', error.message); return []; }
+
+    const myUserId = GL.Auth?._user?.id;
+    return (data || [])
+      .filter(row => row.user_id !== myUserId)
+      .map(row => {
+        const xp    = parseInt((row.stats || {}).rankedXP, 10) || 0;
+        let titleText = null, titleTier = 0;
+        if (row.active_title) {
+          try {
+            const key = row.active_title;
+            const achs = GL.Achievements?.ACHIEVEMENTS || [];
+            const ach = achs.find(a => a.id === key);
+            if (ach) { titleText = ach.title; titleTier = ach.tier || 0; }
+          } catch(e) {}
+        }
+        const profile = row.profile || {};
+        const avatarUrl = profile.avatar
+          ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(profile.avatar), 160)
+          : null;
+        return {
+          id: row.user_id,
+          name: row.username || 'Joueur',
+          xp,
+          isReal: false,
+          title: titleText,
+          titleTier,
+          avatarUrl,
+          seed:    profile.avatar?.seed    || row.user_id,
+          style:   profile.avatar?.style   || 'avataaars',
+          bgColor: profile.avatar?.bgColor || null,
+        };
+      });
+  },
+
+  render(container) {
+    const t = (k) => GL.I18N ? GL.I18N.t(k) : k;
+
+    // Affichage immédiat avec le joueur local
+    const realPlayer = this._buildRealPlayer();
+    this._renderPlayers(container, [realPlayer], t);
+
+    // Puis enrichissement async avec les données Supabase
+    this._fetchRemotePlayers().then(remotePlayers => {
+      const all = [realPlayer, ...remotePlayers];
+      this._renderPlayers(container, all, t);
+    });
+  },
+
+  _renderPlayers(container, players, t) {
+    const all  = [...players].sort((a, b) => b.xp - a.xp);
     const top3 = all.slice(0, 3);
     const rest = all.slice(3);
 
