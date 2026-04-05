@@ -29,7 +29,11 @@ GL.Auth = {
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.GL_CONFIG;
     if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) return;
 
-    this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      realtime: { params: { eventsPerSecond: 0 } },
+    });
+    // On n'utilise pas le realtime — on déconnecte pour éviter les erreurs WebSocket
+    try { this._client.realtime.disconnect(); } catch(e) {}
 
     // Écouter les changements d'état (retour OAuth Google inclus)
     this._client.auth.onAuthStateChange(async (event, session) => {
@@ -98,17 +102,22 @@ GL.Auth = {
 
   // ── Appelé par profile.js quand l'utilisateur tape son prénom ───────────────
   async onProfileNameSet(username) {
-    if (!this._client) return;
+    if (!this._client) { console.warn('[Auth] client non initialisé'); return; }
 
     if (!this._user) {
-      // Première fois qu'un prénom est défini → créer le compte anonyme
+      console.log('[Auth] signInAnonymously pour:', username);
       const { data, error } = await this._client.auth.signInAnonymously();
-      if (error) { console.error('[Auth] signInAnonymously:', error.message); return; }
+      if (error) {
+        console.error('[Auth] signInAnonymously échoué:', error.message);
+        if (GL.UI?.toast) GL.UI.toast('Erreur sync : ' + error.message, 'error');
+        return;
+      }
       this._user = data.user;
-      // Migrer toutes les données locales vers la DB
+      console.log('[Auth] compte créé:', this._user.id);
       await this._push(username);
+      console.log('[Auth] données envoyées pour:', username);
     } else {
-      // Compte existant → sync avec le nouveau prénom
+      console.log('[Auth] sync pour:', username, '| user:', this._user.id);
       this.scheduleSync(username);
     }
   },
