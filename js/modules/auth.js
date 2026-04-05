@@ -24,6 +24,7 @@ GL.Auth = {
 
   // ── Initialisation ──────────────────────────────────────────────────────────
   init() {
+    if (window.location.protocol === 'file:') return;
     if (!window.supabase || !window.GL_CONFIG) return;
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.GL_CONFIG;
     if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) return;

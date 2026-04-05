@@ -1045,6 +1045,7 @@ GL.Profile = {
       if (!name) { nameInput.focus(); nameInput.style.borderColor = 'var(--error)'; return; }
       const profile = self.defaultProfile(name, false);
       self.save(profile);
+      if (window.GL && GL.Auth) GL.Auth.onProfileNameSet(name);
       self._closeModal(overlay, () => {
         self.updateNavAvatar(profile);
         if (window.location.hash === '#/profil') self.render(document.getElementById('app'));

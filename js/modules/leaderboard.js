@@ -176,12 +176,19 @@ GL.Leaderboard = {
 
   render(container) {
     const t = (k) => GL.I18N ? GL.I18N.t(k) : k;
+    const label = GL.I18N ? GL.I18N.t('nav.leaderboard') : 'Classement';
 
-    // Affichage immédiat avec le joueur local
+    // Loader pendant le fetch Supabase
+    container.innerHTML = `
+      <div class="page" style="display:flex;align-items:center;justify-content:center;min-height:60vh;">
+        <div class="loader-content">
+          <div class="loader-globe">🌍</div>
+          <p>${GL.I18N?.lang === 'en' ? 'Loading' : 'Chargement du'} ${label}...</p>
+        </div>
+      </div>`;
+
     const realPlayer = this._buildRealPlayer();
-    this._renderPlayers(container, [realPlayer], t);
 
-    // Puis enrichissement async avec les données Supabase
     this._fetchRemotePlayers().then(remotePlayers => {
       const all = [realPlayer, ...remotePlayers];
       this._renderPlayers(container, all, t);

@@ -50,6 +50,15 @@ GL.App = {
 
     this._updateNavLabels();
 
+    // Initialiser Supabase Auth avant le router (nécessaire pour le classement au reload)
+    if (window.GL && GL.Auth) {
+      GL.Auth.init();
+      const authBtn = document.getElementById('authBtn');
+      if (authBtn) {
+        authBtn.addEventListener('click', () => GL.Auth.openModal());
+      }
+    }
+
     // Init router
     GL.Router.init({
       '/':               (el) => this.renderHome(el),
@@ -67,15 +76,6 @@ GL.App = {
 
     GL.Profile.init();
     if (GL.Achievements) GL.Achievements.updateNavDot();
-
-    // Initialiser Supabase Auth (si configuré)
-    if (window.GL && GL.Auth) {
-      GL.Auth.init();
-      const authBtn = document.getElementById('authBtn');
-      if (authBtn) {
-        authBtn.addEventListener('click', () => GL.Auth.openModal());
-      }
-    }
   },
 
   _updateNavLabels() {
