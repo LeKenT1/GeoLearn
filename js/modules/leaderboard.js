@@ -133,12 +133,23 @@ GL.Leaderboard = {
   async _fetchRemotePlayers() {
     const client = GL.Auth?._client;
     if (!client) return [];
-    const { data, error } = await client
+
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 8000)
+    );
+    const query = client
       .from('user_data')
       .select('user_id, username, stats, profile, active_title')
       .not('username', 'is', null)
-      .order('stats->>rankedXP', { ascending: false })
       .limit(100);
+
+    let data, error;
+    try {
+      ({ data, error } = await Promise.race([query, timeout]));
+    } catch (e) {
+      console.warn('[Leaderboard] fetch échoué ou timeout:', e.message);
+      return [];
+    }
     if (error) { console.error('[Leaderboard] fetch:', error.message); return []; }
 
     const myUserId = GL.Auth?._user?.id;
@@ -192,6 +203,8 @@ GL.Leaderboard = {
     this._fetchRemotePlayers().then(remotePlayers => {
       const all = [realPlayer, ...remotePlayers];
       this._renderPlayers(container, all, t);
+    }).catch(() => {
+      this._renderPlayers(container, [realPlayer], t);
     });
   },
 
