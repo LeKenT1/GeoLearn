@@ -353,6 +353,7 @@ GL.Profile = {
     { val: 'variant07', label: '7' }, { val: 'variant08', label: '8' },
   ],
   PIXEL_GLASSES: [
+    { val: '',        label: 'Aucun'    },
     { val: 'dark01',  label: 'Sombre 1' }, { val: 'dark02',  label: 'Sombre 2' }, { val: 'dark03', label: 'Sombre 3' },
     { val: 'dark04',  label: 'Sombre 4' }, { val: 'dark05',  label: 'Sombre 5' }, { val: 'dark06', label: 'Sombre 6' },
     { val: 'dark07',  label: 'Sombre 7' },
@@ -403,6 +404,7 @@ GL.Profile = {
     { val: 'variant13', label: '13' }, { val: 'variant14', label: '14' }, { val: 'variant15', label: '15' },
   ],
   ADV_GLASSES: [
+    { val: '',          label: 'Aucun' },
     { val: 'variant01', label: '1' }, { val: 'variant02', label: '2' }, { val: 'variant03', label: '3' },
     { val: 'variant04', label: '4' }, { val: 'variant05', label: '5' },
   ],
@@ -443,6 +445,7 @@ GL.Profile = {
   LOR_BEARD:    [{ val: 'variant01', label: '1' }, { val: 'variant02', label: '2' }],
   LOR_EARRINGS: [{ val: 'variant01', label: '1' }, { val: 'variant02', label: '2' }, { val: 'variant03', label: '3' }],
   LOR_GLASSES:  [
+    { val: '',          label: 'Aucun' },
     { val: 'variant01', label: '1' }, { val: 'variant02', label: '2' }, { val: 'variant03', label: '3' },
     { val: 'variant04', label: '4' }, { val: 'variant05', label: '5' },
   ],
@@ -453,6 +456,7 @@ GL.Profile = {
 
   // ===== OPTIONS GRAND SOURIRE (big-smile) =====
   BSMILE_ACCESSORIES: [
+    { val: '',              label: 'Aucun'          },
     { val: 'catEars',       label: 'Oreilles chat'  }, { val: 'glasses',      label: 'Lunettes'       },
     { val: 'sailormoonCrown',label: 'Couronne'      }, { val: 'clownNose',    label: 'Nez de clown'   },
     { val: 'sleepMask',     label: 'Masque nuit'    }, { val: 'sunglasses',   label: 'Lunettes soleil'},
@@ -532,6 +536,7 @@ GL.Profile = {
     { val: 'hand',              label: 'Main'       }, { val: 'handPhone',      label: 'Téléphone'  },
   ],
   NOTION_GLASSES: [
+    { val: '',          label: 'Aucun' },
     { val: 'variant01', label: '1'  }, { val: 'variant02', label: '2'  }, { val: 'variant03', label: '3'  },
     { val: 'variant04', label: '4'  }, { val: 'variant05', label: '5'  }, { val: 'variant06', label: '6'  },
     { val: 'variant07', label: '7'  }, { val: 'variant08', label: '8'  }, { val: 'variant09', label: '9'  },

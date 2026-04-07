@@ -1010,6 +1010,22 @@ GL.WorldMap = {
           .on('mousemove', (event) => this.onMouseMove(event))
           .on('mouseout', () => this.onMouseOut())
           .on('click', (event, d) => this.onCountryClick(event, d));
+
+        // Invisible hit circle at centroid for easier clicking on tiny GeoJSON countries
+        if (centroid && !isNaN(centroid[0])) {
+          const hitDatum = { id: numeric };
+          g.append('circle')
+            .datum(hitDatum)
+            .attr('cx', centroid[0])
+            .attr('cy', centroid[1])
+            .attr('r', 12)
+            .style('fill', 'transparent')
+            .style('cursor', 'pointer')
+            .on('mouseover', (event, d) => this.onMouseOver(event, d))
+            .on('mousemove', (event) => this.onMouseMove(event))
+            .on('mouseout', () => this.onMouseOut())
+            .on('click', (event, d) => this.onCountryClick(event, d));
+        }
         return;
       }
 
@@ -1040,7 +1056,7 @@ GL.WorldMap = {
 
       // Invisible larger hit area for easier clicking
       grp.append('circle')
-        .attr('r', 8)
+        .attr('r', 14)
         .style('fill', 'transparent');
 
       grp

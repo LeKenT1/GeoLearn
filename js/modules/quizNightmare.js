@@ -309,8 +309,7 @@ GL.QuizNightmare = {
         feedback.innerHTML = `<span class="quiz-correct-answer">✓ ${displayAnswer}</span>`;
       }
 
-      // Si l'indice a été utilisé, la réponse ne rapporte pas de point
-      this._recordStepResult(hintShown ? false : isCorrect, q, step, container, val);
+      this._recordStepResult(isCorrect, q, step, container, val);
     };
 
     if (submitBtn) submitBtn.addEventListener('click', handleSubmit);
@@ -626,8 +625,8 @@ GL.QuizNightmare = {
                 const bg = r ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)';
                 const col = r ? '#22c55e' : '#ef4444';
                 const icon = r ? '✓' : '✕';
-                const detail = !r && userIn && correctAns
-                  ? ` · <s style="opacity:0.7">${userIn}</s> → <b style="color:#22c55e">${correctAns}</b>`
+                const detail = !r && correctAns
+                  ? (userIn ? ` · <s style="opacity:0.7">${userIn}</s> → <b style="color:#22c55e">${correctAns}</b>` : ` · <b style="color:#22c55e">${correctAns}</b>`)
                   : '';
                 return `<span style="font-size:0.72rem;padding:0.18rem 0.5rem;border-radius:4px;font-weight:600;background:${bg};color:${col};white-space:nowrap;">${icon} ${stepLabels[i]}${detail}</span>`;
               }).join('');
