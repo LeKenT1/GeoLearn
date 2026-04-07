@@ -1021,7 +1021,7 @@ GL.Profile = {
     overlay.className = 'profile-modal-overlay';
     overlay.innerHTML = `
       <div class="profile-modal">
-        <div class="lang-switch" style="margin: 0 auto 1rem;">
+        <div class="lang-switch" style="margin: 0 auto 1rem; width: fit-content;">
           <button class="lang-switch-btn" data-lang="fr">FR</button>
           <span class="lang-switch-sep">|</span>
           <button class="lang-switch-btn" data-lang="en">EN</button>
