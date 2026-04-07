@@ -59,6 +59,10 @@ GL.Auth = {
     // Écouter les changements d'état (retour OAuth Google inclus)
     this._client.auth.onAuthStateChange(async (event, session) => {
       console.log('[Auth] onAuthStateChange:', event, 'user:', session?.user?.id ?? null);
+
+      // Résoudre ready immédiatement — avant toute opération async (push/pull)
+      _resolveReady();
+
       if (event === 'SIGNED_IN' && session) {
         const prevUserId = this._user?.id;
         this._user = session.user;
@@ -86,8 +90,6 @@ GL.Auth = {
       } else if (event === 'SIGNED_OUT') {
         this._user = null;
       }
-      // onAuthStateChange est la source fiable : résoudre ready dès le 1er event
-      _resolveReady();
     });
 
     // Restaurer la session persistée (localStorage Supabase)
