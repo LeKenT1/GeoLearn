@@ -33,8 +33,17 @@ GL.Auth = {
 
     console.log('[Auth] createClient...');
     // Promesse résolue une fois que la session initiale est déterminée
+    // Peut être déclenchée depuis onAuthStateChange OU getSession(), le premier qui gagne
+    let _readyResolved = false;
     let _readyResolve;
     this.ready = new Promise(resolve => { _readyResolve = resolve; });
+    const _resolveReady = () => {
+      if (!_readyResolved) {
+        _readyResolved = true;
+        console.log('[Auth] ready résolu, _user:', this._user?.id ?? null);
+        _readyResolve();
+      }
+    };
 
     this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: {
@@ -77,6 +86,8 @@ GL.Auth = {
       } else if (event === 'SIGNED_OUT') {
         this._user = null;
       }
+      // onAuthStateChange est la source fiable : résoudre ready dès le 1er event
+      _resolveReady();
     });
 
     // Restaurer la session persistée (localStorage Supabase)
@@ -96,8 +107,8 @@ GL.Auth = {
     }).catch(e => {
       console.warn('[Auth] getSession échoué:', e?.message);
     }).finally(() => {
-      console.log('[Auth] ready résolu, _user:', this._user?.id ?? null);
-      _readyResolve();
+      // Fallback : si onAuthStateChange n'a pas encore fire (pas de session), résoudre ici
+      _resolveReady();
     });
   },
 
