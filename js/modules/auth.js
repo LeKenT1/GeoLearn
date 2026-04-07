@@ -30,6 +30,11 @@ GL.Auth = {
     if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) return;
 
     this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        // Désactive le verrou cross-tab (BroadcastChannel) qui bloque getSession()
+        // dans certains environnements prod (cause du "No Listener: tabs:outgoing.message.ready")
+        lock: async (_name, _timeout, fn) => fn(),
+      },
       global: {
         fetch: (url, opts = {}) => {
           const ctrl = new AbortController();
