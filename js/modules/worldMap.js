@@ -1030,10 +1030,11 @@ GL.WorldMap = {
           .on('mouseout', () => this.onMouseOut())
           .on('click', (event, d) => this.onCountryClick(event, d));
 
-        // Invisible hit circle only for truly tiny GeoJSON polygons (< 50 sq SVG units).
-        // Larger countries like Kosovo have a big enough path to click without a helper circle.
+        // Invisible hit circle only for truly tiny GeoJSON polygons (Caribbean islands, etc.).
+        // Kosovo (383) is excluded: its polygon is accurate enough — a large hit circle would
+        // bleed into neighbouring countries and create a misleading selection zone.
         const area = this.pathGen.area(feature);
-        if (centroid && !isNaN(centroid[0]) && area < 50) {
+        if (centroid && !isNaN(centroid[0]) && area < 50 && numeric !== 383) {
           const hitDatum = { id: numeric };
           g.append('circle')
             .datum(hitDatum)

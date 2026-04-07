@@ -1454,6 +1454,16 @@
 .page-fullwidth {
   max-width: 100%;
   padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--nav-height));
+  box-sizing: border-box;
+}
+
+.page-fullwidth .map-wrapper {
+  flex: 1;
+  min-height: 300px;
+  margin-top: 0.5rem;
 }
 
 .nightmare-map-layout {

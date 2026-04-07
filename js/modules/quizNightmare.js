@@ -183,15 +183,17 @@ GL.QuizNightmare = {
             </div>
           </div>
 
+          <div class="nightmare-steps nightmare-steps--map">
+            ${[0,1,2].map(i => `
+              <div class="nightmare-step ${i < step ? (q.stepResults[i] ? 'done-correct' : 'done-wrong') : i === step ? 'active' : 'pending'}">
+                <span class="nightmare-step-icon">${stepIcons[i]}</span>
+                <span class="nightmare-step-label">${getStepLabel(i)}</span>
+              </div>
+            `).join('')}
+          </div>
+
           <div class="quiz-map-question-bar" id="nightmareMapBar">
-            <div class="nightmare-steps" style="flex-shrink:0;">
-              ${[0,1,2].map(i => `
-                <div class="nightmare-step ${i < step ? (q.stepResults[i] ? 'done-correct' : 'done-wrong') : i === step ? 'active' : 'pending'}">
-                  <span class="nightmare-step-icon">${stepIcons[i]}</span>
-                  <span class="nightmare-step-label">${getStepLabel(i)}</span>
-                </div>
-              `).join('')}
-            </div>
+            <div></div>
             <div class="quiz-map-prompt">
               <div>
                 <div class="quiz-map-prompt-label">${t('nightmare.map.click')}</div>
@@ -201,7 +203,7 @@ GL.QuizNightmare = {
             <div id="mapFeedback" class="quiz-map-feedback empty">${t('nightmare.map.clickprompt')}</div>
           </div>
 
-          <div class="map-wrapper" id="nightmareMapWrapper" style="margin-top:0.75rem;cursor:crosshair;min-height:450px;">
+          <div class="map-wrapper" id="nightmareMapWrapper" style="cursor:crosshair;">
             <div class="map-loading"><span class="map-loading-spinner">🌍</span> ${t('quiz.map.loading')}</div>
           </div>
         </div>

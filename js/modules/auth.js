@@ -21,6 +21,7 @@ GL.Auth = {
   _client: null,
   _user: null,
   _syncTimer: null,
+  ready: Promise.resolve(), // résolu immédiatement jusqu'à ce que init() soit appelé
 
   // ── Initialisation ──────────────────────────────────────────────────────────
   init() {
@@ -28,6 +29,10 @@ GL.Auth = {
     if (!window.supabase || !window.GL_CONFIG) return;
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.GL_CONFIG;
     if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) return;
+
+    // Promesse résolue une fois que la session initiale est déterminée
+    let _readyResolve;
+    this.ready = new Promise(resolve => { _readyResolve = resolve; });
 
     this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: {
@@ -74,12 +79,14 @@ GL.Auth = {
         // Session expirée ou invalidée (ex: compte anonyme supprimé) → nettoyer
         console.warn('[Auth] Session invalide, nettoyage:', error.message);
         this._client.auth.signOut();
+        _readyResolve();
         return;
       }
       if (data.session) {
         this._user = data.session.user;
         this.scheduleSync();
       }
+      _readyResolve();
     });
   },
 

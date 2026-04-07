@@ -131,6 +131,9 @@ GL.Leaderboard = {
   },
 
   async _fetchRemotePlayers() {
+    // Attendre que la session soit restaurée (critique au reload de page)
+    if (GL.Auth?.ready) await GL.Auth.ready;
+
     const client = GL.Auth?._client;
     if (!client) return [];
 
