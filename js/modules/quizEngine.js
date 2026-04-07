@@ -188,7 +188,7 @@ GL.QuizEngine = {
       config,
       currentIndex: 0,
       score: 0,
-      streak: (GL.UI ? GL.UI.getStats().currentStreak : 0) || 0,
+      streak: 0,
       maxStreak: 0,
       wrongAnswers: []
     };

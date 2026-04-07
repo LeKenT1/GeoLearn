@@ -198,11 +198,6 @@
 .flag-card-name { font-size: 0.875rem; font-weight: 600; line-height: 1.3; margin-top: 0.25rem; }
 .flag-card-capital { font-size: 0.75rem; color: var(--text-muted); }
 
-/* Flag sizes */
-.fi-xl { width: 100px !important; height: 67px !important; background-size: cover !important; border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.5); }
-.fi-lg { width: 72px !important; height: 48px !important; background-size: cover !important; border-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-.fi-md { width: 48px !important; height: 32px !important; background-size: cover !important; border-radius: 3px; }
-.fi-sm { width: 30px !important; height: 20px !important; background-size: cover !important; border-radius: 2px; }
 
 /* ========== FLAG DETAIL MODAL ========== */
 .modal-overlay {

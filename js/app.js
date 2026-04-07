@@ -515,13 +515,16 @@ GL.App = {
     const pct = total > 0 ? Math.round(correct / total * 100) : 0;
     const mastery = stats.mastery || {};
 
+    const discovered = stats.discovered || {};
     const continentData = GL.CONTINENTS.map(c => {
       const countries = GL.COUNTRIES.filter(co => co.continent === c);
       const maxTotal = countries.length * 3;
       let cTotal = 0, cCorrect = 0;
       countries.forEach(co => {
         const s = stats.countriesStats[co.code];
-        if (s) { cTotal += s.q; cCorrect += s.c; }
+        if (s) cTotal += s.q;
+        const d = discovered[co.code] || {};
+        cCorrect += (d.flag ? 1 : 0) + (d.capital ? 1 : 0) + (d.map ? 1 : 0);
       });
       return {
         continent: c, continentFr: GL.CONTINENTS_FR[c],

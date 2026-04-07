@@ -50,16 +50,17 @@ GL.Achievements = {
       if (d.map)     typeMastered.map++;
     });
 
-    // Continent progress: % of countries with at least one correct answer (any type)
+    // Continent progress: % of (country × type) pairs discovered — 100% = all 3 types for every country
     const continentProgress = {};
     GL.CONTINENTS.forEach(c => {
       const countries = GL.COUNTRIES.filter(co => co.continent === c);
       if (!countries.length) { continentProgress[c] = 0; return; }
-      const tried = countries.filter(co => {
-        const s = stats.countriesStats && stats.countriesStats[co.code];
-        return s && s.c > 0;
-      }).length;
-      continentProgress[c] = Math.round(tried / countries.length * 100);
+      const maxPossible = countries.length * 3;
+      const achieved = countries.reduce((sum, co) => {
+        const d = (discovered[co.code]) || {};
+        return sum + (d.flag ? 1 : 0) + (d.capital ? 1 : 0) + (d.map ? 1 : 0);
+      }, 0);
+      continentProgress[c] = Math.round(achieved / maxPossible * 100);
     });
 
     // Unique days played
@@ -536,12 +537,12 @@ GL.Achievements = {
 
         <p class="ach-hint">${t('ach.hint')}</p>
 
-        <h3 class="ach-section-title">${t('ach.section.continents')} <span class="info-tooltip" data-tooltip="${t('ach.progress.info')}">ℹ️</span></h3>
+        <h3 class="ach-section-title">${t('ach.section.continents')} <span class="info-tooltip" data-tooltip="${t('ach.progress.continent.info')}">ℹ️</span></h3>
         <div class="ach-grid">
           ${this.GROUPS.filter(g => ['africa','americas','asia','europe','oceania'].includes(g.id)).map(groupCardHtml).join('')}
         </div>
 
-        <h3 class="ach-section-title">${t('ach.section.quiztype')} <span class="info-tooltip" data-tooltip="${t('ach.progress.info')}">ℹ️</span></h3>
+        <h3 class="ach-section-title">${t('ach.section.quiztype')} <span class="info-tooltip" data-tooltip="${t('ach.progress.type.info')}">ℹ️</span></h3>
         <div class="ach-grid">
           ${this.GROUPS.filter(g => ['flags','capitals','map','nightmare'].includes(g.id)).map(groupCardHtml).join('')}
         </div>
