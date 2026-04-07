@@ -131,7 +131,8 @@ GL.Leaderboard = {
   },
 
   async _fetchRemotePlayers() {
-    console.log('[Leaderboard] _fetchRemotePlayers start — _client:', !!GL.Auth?._client, '| ready:', !!GL.Auth?.ready);
+    const t0 = performance.now();
+    console.log(`[Leaderboard] start à t=${t0.toFixed(0)}ms — _client:`, !!GL.Auth?._client, '| ready:', !!GL.Auth?.ready);
 
     // Attendre que la session soit restaurée (critique au reload de page), max 4s
     if (GL.Auth?.ready) {
@@ -139,7 +140,7 @@ GL.Leaderboard = {
         GL.Auth.ready.then(() => false),
         new Promise(r => setTimeout(() => r(true), 4000)),
       ]);
-      console.log('[Leaderboard] auth.ready résolu, timedOut:', timedOut, '| _user:', GL.Auth?._user?.id ?? null);
+      console.log(`[Leaderboard] auth.ready résolu à t=${performance.now().toFixed(0)}ms, timedOut:`, timedOut, '| _user:', GL.Auth?._user?.id ?? null);
     }
 
     const client = GL.Auth?._client;

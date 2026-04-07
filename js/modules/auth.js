@@ -37,11 +37,14 @@ GL.Auth = {
     let _readyResolved = false;
     let _readyResolve;
     this.ready = new Promise(resolve => { _readyResolve = resolve; });
-    const _resolveReady = () => {
+    const _resolveReady = (source) => {
+      const t = performance.now().toFixed(0);
       if (!_readyResolved) {
         _readyResolved = true;
-        console.log('[Auth] ready résolu, _user:', this._user?.id ?? null);
+        console.log(`[Auth] ready résolu à t=${t}ms via ${source}, _user:`, this._user?.id ?? null);
         _readyResolve();
+      } else {
+        console.log(`[Auth] _resolveReady(${source}) ignoré à t=${t}ms — déjà résolu`);
       }
     };
 
@@ -58,10 +61,10 @@ GL.Auth = {
 
     // Écouter les changements d'état (retour OAuth Google inclus)
     this._client.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Auth] onAuthStateChange:', event, 'user:', session?.user?.id ?? null);
+      console.log(`[Auth] onAuthStateChange: ${event} à t=${performance.now().toFixed(0)}ms, user:`, session?.user?.id ?? null);
 
       // Résoudre ready immédiatement — avant toute opération async (push/pull)
-      _resolveReady();
+      _resolveReady('onAuthStateChange');
 
       if (event === 'SIGNED_IN' && session) {
         const prevUserId = this._user?.id;
@@ -110,7 +113,7 @@ GL.Auth = {
       console.warn('[Auth] getSession échoué:', e?.message);
     }).finally(() => {
       // Fallback : si onAuthStateChange n'a pas encore fire (pas de session), résoudre ici
-      _resolveReady();
+      _resolveReady('getSession.finally');
     });
   },
 
