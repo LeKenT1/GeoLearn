@@ -67,15 +67,21 @@ GL.Auth = {
       _resolveReady('onAuthStateChange');
 
       if (event === 'SIGNED_IN' && session) {
-        const prevUserId = this._user?.id;
         this._user = session.user;
 
-        const isNewLogin = !prevUserId || prevUserId !== session.user.id;
+        // Vrai nouveau login = l'utilisateur n'était pas encore connu dans cette session de tab
+        // sessionStorage persiste à travers les reloads (même onglet), pas entre onglets
+        const sessionKey = 'gl_auth_uid';
+        const knownUid = sessionStorage.getItem(sessionKey);
+        const isNewLogin = !knownUid || knownUid !== session.user.id;
+        console.log('[Auth] isNewLogin:', isNewLogin, '(knownUid:', knownUid, ')');
+
         if (isNewLogin) {
+          sessionStorage.setItem(sessionKey, session.user.id);
           let localProfile = null;
           try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
           const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
-          console.log('[Auth] isNewLogin, isGuest:', isGuest);
+          console.log('[Auth] premier login de cet onglet, isGuest:', isGuest);
 
           if (isGuest) {
             // Nouveau PC ou pas de données locales → restaurer depuis la DB
@@ -88,6 +94,7 @@ GL.Auth = {
           }
         }
 
+        // Reload / navigation normale → sync différée 5s (ne concurrence pas le leaderboard)
         this.scheduleSync();
 
       } else if (event === 'SIGNED_OUT') {
