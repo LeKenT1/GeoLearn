@@ -130,6 +130,7 @@ GL.I18N = {
       'map.unavailable': 'Carte indisponible',
       'map.info.continent': '🌍 Continent',
       'map.info.code': '🔤 Code',
+      'map.info.details': 'Voir la fiche',
 
       // Flag list
       'flaglist.title': 'Pays du Monde',
@@ -321,6 +322,16 @@ GL.I18N = {
       'stats.rank.xp': 'Pts classement : {n}',
       'stats.rank.next': '· Prochain rang à {n} Pts',
       'stats.rank.max': '· Rang maximum atteint !',
+      'stats.rank.discovered': '{n} découvertes',
+      'stats.rank.legend.next': '{n} découvertes pour Légende',
+      'stats.hard.rate': 'réussite globale',
+      'stats.mastery.legend': 'Niveau de maîtrise (✓ = +1 pt · ✗ = −1 pt)',
+      'stats.mastery.todo': 'À retravailler',
+      'stats.mastery.started': 'Débuté',
+      'stats.mastery.progress': 'En progression',
+      'stats.mastery.done': 'Maîtrisé',
+      'stats.mastery.level': 'Niveau {n}/3',
+      'stats.mastery.unplayed': 'Non joué',
 
       // Achievements
       'ach.title': 'Progression',
@@ -546,6 +557,7 @@ GL.I18N = {
       'map.unavailable': 'Map unavailable',
       'map.info.continent': '🌍 Continent',
       'map.info.code': '🔤 Code',
+      'map.info.details': 'View details',
 
       // Flag list
       'flaglist.title': 'World Countries',
@@ -737,6 +749,16 @@ GL.I18N = {
       'stats.rank.xp': 'Ranked Pts: {n}',
       'stats.rank.next': '· Next rank at {n} Pts',
       'stats.rank.max': '· Maximum rank reached!',
+      'stats.rank.discovered': '{n} discovered',
+      'stats.rank.legend.next': '{n} discovered for Legend',
+      'stats.hard.rate': 'overall success rate',
+      'stats.mastery.legend': 'Mastery level (✓ = +1 pt · ✗ = −1 pt)',
+      'stats.mastery.todo': 'To work on',
+      'stats.mastery.started': 'Started',
+      'stats.mastery.progress': 'Progressing',
+      'stats.mastery.done': 'Mastered',
+      'stats.mastery.level': 'Level {n}/3',
+      'stats.mastery.unplayed': 'Not played',
 
       // Achievements
       'ach.title': 'Progress',

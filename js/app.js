@@ -345,11 +345,11 @@ GL.App = {
     if (isCurrentLegend) {
       tierPct = 100;
       barLabels = `<span>${tierName}</span><span>${t('result.rank.max')}</span>`;
-      nextLine = `${discovered}/${totalUnique} découvertes · ${t('stats.rank.max')}`;
+      nextLine = `${t('stats.rank.discovered').replace('{n}', `${discovered}/${totalUnique}`)} · ${t('stats.rank.max')}`;
     } else if (isNextLegend) {
       tierPct = Math.round(discovered / totalUnique * 100);
       barLabels = `<span>${tierName}</span><span>${nextName} (${discovered}/${totalUnique})</span>`;
-      nextLine = `${discovered}/${totalUnique} découvertes pour Légende`;
+      nextLine = t('stats.rank.legend.next').replace('{n}', `${discovered}/${totalUnique}`);
     } else {
       const TOTAL = GL.UI.RANK_XP_MAX;
       const tierEnd = next ? next.min - 1 : TOTAL;
@@ -616,7 +616,7 @@ GL.App = {
                     ${GL.UI.continentBadge(country.continent, country.continentFr)}
                     <div style="margin-left:auto;text-align:right;flex-shrink:0;line-height:1.3;">
                       <div class="hard-country-pct">${h.pct}%</div>
-                      <div style="font-size:0.65rem;color:var(--text-muted);white-space:nowrap;">réussite globale</div>
+                      <div style="font-size:0.65rem;color:var(--text-muted);white-space:nowrap;">${t('stats.hard.rate')}</div>
                     </div>
                     <span class="hard-country-chevron">▸</span>
                   </div>
@@ -702,17 +702,17 @@ GL.App = {
           ];
           detail.innerHTML = `<div class="hard-country-detail-inner">
             <div class="hard-detail-legend">
-              Niveau de maîtrise (✓ = +1 pt · ✗ = −1 pt) &nbsp;—&nbsp;
-              <span style="color:var(--error);">○○○</span> À retravailler &nbsp;
-              <span style="color:#f59e0b;">●○○</span> Débuté &nbsp;
-              <span style="color:var(--success);">●●○</span> En progression &nbsp;
-              <span style="color:var(--success);">●●●</span> Maîtrisé
+              ${t('stats.mastery.legend')} &nbsp;—&nbsp;
+              <span style="color:var(--error);">○○○</span> ${t('stats.mastery.todo')} &nbsp;
+              <span style="color:#f59e0b;">●○○</span> ${t('stats.mastery.started')} &nbsp;
+              <span style="color:var(--success);">●●○</span> ${t('stats.mastery.progress')} &nbsp;
+              <span style="color:var(--success);">●●●</span> ${t('stats.mastery.done')}
             </div>
             ${types.map(tp => {
               const val = m[tp.key];
               const dots = val === undefined ? '—' : '●'.repeat(val) + '○'.repeat(3 - val);
               const color = val === undefined ? 'var(--text-muted)' : val >= 2 ? 'var(--success)' : val === 1 ? '#f59e0b' : 'var(--error)';
-              const statusLabel = val === undefined ? 'Non joué' : val === 3 ? 'Maîtrisé' : val === 0 ? 'À retravailler' : `Niveau ${val}/3`;
+              const statusLabel = val === undefined ? t('stats.mastery.unplayed') : val === 3 ? t('stats.mastery.done') : val === 0 ? t('stats.mastery.todo') : t('stats.mastery.level').replace('{n}', val);
               return `<div class="hard-detail-type">
                 <span style="width:90px;flex-shrink:0;">${tp.emoji} ${tp.label}</span>
                 <span style="color:${color};font-weight:700;letter-spacing:3px;">${dots}</span>

@@ -256,8 +256,10 @@ GL.WorldMap = {
       .attr('d', this.pathGen)
       .style('stroke-width', '0.8px');
 
-    // Tiny country markers — rendered AFTER borders so dots appear on top
-    this._renderTinyCountryMarkers(g);
+    // Tiny country markers — separate SVG group appended AFTER countries-group so they
+    // always render on top of country fills and borders regardless of document order.
+    this.gTinyMarkers = svgEl.append('g').attr('class', 'tiny-markers-group');
+    this._renderTinyCountryMarkers(this.gTinyMarkers);
 
     // Label overlay SVG — separate element so labels always render above the flag canvas (z-index:2)
     const labelOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -282,10 +284,19 @@ GL.WorldMap = {
         g.selectAll('path.country.selected').style('stroke-width', `${2 / k}px`);
         // Borders get progressively thinner at higher zoom levels
         g.select('path.borders').style('stroke-width', `${0.8 / Math.pow(k, 1.5)}px`);
-        g.selectAll('g.country-marker .marker-ring').style('stroke-width', `${0.8 / k}px`);
         const tinyRing = g.select('.tiny-ring');
         if (!tinyRing.empty()) {
           tinyRing.attr('r', 10 / k).style('stroke-width', `${1.5 / k}px`);
+        }
+        // Tiny markers: sync transform + keep constant screen size by scaling inversely
+        if (this.gTinyMarkers) {
+          this.gTinyMarkers.attr('transform', event.transform);
+          this.gTinyMarkers.selectAll('path.country:not(.selected)').style('stroke-width', `${0.5 / k}px`);
+          this.gTinyMarkers.selectAll('path.country.selected').style('stroke-width', `${2 / k}px`);
+          this.gTinyMarkers.selectAll('g.country-marker .marker-dot').attr('r', 2 / k);
+          this.gTinyMarkers.selectAll('g.country-marker .marker-ring')
+            .attr('r', 3.5 / k).style('stroke-width', `${0.6 / k}px`);
+          this.gTinyMarkers.selectAll('g.country-marker .marker-hit').attr('r', 10 / k);
         }
         this._currentTransform = event.transform;
         if (this._activeLabelModes && this._activeLabelModes.size > 0) this._updateLabelPositions();
@@ -615,6 +626,7 @@ GL.WorldMap = {
           <span class="map-info-row-value">${country.code.toUpperCase()}</span>
         </div>
       </div>
+      <button class="map-info-details-btn" id="infoPanelDetails">${GL.I18N ? GL.I18N.t('map.info.details') : 'Voir la fiche'}</button>
     `;
 
     const target = wrapper || document.querySelector('#mapWrapper');
@@ -625,6 +637,11 @@ GL.WorldMap = {
     this.infoPanel = panel;
 
     panel.querySelector('#infoPanelClose').addEventListener('click', () => this.closeInfoPanel());
+    panel.querySelector('#infoPanelDetails').addEventListener('click', () => {
+      this.closeInfoPanel();
+      GL.FlagList._pendingModal = country;
+      GL.Router.navigate('/drapeaux');
+    });
   },
 
   closeInfoPanel() {
@@ -989,12 +1006,14 @@ GL.WorldMap = {
     const map = this;
     Object.entries(this.tinyCountriesCoords).forEach(([numId, lonlat]) => {
       const numeric = +numId;
-      if (this.visibleCodes.has(numeric)) return; // already rendered by topojson
       const country = this.numericMap[numeric];
       if (!country) return;
 
       // If we have real GeoJSON for this country, render as a proper path
       const geo = this.tinyCountriesGeo && this.tinyCountriesGeo[numeric];
+      // Skip only if topojson already covers it AND we have dedicated GeoJSON (proper rendering).
+      // If only in topojson (e.g. Vatican hidden under Italy), fall through to dot marker.
+      if (this.visibleCodes.has(numeric) && geo) return;
       if (geo) {
         const feature = { type: 'Feature', id: numeric, geometry: geo };
         const centroid = this.pathGen.centroid(feature);
@@ -1011,8 +1030,10 @@ GL.WorldMap = {
           .on('mouseout', () => this.onMouseOut())
           .on('click', (event, d) => this.onCountryClick(event, d));
 
-        // Invisible hit circle at centroid for easier clicking on tiny GeoJSON countries
-        if (centroid && !isNaN(centroid[0])) {
+        // Invisible hit circle only for truly tiny GeoJSON polygons (< 50 sq SVG units).
+        // Larger countries like Kosovo have a big enough path to click without a helper circle.
+        const area = this.pathGen.area(feature);
+        if (centroid && !isNaN(centroid[0]) && area < 50) {
           const hitDatum = { id: numeric };
           g.append('circle')
             .datum(hitDatum)
@@ -1044,19 +1065,20 @@ GL.WorldMap = {
 
       grp.append('circle')
         .attr('class', 'marker-ring')
-        .attr('r', 5)
+        .attr('r', 3.5)
         .style('fill', 'none')
         .style('stroke', '#4a6a8a')
-        .style('stroke-width', '0.8px');
+        .style('stroke-width', '0.6px');
 
       grp.append('circle')
         .attr('class', 'marker-dot')
-        .attr('r', 3)
+        .attr('r', 2)
         .style('fill', '#1d2d44');
 
       // Invisible larger hit area for easier clicking
       grp.append('circle')
-        .attr('r', 14)
+        .attr('class', 'marker-hit')
+        .attr('r', 10)
         .style('fill', 'transparent');
 
       grp

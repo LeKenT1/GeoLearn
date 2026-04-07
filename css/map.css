@@ -146,6 +146,22 @@
 .map-info-row-label { color: var(--text-muted); }
 .map-info-row-value { font-weight: 600; text-align: right; }
 
+.map-info-details-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.45rem 0.75rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.map-info-details-btn:hover { filter: brightness(1.1); }
+
 /* ========== MAP CONTROLS ========== */
 .map-controls {
   position: absolute;

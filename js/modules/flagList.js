@@ -34,6 +34,12 @@ GL.FlagList = {
     this.searchQuery = '';
     this.renderGrid(container);
     this.bindEvents(container);
+
+    if (this._pendingModal) {
+      const country = this._pendingModal;
+      this._pendingModal = null;
+      setTimeout(() => this.showModal(country), 0);
+    }
   },
 
   getFiltered() {

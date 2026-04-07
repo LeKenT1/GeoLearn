@@ -68,7 +68,7 @@ GL.Achievements = {
       (stats.quizHistory || []).map(h => new Date(h.date).toLocaleDateString('fr-FR'))
     );
 
-    // Nightmare quizzes passed at ≥ 50%
+    // Nightmare quizzes passed at 100% (perfect score)
     const nightmareGood = (stats.quizHistory || []).filter(
       h => h.type === 'nightmare' && h.total > 0 && (h.score / h.total) >= 1
     ).length;
