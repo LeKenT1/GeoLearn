@@ -25,27 +25,18 @@ GL.Auth = {
 
   // ── Initialisation ──────────────────────────────────────────────────────────
   init() {
-    console.log('[Auth] init() appelé');
-    if (window.location.protocol === 'file:') { console.log('[Auth] protocol file: → abandon'); return; }
-    if (!window.supabase || !window.GL_CONFIG) { console.log('[Auth] supabase ou GL_CONFIG manquant → abandon', { supabase: !!window.supabase, config: !!window.GL_CONFIG }); return; }
+    if (window.location.protocol === 'file:') return;
+    if (!window.supabase || !window.GL_CONFIG) return;
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.GL_CONFIG;
-    if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) { console.log('[Auth] URL Supabase invalide → abandon'); return; }
+    if (!SUPABASE_URL || SUPABASE_URL.includes('VOTRE_ID')) return;
 
-    console.log('[Auth] createClient...');
-    // Promesse résolue une fois que la session initiale est déterminée
-    // Peut être déclenchée depuis onAuthStateChange OU getSession(), le premier qui gagne
+    // Promesse résolue dès que l'état auth initial est connu (TOKEN_REFRESHED ou INITIAL_SESSION)
+    // Permet au leaderboard d'attendre la session avant de requêter Supabase
     let _readyResolved = false;
     let _readyResolve;
     this.ready = new Promise(resolve => { _readyResolve = resolve; });
-    const _resolveReady = (source) => {
-      const t = performance.now().toFixed(0);
-      if (!_readyResolved) {
-        _readyResolved = true;
-        console.log(`[Auth] ready résolu à t=${t}ms via ${source}, _user:`, this._user?.id ?? null);
-        _readyResolve();
-      } else {
-        console.log(`[Auth] _resolveReady(${source}) ignoré à t=${t}ms — déjà résolu`);
-      }
+    const _resolveReady = () => {
+      if (!_readyResolved) { _readyResolved = true; _readyResolve(); }
     };
 
     this._client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -57,14 +48,11 @@ GL.Auth = {
         },
       },
     });
-    console.log('[Auth] _client créé:', !!this._client);
 
     // Écouter les changements d'état (retour OAuth Google inclus)
     this._client.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[Auth] onAuthStateChange: ${event} à t=${performance.now().toFixed(0)}ms, user:`, session?.user?.id ?? null);
-
       // Résoudre ready immédiatement — avant toute opération async (push/pull)
-      _resolveReady('onAuthStateChange');
+      _resolveReady();
 
       if (event === 'SIGNED_IN' && session) {
         this._user = session.user;
@@ -74,19 +62,16 @@ GL.Auth = {
         const sessionKey = 'gl_auth_uid';
         const knownUid = sessionStorage.getItem(sessionKey);
         const isNewLogin = !knownUid || knownUid !== session.user.id;
-        console.log('[Auth] isNewLogin:', isNewLogin, '(knownUid:', knownUid, ')');
 
         if (isNewLogin) {
           sessionStorage.setItem(sessionKey, session.user.id);
           let localProfile = null;
           try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
           const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
-          console.log('[Auth] premier login de cet onglet, isGuest:', isGuest);
 
           if (isGuest) {
             // Nouveau PC ou pas de données locales → restaurer depuis la DB
             const pulled = await this._pull();
-            console.log('[Auth] _pull() résultat:', pulled);
             if (pulled) { window.location.reload(); return; }
           } else {
             // Données locales existantes → pousser vers le nouveau compte
@@ -103,24 +88,20 @@ GL.Auth = {
     });
 
     // Restaurer la session persistée (localStorage Supabase)
-    console.log('[Auth] getSession() appelé...');
     this._client.auth.getSession().then(({ data, error }) => {
       if (error) {
         // Session expirée ou invalidée (ex: compte anonyme supprimé) → nettoyer
         console.warn('[Auth] Session invalide, nettoyage:', error.message);
         this._client.auth.signOut();
       } else if (data.session) {
-        console.log('[Auth] session restaurée, user:', data.session.user.id);
         this._user = data.session.user;
         this.scheduleSync();
-      } else {
-        console.log('[Auth] getSession: aucune session');
       }
     }).catch(e => {
       console.warn('[Auth] getSession échoué:', e?.message);
     }).finally(() => {
       // Fallback : si onAuthStateChange n'a pas encore fire (pas de session), résoudre ici
-      _resolveReady('getSession.finally');
+      _resolveReady();
     });
   },
 

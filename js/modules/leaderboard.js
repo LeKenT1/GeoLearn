@@ -131,21 +131,13 @@ GL.Leaderboard = {
   },
 
   async _fetchRemotePlayers() {
-    const t0 = performance.now();
-    console.log(`[Leaderboard] start à t=${t0.toFixed(0)}ms — _client:`, !!GL.Auth?._client, '| ready:', !!GL.Auth?.ready);
-
     // Attendre que la session soit restaurée (critique au reload de page), max 4s
     if (GL.Auth?.ready) {
-      const timedOut = await Promise.race([
-        GL.Auth.ready.then(() => false),
-        new Promise(r => setTimeout(() => r(true), 4000)),
-      ]);
-      console.log(`[Leaderboard] auth.ready résolu à t=${performance.now().toFixed(0)}ms, timedOut:`, timedOut, '| _user:', GL.Auth?._user?.id ?? null);
+      await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 4000))]);
     }
 
     const client = GL.Auth?._client;
-    console.log('[Leaderboard] _client après wait:', !!client);
-    if (!client) { console.warn('[Leaderboard] pas de client → abandon'); return []; }
+    if (!client) return [];
 
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 8000)
@@ -156,7 +148,6 @@ GL.Leaderboard = {
       .not('username', 'is', null)
       .limit(100);
 
-    console.log('[Leaderboard] requête Supabase envoyée...');
     let data, error;
     try {
       ({ data, error } = await Promise.race([query, timeout]));
@@ -164,7 +155,6 @@ GL.Leaderboard = {
       console.warn('[Leaderboard] fetch échoué ou timeout:', e.message);
       return [];
     }
-    console.log('[Leaderboard] réponse reçue — rows:', data?.length ?? 'null', '| error:', error?.message ?? null);
     if (error) { console.error('[Leaderboard] fetch:', error.message); return []; }
 
     const myUserId = GL.Auth?._user?.id;
