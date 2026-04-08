@@ -78,18 +78,16 @@ GL.Auth = {
             await this._client.rpc('migrate_user_data_from_uid', { p_old_uid: prevUid });
             await this._push();
           } else {
+            // Toujours essayer de récupérer les données DB en priorité
+            // (cas : compte Google déjà lié à un compte avec des données)
+            const pulled = await this._pull();
+            if (pulled) { window.location.reload(); return; }
+
+            // Pas de données en DB → pousser les données locales si elles existent
             let localProfile = null;
             try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
             const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
-
-            if (isGuest) {
-              // Nouveau PC ou pas de données locales → restaurer depuis la DB
-              const pulled = await this._pull();
-              if (pulled) { window.location.reload(); return; }
-            } else {
-              // Données locales existantes → pousser vers le compte Google
-              await this._push();
-            }
+            if (!isGuest) await this._push();
           }
         }
 
