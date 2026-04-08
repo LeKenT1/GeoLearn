@@ -130,15 +130,7 @@ GL.Leaderboard = {
     };
   },
 
-  async _fetchRemotePlayers() {
-    // Attendre que la session soit restaurée (critique au reload de page), max 4s
-    if (GL.Auth?.ready) {
-      await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 4000))]);
-    }
-
-    const client = GL.Auth?._client;
-    if (!client) return [];
-
+  async _attemptFetch(client) {
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 8000)
     );
@@ -153,9 +145,29 @@ GL.Leaderboard = {
       ({ data, error } = await Promise.race([query, timeout]));
     } catch (e) {
       console.warn('[Leaderboard] fetch échoué ou timeout:', e.message);
-      return [];
+      return null; // null = échec, à retenter
     }
-    if (error) { console.error('[Leaderboard] fetch:', error.message); return []; }
+    if (error) { console.error('[Leaderboard] fetch:', error.message); return null; }
+    return data || [];
+  },
+
+  async _fetchRemotePlayers() {
+    // Attendre que la session soit restaurée (critique au reload de page), max 4s
+    if (GL.Auth?.ready) {
+      await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 4000))]);
+    }
+
+    const client = GL.Auth?._client;
+    if (!client) return [];
+
+    // 1er essai
+    let data = await this._attemptFetch(client);
+
+    // Retry automatique si échec (timeout, cold start Supabase, token pas encore appliqué)
+    if (data === null) {
+      await new Promise(r => setTimeout(r, 3000));
+      data = await this._attemptFetch(client) ?? [];
+    }
 
     const myUserId = GL.Auth?._user?.id;
     return (data || [])
