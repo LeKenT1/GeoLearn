@@ -130,6 +130,8 @@ GL.Auth = {
 
     // Sauvegarder l'ancien user_id avant la redirection pour pouvoir migrer les données après
     if (this._user) localStorage.setItem('gl_prev_uid', this._user.id);
+    // Forcer isNewLogin=true au retour OAuth pour que le pull/push s'exécute
+    sessionStorage.removeItem('gl_auth_uid');
 
     const { error } = await this._client.auth.signInWithOAuth({
       provider: 'google',
