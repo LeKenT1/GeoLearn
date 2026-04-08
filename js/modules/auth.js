@@ -65,6 +65,14 @@ GL.Auth = {
 
         if (isNewLogin) {
           sessionStorage.setItem(sessionKey, session.user.id);
+
+          // Migrer les données de l'ancien compte si l'utilisateur vient de se connecter avec Google
+          const prevUid = localStorage.getItem('gl_prev_uid');
+          if (prevUid && prevUid !== session.user.id) {
+            localStorage.removeItem('gl_prev_uid');
+            await this._client.rpc('migrate_user_data_from_uid', { p_old_uid: prevUid });
+          }
+
           let localProfile = null;
           try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
           const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
@@ -90,9 +98,7 @@ GL.Auth = {
     // Restaurer la session persistée (localStorage Supabase)
     this._client.auth.getSession().then(({ data, error }) => {
       if (error) {
-        // Session expirée ou invalidée (ex: compte anonyme supprimé) → nettoyer
-        console.warn('[Auth] Session invalide, nettoyage:', error.message);
-        this._client.auth.signOut();
+        console.warn('[Auth] Session invalide:', error.message);
       } else if (data.session) {
         this._user = data.session.user;
         this.scheduleSync();
@@ -115,6 +121,10 @@ GL.Auth = {
   async signInWithGoogle() {
     if (!this._client) return;
     const redirectTo = window.location.href.split('#')[0];
+
+    // Sauvegarder l'ancien user_id avant la redirection pour pouvoir migrer les données après
+    if (this._user) localStorage.setItem('gl_prev_uid', this._user.id);
+
     const { error } = await this._client.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },
