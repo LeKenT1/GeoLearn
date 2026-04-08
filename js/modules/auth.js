@@ -62,12 +62,14 @@ GL.Auth = {
         const sessionKey = 'gl_auth_uid';
         const knownUid = sessionStorage.getItem(sessionKey);
         const isNewLogin = !knownUid || knownUid !== session.user.id;
+        console.log('[Auth] SIGNED_IN uid:', session.user.id, '| knownUid:', knownUid, '| isNewLogin:', isNewLogin);
 
         if (isNewLogin) {
           sessionStorage.setItem(sessionKey, session.user.id);
 
           const prevUid = localStorage.getItem('gl_prev_uid');
           const accountSwitched = prevUid && prevUid !== session.user.id;
+          console.log('[Auth] prevUid:', prevUid, '| accountSwitched:', accountSwitched);
 
           if (accountSwitched) {
             localStorage.removeItem('gl_prev_uid');
@@ -197,6 +199,7 @@ GL.Auth = {
   // ── Pull DB → local ─────────────────────────────────────────────────────────
   async _pull() {
     if (!this._user || !this._client) return false;
+    console.log('[Auth] _pull() pour uid:', this._user.id);
 
     let { data, error } = await this._client
       .from('user_data')
@@ -210,8 +213,9 @@ GL.Auth = {
       if (migrated) data = migrated;
     }
 
-    if (!data || (!data.profile && !data.stats)) return false;
+    if (!data || (!data.profile && !data.stats)) { console.log('[Auth] _pull() → aucune donnée'); return false; }
 
+    console.log('[Auth] _pull() → données trouvées, profile:', !!data.profile, 'stats:', !!data.stats);
     if (data.profile)      localStorage.setItem('gl_profile',      JSON.stringify(data.profile));
     if (data.stats)        localStorage.setItem('gl_stats',        JSON.stringify(data.stats));
     if (data.active_title) localStorage.setItem('gl_active_title', data.active_title);
