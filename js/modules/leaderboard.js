@@ -9,13 +9,24 @@ GL.Leaderboard = {
     return `https://api.dicebear.com/9.x/${player.style}/svg?seed=${player.seed}&${bg}size=${size}`;
   },
 
-  _rankKey(xp) {
-    if (xp >= 800) return 'legend';
+  _rankKey(xp, discoveredCount) {
+    if (xp >= 800 && (discoveredCount || 0) >= (GL.UI ? GL.UI.TOTAL_UNIQUE : 591)) return 'legend';
     if (xp >= 500) return 'diamond';
     if (xp >= 300) return 'platine';
     if (xp >= 150) return 'gold';
     if (xp >= 50)  return 'silver';
     return 'bronze';
+  },
+
+  _computeDiscovered(stats) {
+    const d = (stats || {}).discovered || {};
+    let count = 0;
+    for (const code in d) {
+      if (d[code].flag)    count++;
+      if (d[code].capital) count++;
+      if (d[code].map)     count++;
+    }
+    return count;
   },
 
   _rankEntry(rankKey) {
@@ -37,7 +48,7 @@ GL.Leaderboard = {
 
   // Avatar avec badge SVG du rang en overlay (identique à la page Profil)
   _avatarFrameHtml(player, frameSize, avSize) {
-    const rk  = this._rankKey(player.xp);
+    const rk  = this._rankKey(player.xp, player.discovered);
     const svg = GL.RankBadges ? GL.RankBadges.svgFrameOnly(rk) : '';
     const src = player.avatarUrl
       ? player.avatarUrl
@@ -65,7 +76,7 @@ GL.Leaderboard = {
   _podiumSlotHtml(player, pos) {
     if (!player) return '<div class="lb-podium-slot"></div>';
     const isFirst   = pos === 1;
-    const rk        = this._rankKey(player.xp);
+    const rk        = this._rankKey(player.xp, player.discovered);
     const frameSize = isFirst ? 132 : 106;
     const avSize    = isFirst ?  68 :  54;
     const badgeSize = isFirst ?  80 :  64;
@@ -91,7 +102,7 @@ GL.Leaderboard = {
   // ── List row (positions 4+) ────────────────────────────────────────────────
 
   _rowHtml(player, pos) {
-    const rk   = this._rankKey(player.xp);
+    const rk   = this._rankKey(player.xp, player.discovered);
     const tier = player.isReal ? (player.titleTier || 0) : (player.titleTier || 0);
 
     return `
@@ -115,14 +126,16 @@ GL.Leaderboard = {
 
   _buildRealPlayer() {
     const profile       = GL.Profile ? GL.Profile.get() : null;
-    const realXP        = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
+    const realStats     = GL.UI ? GL.UI.getStats() : {};
+    const realXP        = realStats.rankedXP || 0;
+    const realDiscovered = GL.UI ? GL.UI.computeDiscovered(realStats) : 0;
     const rawName       = profile ? (profile.isGuest ? null : profile.name) : null;
     const realName      = rawName || 'Vous';
     const activeTitle   = GL.Achievements ? GL.Achievements.getActiveTitle() : null;
     const realTitle     = activeTitle ? GL.Achievements._achTitle(activeTitle) : null;
     const realTitleTier = activeTitle ? activeTitle.tier : 0;
     return {
-      id: 'real', name: realName, xp: realXP, isReal: true,
+      id: 'real', name: realName, xp: realXP, discovered: realDiscovered, isReal: true,
       title: realTitle, titleTier: realTitleTier,
       avatarUrl: profile
         ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(profile.avatar), 160)
@@ -173,7 +186,8 @@ GL.Leaderboard = {
     return (data || [])
       .filter(row => row.user_id !== myUserId)
       .map(row => {
-        const xp    = parseInt((row.stats || {}).rankedXP, 10) || 0;
+        const xp         = parseInt((row.stats || {}).rankedXP, 10) || 0;
+        const discovered = this._computeDiscovered(row.stats);
         let titleText = null, titleTier = 0;
         if (row.active_title) {
           try {
@@ -191,6 +205,7 @@ GL.Leaderboard = {
           id: row.user_id,
           name: row.username || 'Joueur',
           xp,
+          discovered,
           isReal: false,
           title: titleText,
           titleTier,
@@ -231,7 +246,7 @@ GL.Leaderboard = {
     const rest = all.slice(3);
 
     // Glow dynamique selon le rang du #1
-    const glowColor = this._rankEntry(this._rankKey(top3[0].xp)).color;
+    const glowColor = this._rankEntry(this._rankKey(top3[0].xp, top3[0].discovered)).color;
     const glowCss   = `radial-gradient(ellipse at 50% -10%, ${glowColor}50 0%, ${glowColor}18 38%, transparent 65%)`;
 
     // Ordre visuel podium : 2e · 1er · 3e
