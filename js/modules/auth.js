@@ -184,14 +184,19 @@ GL.Auth = {
   async _pull() {
     if (!this._user || !this._client) return false;
 
-    const { data, error } = await this._client
+    let { data, error } = await this._client
       .from('user_data')
       .select('profile, stats, active_title')
       .eq('user_id', this._user.id)
       .single();
 
-    if (error || !data) return false;
-    if (!data.profile && !data.stats) return false;
+    // Pas de données pour ce user_id → cherche un compte avec le même email
+    if (error || !data || (!data.profile && !data.stats)) {
+      const { data: migrated } = await this._client.rpc('migrate_user_data_by_email');
+      if (migrated) data = migrated;
+    }
+
+    if (!data || (!data.profile && !data.stats)) return false;
 
     if (data.profile)      localStorage.setItem('gl_profile',      JSON.stringify(data.profile));
     if (data.stats)        localStorage.setItem('gl_stats',        JSON.stringify(data.stats));
