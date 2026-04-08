@@ -568,6 +568,22 @@
 .profile-modal-input:focus { outline: none; border-color: var(--accent); }
 
 .profile-modal-btn  { width: 100%; margin-bottom: 0.75rem; }
+.profile-modal-google { width: 100%; margin-bottom: 0.5rem; justify-content: center; }
+.profile-modal-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.profile-modal-divider::before,
+.profile-modal-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
 .profile-modal-guest {
   background: none;
   border: none;
@@ -750,7 +766,7 @@
 /* ========== CHARACTER BUILDER ========== */
 .cb-layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 270px 1fr;
   gap: 1.5rem;
   max-width: 900px;
   margin: 0 auto;
@@ -3036,8 +3052,19 @@
 }
 
 /* ── Bouton Google ───────────────────────────────────────────────────────── */
-.btn-google {
+.cb-google-sep {
+  border: none;
+  border-top: 1px solid var(--border);
   width: 100%;
+  margin: 0;
+}
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  box-sizing: border-box;
   background: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid var(--border);
@@ -3053,6 +3080,7 @@
   align-items: center;
   gap: 0.5rem;
   width: 100%;
+  box-sizing: border-box;
   padding: 0.4rem 0.9rem;
   background: var(--bg-surface);
   border: 1px solid var(--border);
