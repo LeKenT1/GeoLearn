@@ -428,7 +428,7 @@ GL.QuizCapitals = {
                   <span class="fi fi-${w.question.country.code}" style="width:36px;height:24px;background-size:cover;border-radius:2px;display:inline-block;flex-shrink:0;"></span>
                   <span style="flex:1;font-size:0.875rem;font-weight:600;">${this._n(w.question.country)}</span>
                   ${w.userInput ? `<span style="color:var(--error,#e53e3e);font-size:0.8rem;text-decoration:line-through;">${w.userInput}</span>` : ''}
-                  <span style="color:var(--success);font-size:0.8rem;">✓ ${this._cap(w.question.country)}</span>
+                  <span style="color:${w.userInput ? 'var(--success)' : 'var(--error,#e53e3e)'};font-size:0.8rem;">${w.userInput ? '✓' : '✕'} ${this._cap(w.question.country)}</span>
                 </div>
               `).join('')}
             </div>

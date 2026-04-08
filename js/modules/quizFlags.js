@@ -519,7 +519,7 @@ GL.QuizFlags = {
                   <span style="flex:1;font-size:0.875rem;font-weight:600;">${this._n(w.question.country)}</span>
                   ${w.userInput ? `<span style="color:var(--error,#e53e3e);font-size:0.8rem;text-decoration:line-through;">${w.userInput}</span>` : ''}
                   ${w.question.subtype === 'country-to-capital' || w.question.subtype === 'country-to-capital-text' ?
-                    `<span style="color:var(--success);font-size:0.8rem;">✓ ${this._cap(w.question.country)}</span>` : ''}
+                    `<span style="color:${w.userInput ? 'var(--success)' : 'var(--error,#e53e3e)'};font-size:0.8rem;">${w.userInput ? '✓' : '✕'} ${this._cap(w.question.country)}</span>` : ''}
                 </div>
               `).join('')}
             </div>

@@ -628,7 +628,7 @@ GL.QuizNightmare = {
                 const col = r ? '#22c55e' : '#ef4444';
                 const icon = r ? '✓' : '✕';
                 const detail = !r && correctAns
-                  ? (userIn ? ` · <s style="opacity:0.7">${userIn}</s> → <b style="color:#22c55e">${correctAns}</b>` : ` · <b style="color:#22c55e">${correctAns}</b>`)
+                  ? (userIn ? ` · <s style="opacity:0.7">${userIn}</s> → <b style="color:#22c55e">${correctAns}</b>` : ` · <b style="color:#ef4444">${correctAns}</b>`)
                   : '';
                 return `<span style="font-size:0.72rem;padding:0.18rem 0.5rem;border-radius:4px;font-weight:600;background:${bg};color:${col};white-space:nowrap;">${icon} ${stepLabels[i]}${detail}</span>`;
               }).join('');
