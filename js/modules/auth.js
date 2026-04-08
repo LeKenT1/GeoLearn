@@ -66,24 +66,30 @@ GL.Auth = {
         if (isNewLogin) {
           sessionStorage.setItem(sessionKey, session.user.id);
 
-          // Migrer les données de l'ancien compte si l'utilisateur vient de se connecter avec Google
           const prevUid = localStorage.getItem('gl_prev_uid');
-          if (prevUid && prevUid !== session.user.id) {
+          const accountSwitched = prevUid && prevUid !== session.user.id;
+
+          if (accountSwitched) {
             localStorage.removeItem('gl_prev_uid');
-            await this._client.rpc('migrate_user_data_from_uid', { p_old_uid: prevUid });
-          }
-
-          let localProfile = null;
-          try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
-          const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
-
-          if (isGuest) {
-            // Nouveau PC ou pas de données locales → restaurer depuis la DB
+            // Le compte Google est déjà lié à un autre compte → ses données écrasent les locales
             const pulled = await this._pull();
             if (pulled) { window.location.reload(); return; }
-          } else {
-            // Données locales existantes → pousser vers le nouveau compte
+            // Pas de données sur le compte Google → migrer depuis l'ancien compte
+            await this._client.rpc('migrate_user_data_from_uid', { p_old_uid: prevUid });
             await this._push();
+          } else {
+            let localProfile = null;
+            try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
+            const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
+
+            if (isGuest) {
+              // Nouveau PC ou pas de données locales → restaurer depuis la DB
+              const pulled = await this._pull();
+              if (pulled) { window.location.reload(); return; }
+            } else {
+              // Données locales existantes → pousser vers le compte Google
+              await this._push();
+            }
           }
         }
 

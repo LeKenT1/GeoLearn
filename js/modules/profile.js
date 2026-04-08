@@ -1173,7 +1173,8 @@ GL.Profile = {
   },
 
   // ===== PAGE PROFIL =====
-  render(container) {
+  async render(container) {
+    await GL.Auth.ready;
     const self = this;
     let profile = self.get() || self.defaultProfile('Invité', true);
     profile.avatar = self.migrateAvatar(profile.avatar);
