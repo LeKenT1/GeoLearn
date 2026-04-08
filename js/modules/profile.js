@@ -1150,7 +1150,7 @@ GL.Profile = {
     const url = this.navbarUrl(profile.avatar);
     const displayName = profile.isGuest ? 'Invité' : profile.name;
     const xp = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
-    const rankEntry = (GL.RankBadges ? [...GL.RankBadges.RANKS].reverse().find(r => xp >= r.min) : null) || { key: 'bronze' };
+    const rankEntry = (GL.UI ? GL.UI.getRankInfo(xp).tier : (GL.RankBadges ? [...GL.RankBadges.RANKS].reverse().find(r => xp >= r.min) : null)) || { key: 'bronze' };
     const rankKey = rankEntry.key || 'bronze';
     const activeTitle = GL.Achievements ? GL.Achievements.getActiveTitle() : null;
     const navTitleHtml = (() => {
@@ -1240,7 +1240,7 @@ GL.Profile = {
 
     // ── Rang actuel ───────────────────────────────────────────────────────
     const _xp = (GL.UI ? GL.UI.getStats().rankedXP : 0) || 0;
-    const _rankEntry = (GL.RankBadges ? [...GL.RankBadges.RANKS].reverse().find(r => _xp >= r.min) : null) || { key: 'bronze', name: 'Bronze', color: '#cd7f32' };
+    const _rankEntry = (GL.UI ? GL.UI.getRankInfo(_xp).tier : (GL.RankBadges ? [...GL.RankBadges.RANKS].reverse().find(r => _xp >= r.min) : null)) || { key: 'bronze', name: 'Bronze', color: '#cd7f32' };
     const _rankKey = _rankEntry.key || 'bronze';
     const _rankTiers = GL.UI ? GL.UI.RANK_TIERS : [];
     const _rankName = _rankEntry.name;
