@@ -191,10 +191,8 @@ GL.Leaderboard = {
         let titleText = null, titleTier = 0;
         if (row.active_title) {
           try {
-            const key = row.active_title;
-            const achs = GL.Achievements?.ACHIEVEMENTS || [];
-            const ach = achs.find(a => a.id === key);
-            if (ach) { titleText = ach.title; titleTier = ach.tier || 0; }
+            const ach = GL.Achievements?.allDefs().find(a => a.id === row.active_title);
+            if (ach) { titleText = GL.Achievements._achTitle(ach); titleTier = ach.tier || 0; }
           } catch(e) {}
         }
         const profile = row.profile || {};
