@@ -139,7 +139,7 @@ GL.Auth = {
     if (this._user) {
       const { error } = await this._client.auth.linkIdentity({
         provider: 'google',
-        options: { redirectTo },
+        options: { redirectTo, queryParams: { prompt: 'select_account' } },
       });
       if (!error) return;
       // linkIdentity non supporté ou erreur → fallback vers signInWithOAuth classique
@@ -149,7 +149,7 @@ GL.Auth = {
 
     const { error } = await this._client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo },
+      options: { redirectTo, queryParams: { prompt: 'select_account' } },
     });
     if (error) {
       console.error('[Auth] signInWithGoogle:', error.message);
