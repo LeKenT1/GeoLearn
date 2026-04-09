@@ -67,6 +67,8 @@ GL.App = {
       '/quiz/capitales': (el) => GL.QuizCapitals.render(el),
       '/quiz/carte':     (el) => GL.QuizMap.render(el),
       '/quiz/cauchemar': (el) => GL.QuizNightmare.render(el),
+      '/quiz/defi':      (el) => GL.Challenge.render(el),
+      '/quiz/defi/:id':  (el, p) => GL.Challenge.renderChallenge(el, p),
       '/carte':          (el) => this.renderWorldMap(el),
       '/stats':          (el) => this.renderStats(el),
       '/succes':         (el) => GL.Achievements.render(el),
@@ -75,6 +77,7 @@ GL.App = {
     });
 
     GL.Profile.init();
+    if (GL.Challenge) GL.Challenge.init();
     if (GL.Achievements) GL.Achievements.updateNavDot();
   },
 
@@ -90,7 +93,8 @@ GL.App = {
     set('navQuizFlags', t('nav.quiz.flags'));
     set('navQuizCap',   t('nav.quiz.capitals'));
     set('navQuizMap',   t('nav.quiz.map'));
-    set('navQuizNight', t('nav.quiz.nightmare'));
+    set('navQuizNight',      t('nav.quiz.nightmare'));
+    set('navQuizChallenge',  '⚔️ Défi');
     const quizBtn = document.getElementById('navQuizBtn');
     if (quizBtn) quizBtn.childNodes[0].textContent = t('nav.quiz') + ' ';
     // Update lang switch active state
@@ -166,6 +170,11 @@ GL.App = {
                 <div class="quiz-pick-icon">💀</div>
                 <div class="quiz-pick-name">${t('feat.nightmare.title')}</div>
                 <div class="quiz-pick-desc">${t('feat.nightmare.desc')}</div>
+              </a>
+              <a href="#/quiz/defi" class="quiz-pick-item quiz-pick-challenge">
+                <div class="quiz-pick-icon">⚔️</div>
+                <div class="quiz-pick-name">Défi <span class="beta-badge">Béta</span></div>
+                <div class="quiz-pick-desc">Affrontez un joueur en 1V1</div>
               </a>
             </div>
           </div>

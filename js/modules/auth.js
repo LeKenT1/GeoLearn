@@ -21,6 +21,8 @@ GL.Auth = {
   _client: null,
   _user: null,
   _syncTimer: null,
+  _realtimeChannel: null,
+  _lastPushAt: 0,          // timestamp du dernier _push() pour ignorer notre propre événement
   ready: Promise.resolve(), // résolu immédiatement jusqu'à ce que init() soit appelé
 
   // ── Initialisation ──────────────────────────────────────────────────────────
@@ -62,8 +64,7 @@ GL.Auth = {
         const sessionKey = 'gl_auth_uid';
         const knownUid = sessionStorage.getItem(sessionKey);
         const isNewLogin = !knownUid || knownUid !== session.user.id;
-        console.log('[Auth] SIGNED_IN uid:', session.user.id, '| knownUid:', knownUid, '| isNewLogin:', isNewLogin);
-
+        
         if (isNewLogin) {
           sessionStorage.setItem(sessionKey, session.user.id);
 
@@ -95,9 +96,11 @@ GL.Auth = {
 
         // Reload / navigation normale → sync différée 5s (ne concurrence pas le leaderboard)
         this.scheduleSync();
+        this._subscribeRealtime();
 
       } else if (event === 'SIGNED_OUT') {
         this._user = null;
+        this._unsubscribeRealtime();
       }
     });
 
@@ -128,10 +131,21 @@ GL.Auth = {
     if (!this._client) return;
     const redirectTo = window.location.href.split('#')[0];
 
-    // Sauvegarder l'ancien user_id avant la redirection pour pouvoir migrer les données après
-    if (this._user) localStorage.setItem('gl_prev_uid', this._user.id);
     // Forcer isNewLogin=true au retour OAuth pour que le pull/push s'exécute
     sessionStorage.removeItem('gl_auth_uid');
+
+    // Si l'utilisateur est déjà connecté (compte anonyme), on lie l'identité Google
+    // au lieu de créer un nouveau compte → même user_id, pas de doublon en DB
+    if (this._user) {
+      const { error } = await this._client.auth.linkIdentity({
+        provider: 'google',
+        options: { redirectTo },
+      });
+      if (!error) return;
+      // linkIdentity non supporté ou erreur → fallback vers signInWithOAuth classique
+      console.warn('[Auth] linkIdentity échoué, fallback signInWithOAuth:', error.message);
+      localStorage.setItem('gl_prev_uid', this._user.id);
+    }
 
     const { error } = await this._client.auth.signInWithOAuth({
       provider: 'google',
@@ -175,6 +189,54 @@ GL.Auth = {
     this._syncTimer = setTimeout(() => this._push(username), 5000);
   },
 
+  // ── Abonnement Realtime — sync multi-appareils ──────────────────────────────
+  _subscribeRealtime() {
+    if (!this._client || !this._user || this._realtimeChannel) return;
+
+    this._realtimeChannel = this._client
+      .channel(`user_data_sync:${this._user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'user_data',
+        filter: `user_id=eq.${this._user.id}`,
+      }, (payload) => {
+        // Ignorer notre propre push (même appareil) — fenêtre de 10 s
+        if (Date.now() - this._lastPushAt < 10000) return;
+
+        const d = payload.new;
+        if (!d) return;
+        console.log('[Auth] Realtime → mise à jour reçue depuis un autre appareil');
+
+        if (d.profile) localStorage.setItem('gl_profile', JSON.stringify(d.profile));
+        if (d.stats)   localStorage.setItem('gl_stats',   JSON.stringify(d.stats));
+        if (d.active_title !== undefined) {
+          d.active_title
+            ? localStorage.setItem('gl_active_title', d.active_title)
+            : localStorage.removeItem('gl_active_title');
+        }
+
+        // Rafraîchir l'UI sans recharger la page
+        if (window.GL?.Profile) {
+          const profile = GL.Profile.get();
+          if (profile) GL.Profile.updateNavAvatar(profile);
+          if (window.location.hash === '#/profil') {
+            GL.Profile.render(document.getElementById('app'));
+          }
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('[Auth] Realtime connecté (sync multi-appareils)');
+      });
+  },
+
+  _unsubscribeRealtime() {
+    if (this._realtimeChannel) {
+      this._client?.removeChannel(this._realtimeChannel);
+      this._realtimeChannel = null;
+    }
+  },
+
   // ── Push local → DB ─────────────────────────────────────────────────────────
   async _push(username) {
     if (!this._user || !this._client) return;
@@ -184,6 +246,7 @@ GL.Auth = {
     const activeTitle = localStorage.getItem('gl_active_title');
     const name = username || profile?.name || null;
 
+    this._lastPushAt = Date.now();
     const { error } = await this._client.from('user_data').upsert({
       user_id:      this._user.id,
       username:     name,
