@@ -64,7 +64,7 @@ GL.Auth = {
         const sessionKey = 'gl_auth_uid';
         const knownUid = sessionStorage.getItem(sessionKey);
         const isNewLogin = !knownUid || knownUid !== session.user.id;
-        
+
         if (isNewLogin) {
           sessionStorage.setItem(sessionKey, session.user.id);
 
@@ -95,6 +95,18 @@ GL.Auth = {
         }
 
         // Reload / navigation normale → sync différée 5s (ne concurrence pas le leaderboard)
+        this.scheduleSync();
+        this._subscribeRealtime();
+
+      } else if (event === 'INITIAL_SESSION' && session) {
+        // Restauration de session au chargement / rechargement de page
+        // Pull systématique → la DB est source de vérité (prénom changé ailleurs, etc.)
+        this._user = session.user;
+        const pulled = await this._pull();
+        if (pulled && window.GL?.Profile) {
+          const profile = GL.Profile.get();
+          if (profile) GL.Profile.updateNavAvatar(profile);
+        }
         this.scheduleSync();
         this._subscribeRealtime();
 
@@ -133,6 +145,12 @@ GL.Auth = {
 
     // Forcer isNewLogin=true au retour OAuth pour que le pull/push s'exécute
     sessionStorage.removeItem('gl_auth_uid');
+
+    // Garantir que this._user est à jour (getSession() peut ne pas encore avoir résolu)
+    if (!this._user) {
+      const { data } = await this._client.auth.getSession();
+      if (data?.session) this._user = data.session.user;
+    }
 
     // Si l'utilisateur est déjà connecté (compte anonyme), on lie l'identité Google
     // au lieu de créer un nouveau compte → même user_id, pas de doublon en DB
