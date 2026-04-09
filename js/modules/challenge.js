@@ -8,6 +8,7 @@ GL.Challenge = {
   _challengeChannel: null,
   _keyHandler:       null,
   _quizState:        null,
+  _audioCtx:         null,
 
   _t(key)     { return GL.I18N ? GL.I18N.t(key) : key; },
   _n(country) { return GL.I18N ? GL.I18N.name(country) : country.nameFr; },
@@ -15,6 +16,18 @@ GL.Challenge = {
 
   // ── Init : écoute globale des défis entrants ─────────────────────────────────
   init() {
+    // Déverrouillement AudioContext sur première interaction utilisateur
+    const unlockAudio = () => {
+      if (!this._audioCtx) {
+        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
+      document.removeEventListener('click',   unlockAudio);
+      document.removeEventListener('keydown', unlockAudio);
+    };
+    document.addEventListener('click',   unlockAudio);
+    document.addEventListener('keydown', unlockAudio);
+
     GL.Auth.ready.then(() => {
       if (GL.Auth.isLoggedIn()) this._startGlobalListener();
       const client = GL.Auth?._client;
@@ -25,6 +38,12 @@ GL.Challenge = {
         });
       }
     });
+  },
+
+  // ── Chaîne les handlers de sortie de route ────────────────────────────────────
+  _addLeaveHandler(fn) {
+    const prev = GL._onRouteLeave;
+    GL._onRouteLeave = () => { prev?.(); fn(); };
   },
 
   _startGlobalListener() {
@@ -62,7 +81,11 @@ GL.Challenge = {
 
   _playFanfare() {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!this._audioCtx) {
+        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const ctx = this._audioCtx;
+      if (ctx.state === 'suspended') ctx.resume();
 
       // Fanfare médiévale : 4 notes ascendantes Sol-Do-Mi-Sol (ta-ta-ta-TAA)
       const notes = [
@@ -99,7 +122,7 @@ GL.Challenge = {
         osc.stop(t + dur);
       });
 
-      setTimeout(() => ctx.close(), 1200);
+      // Ne pas fermer ctx — on le réutilise
     } catch(e) { /* contexte audio non disponible */ }
   },
 
@@ -371,9 +394,9 @@ GL.Challenge = {
       return;
     }
 
-    if (challenge.status === 'declined' || challenge.status === 'expired') {
-      const msg = challenge.status === 'declined' ? 'Défi refusé' : 'Défi expiré';
-      container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem;margin-bottom:1rem">😞</div><h3>${msg}</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
+    if (['declined', 'expired', 'cancelled'].includes(challenge.status)) {
+      const msgs = { declined: 'Défi refusé', expired: 'Défi expiré', cancelled: 'Défi annulé' };
+      container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem;margin-bottom:1rem">😞</div><h3>${msgs[challenge.status]}</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
       return;
     }
 
@@ -425,15 +448,16 @@ GL.Challenge = {
         container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><h3>Délai expiré</h3><p>L'adversaire n'a pas répondu à temps</p><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
       }
     }, 1000);
-    GL._onRouteLeave = () => clearInterval(ticker);
+    GL._onRouteLeave = () => { clearInterval(ticker); this._cancelChallenge(challenge.id); };
 
     this._subscribeToChallengeUpdates(challenge.id, (updated) => {
       if (updated.status === 'active') {
         clearInterval(ticker);
         this._renderReady(container, updated);
-      } else if (updated.status === 'declined') {
+      } else if (updated.status === 'declined' || updated.status === 'cancelled') {
         clearInterval(ticker);
-        container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem;margin-bottom:1rem">😞</div><h3>Défi refusé</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
+        const msg = updated.status === 'declined' ? 'Défi refusé' : 'Défi annulé';
+        container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem;margin-bottom:1rem">😞</div><h3>${msg}</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
       }
     });
   },
@@ -515,8 +539,10 @@ GL.Challenge = {
     render();
 
     this._subscribeToChallengeUpdates(challenge.id, (updated) => {
-      const newOppReady  = !!updated[oppReadyField];
-      const bothReady    = updated.challenger_ready && updated.challenged_ready;
+      if (updated.status === 'cancelled') { this._showAbandoned(container); return; }
+
+      const newOppReady = !!updated[oppReadyField];
+      const bothReady   = updated.challenger_ready && updated.challenged_ready;
 
       if (newOppReady && !oppReady) {
         oppReady = true;
@@ -527,6 +553,8 @@ GL.Challenge = {
       }
       if (bothReady) this._startQuiz(container, updated);
     });
+
+    this._addLeaveHandler(() => this._cancelChallenge(challenge.id));
   },
 
   // ── Décompte + démarrage du quiz ─────────────────────────────────────────────
@@ -566,6 +594,7 @@ GL.Challenge = {
       timerInterval: null,
     };
 
+    this._addLeaveHandler(() => this._cancelChallenge(challenge.id));
     this._renderNextQuestion(container);
   },
 
@@ -864,8 +893,10 @@ GL.Challenge = {
       .then(({ data: theirResult }) => {
         if (theirResult) { this._renderRecap(container, challenge, myResult, theirResult); return; }
 
-        // Sinon, écouter via Realtime
-        const channel = client
+        const channels = [];
+
+        // Écouter le résultat adverse
+        const resultsChannel = client
           .channel(`ch-results-${challenge.id}`)
           .on('postgres_changes', {
             event: 'INSERT', schema: 'public', table: 'challenge_results',
@@ -874,12 +905,29 @@ GL.Challenge = {
             const { data: results } = await client.from('challenge_results').select('*').eq('challenge_id', challenge.id);
             const theirR = results?.find(r => r.user_id !== myId);
             if (theirR) {
-              client.removeChannel(channel);
+              channels.forEach(c => client.removeChannel(c));
               this._renderRecap(container, challenge, myResult, theirR);
             }
           })
           .subscribe();
-        GL._onRouteLeave = () => client.removeChannel(channel);
+        channels.push(resultsChannel);
+
+        // Écouter l'abandon de l'adversaire
+        const cancelChannel = client
+          .channel(`ch-cancel-${challenge.id}`)
+          .on('postgres_changes', {
+            event: 'UPDATE', schema: 'public', table: 'challenges',
+            filter: `id=eq.${challenge.id}`,
+          }, (payload) => {
+            if (payload.new.status === 'cancelled') {
+              channels.forEach(c => client.removeChannel(c));
+              this._showAbandoned(container);
+            }
+          })
+          .subscribe();
+        channels.push(cancelChannel);
+
+        GL._onRouteLeave = () => channels.forEach(c => client.removeChannel(c));
       });
   },
 
@@ -1053,6 +1101,23 @@ GL.Challenge = {
   async _declineChallenge(id) {
     const { error } = await GL.Auth._client.from('challenges').update({ status: 'declined' }).eq('id', id);
     if (error) console.error('[Challenge] decline:', error.message);
+  },
+
+  async _cancelChallenge(id) {
+    if (!GL.Auth?._client || !id) return;
+    await GL.Auth._client.from('challenges')
+      .update({ status: 'cancelled' })
+      .eq('id', id)
+      .in('status', ['pending', 'active']);
+  },
+
+  _showAbandoned(container) {
+    container.innerHTML = `
+      <div class="page" style="text-align:center;padding:4rem;">
+        <div style="font-size:3rem;margin-bottom:1rem">🏳️</div>
+        <h3>L'adversaire a abandonné</h3>
+        <a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a>
+      </div>`;
   },
 
   async _expireChallenge(id) {
