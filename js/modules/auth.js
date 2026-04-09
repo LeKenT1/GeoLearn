@@ -97,7 +97,27 @@ GL.Auth = {
             let localProfile = null;
             try { localProfile = JSON.parse(localStorage.getItem('gl_profile')); } catch(e) {}
             const isGuest = !localProfile || localProfile.isGuest || !localProfile.name;
-            if (!isGuest) await this._push();
+
+            if (!isGuest) {
+              // Données locales valides → on les pousse et on recharge
+              await this._push();
+              window.location.reload();
+              return;
+            }
+
+            // Première connexion Google sans aucune donnée locale ni en DB
+            // → initialiser un profil depuis les métadonnées Google
+            const meta = session.user.user_metadata || {};
+            const googleName = meta.full_name || meta.name || meta.email?.split('@')[0] || '';
+            if (googleName) {
+              const newProfile = window.GL?.Profile?.defaultProfile
+                ? GL.Profile.defaultProfile(googleName, false)
+                : { name: googleName, isGuest: false, nameColor: '', avatar: {} };
+              localStorage.setItem('gl_profile', JSON.stringify(newProfile));
+              await this._push(googleName);
+              window.location.reload();
+              return;
+            }
           }
         }
 
@@ -124,12 +144,13 @@ GL.Auth = {
     });
 
     // Restaurer la session persistée (localStorage Supabase)
+    // Note : scheduleSync() n'est PAS appelé ici — onAuthStateChange (INITIAL_SESSION)
+    // s'en charge déjà et évite un double-push avec un éventuel _user stale.
     this._client.auth.getSession().then(({ data, error }) => {
       if (error) {
         console.warn('[Auth] Session invalide:', error.message);
       } else if (data.session) {
         this._user = data.session.user;
-        this.scheduleSync();
       }
     }).catch(e => {
       console.warn('[Auth] getSession échoué:', e?.message);
@@ -282,6 +303,14 @@ GL.Auth = {
     });
     if (error) {
       console.error('[Auth] _push:', error.message);
+      // Violation FK → le user_id n'existe plus dans auth.users (session orpheline)
+      // On déconnecte pour purger la session invalide du localStorage Supabase
+      if (error.code === '23503' || error.message?.includes('foreign key')) {
+        console.warn('[Auth] Session orpheline détectée, déconnexion automatique');
+        this._user = null;
+        this._client.auth.signOut().catch(() => {});
+        return;
+      }
       if (GL.UI?.toast) GL.UI.toast('Erreur sauvegarde : ' + error.message, 'error');
     }
   },
