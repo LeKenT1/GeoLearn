@@ -56,37 +56,50 @@ GL.Challenge = {
       .eq('user_id', challenge.challenger_id).single();
     const name = data?.username || 'Un joueur';
     GL.UI.toast(`⚔️ ${name} vous défie !`, 'info', 5000);
-    this._playSwordSound();
+    this._playFanfare();
     this._showIncomingModal(challenge, name);
   },
 
-  _playSwordSound() {
+  _playFanfare() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-      // Bruit métallique : oscillateur en dents de scie + filtre passe-bas
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
+      // Fanfare médiévale : 4 notes ascendantes Sol-Do-Mi-Sol (ta-ta-ta-TAA)
+      const notes = [
+        { freq: 392,  start: 0,    dur: 0.12 }, // Sol4
+        { freq: 523,  start: 0.14, dur: 0.12 }, // Do5
+        { freq: 659,  start: 0.28, dur: 0.12 }, // Mi5
+        { freq: 784,  start: 0.42, dur: 0.32 }, // Sol5 (tenue)
+      ];
 
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.18);
+      notes.forEach(({ freq, start, dur }) => {
+        const osc    = ctx.createOscillator();
+        const gain   = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
 
-      filter.type = 'bandpass';
-      filter.frequency.value = 800;
-      filter.Q.value = 2;
+        // Son de cuivre : dents de scie + filtre brillant
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
 
-      gain.gain.setValueAtTime(0.18, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        filter.type = 'peaking';
+        filter.frequency.value = 1800;
+        filter.gain.value = 6;
 
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
+        const t = ctx.currentTime + start;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.16, t + 0.02);   // attaque rapide
+        gain.gain.setValueAtTime(0.16, t + dur - 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + dur); // déclin
 
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.22);
-      osc.onended = () => ctx.close();
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(t);
+        osc.stop(t + dur);
+      });
+
+      setTimeout(() => ctx.close(), 1200);
     } catch(e) { /* contexte audio non disponible */ }
   },
 
