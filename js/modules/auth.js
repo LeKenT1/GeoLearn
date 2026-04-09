@@ -76,9 +76,16 @@ GL.Auth = {
             localStorage.removeItem('gl_prev_uid');
             // Le compte Google est déjà lié à un autre compte → ses données écrasent les locales
             const pulled = await this._pull();
-            if (pulled) { window.location.reload(); return; }
+            if (pulled) {
+              // Supprimer l'ancienne row anonyme (évite les doublons dans le leaderboard)
+              await this._client.rpc('delete_user_data', { p_uid: prevUid });
+              window.location.reload();
+              return;
+            }
             // Pas de données sur le compte Google → migrer depuis l'ancien compte
             await this._client.rpc('migrate_user_data_from_uid', { p_old_uid: prevUid });
+            // Supprimer l'ancienne row anonyme après migration
+            await this._client.rpc('delete_user_data', { p_uid: prevUid });
             await this._push();
           } else {
             // Toujours essayer de récupérer les données DB en priorité

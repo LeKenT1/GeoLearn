@@ -673,22 +673,10 @@ GL.Challenge = {
         options.forEach(b => { if (b.dataset.code === q.country.code) b.classList.add('correct'); });
       }
 
-      const acts   = document.createElement('div');
-      acts.className = 'quiz-actions';
-      const isLast = state.currentIndex + 1 >= state.questions.length;
-      acts.innerHTML = `<button class="btn btn-primary" id="nextBtn">${isLast ? 'Voir les résultats' : this._t('result.nextq')}</button>`;
-      container.querySelector('#quizOptions')?.after(acts);
-
-      let advanced = false;
-      const advance = () => {
-        if (advanced) return;
-        advanced = true;
-        clearTimeout(autoTimer);
+      setTimeout(() => {
         state.currentIndex++;
         this._renderNextQuestion(container);
-      };
-      const autoTimer = setTimeout(advance, 1500);
-      acts.querySelector('#nextBtn').addEventListener('click', advance);
+      }, 500);
     };
 
     options.forEach(btn => btn.addEventListener('click', () => handleAnswer(btn)));
@@ -699,8 +687,6 @@ GL.Challenge = {
       if (['1','2','3','4'].includes(e.key)) {
         const idx = parseInt(e.key) - 1;
         if (options[idx]) handleAnswer(options[idx]);
-      } else if ((e.key === 'Enter' || e.key === ' ') && answered) {
-        container.querySelector('#nextBtn')?.click();
       }
     };
     document.addEventListener('keydown', this._keyHandler);
@@ -748,7 +734,7 @@ GL.Challenge = {
         if (pd) pd.textContent = this._penaltyText(state.penalties);
       }
       state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped });
-      setTimeout(() => { state.currentIndex++; this._renderNextQuestion(container); }, 1500);
+      setTimeout(() => { state.currentIndex++; this._renderNextQuestion(container); }, 500);
     };
 
     container.querySelector('#skipMapBtn')?.addEventListener('click', () => handleMapAnswer(false, true));
