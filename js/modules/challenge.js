@@ -8,7 +8,6 @@ GL.Challenge = {
   _challengeChannel: null,
   _keyHandler:       null,
   _quizState:        null,
-  _audioCtx:         null,
 
   _t(key)     { return GL.I18N ? GL.I18N.t(key) : key; },
   _n(country) { return GL.I18N ? GL.I18N.name(country) : country.nameFr; },
@@ -16,18 +15,6 @@ GL.Challenge = {
 
   // ── Init : écoute globale des défis entrants ─────────────────────────────────
   init() {
-    // Déverrouillement AudioContext sur première interaction utilisateur
-    const unlockAudio = () => {
-      if (!this._audioCtx) {
-        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (this._audioCtx.state === 'suspended') this._audioCtx.resume();
-      document.removeEventListener('click',   unlockAudio);
-      document.removeEventListener('keydown', unlockAudio);
-    };
-    document.addEventListener('click',   unlockAudio);
-    document.addEventListener('keydown', unlockAudio);
-
     GL.Auth.ready.then(() => {
       if (GL.Auth.isLoggedIn()) this._startGlobalListener();
       const client = GL.Auth?._client;
@@ -78,53 +65,6 @@ GL.Challenge = {
     this._showIncomingModal(challenge, name);
   },
 
-  _playFanfare() {
-    try {
-      if (!this._audioCtx) {
-        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const ctx = this._audioCtx;
-      if (ctx.state === 'suspended') ctx.resume();
-
-      // Fanfare médiévale : 4 notes ascendantes Sol-Do-Mi-Sol (ta-ta-ta-TAA)
-      const notes = [
-        { freq: 392,  start: 0,    dur: 0.12 }, // Sol4
-        { freq: 523,  start: 0.14, dur: 0.12 }, // Do5
-        { freq: 659,  start: 0.28, dur: 0.12 }, // Mi5
-        { freq: 784,  start: 0.42, dur: 0.32 }, // Sol5 (tenue)
-      ];
-
-      notes.forEach(({ freq, start, dur }) => {
-        const osc    = ctx.createOscillator();
-        const gain   = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-
-        // Son de cuivre : dents de scie + filtre brillant
-        osc.type = 'sawtooth';
-        osc.frequency.value = freq;
-
-        filter.type = 'peaking';
-        filter.frequency.value = 1800;
-        filter.gain.value = 6;
-
-        const t = ctx.currentTime + start;
-        gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.07, t + 0.02);   // attaque rapide
-        gain.gain.setValueAtTime(0.07, t + dur - 0.04);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + dur); // déclin
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(t);
-        osc.stop(t + dur);
-      });
-
-      // Ne pas fermer ctx — on le réutilise
-    } catch(e) { /* contexte audio non disponible */ }
-  },
-
   _showIncomingModal(challenge, challengerName) {
     document.getElementById('challenge-incoming-modal')?.remove();
     const cfg = challenge.config || {};
@@ -155,7 +95,6 @@ GL.Challenge = {
         </div>
       </div>`;
     document.body.appendChild(modal);
-    this._playFanfare();
 
     let remaining = 60;
     const ticker = setInterval(() => {
@@ -485,7 +424,9 @@ GL.Challenge = {
 
     const _xp         = (row) => parseInt((row?.stats || {}).rankedXP, 10) || 0;
     const _rankKey    = (xp)  => GL.Leaderboard._rankKey(xp);
-    const _rankBadge  = (xp)  => GL.RankBadges ? GL.RankBadges.badgeHtml(GL.Leaderboard._rankEntry(_rankKey(xp)), { size: 36, showDesc: false, showXP: false }) : '';
+    const _rankBadge  = (xp)  => GL.RankBadges
+      ? `<div style="width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;">${GL.RankBadges.svgFrameOnly(_rankKey(xp))}</div>`
+      : '';
     const _titleHtml  = (row) => {
       if (!row?.active_title) return '';
       const ach = (GL.Achievements?.ACHIEVEMENTS || []).find(a => a.id === row.active_title);
@@ -511,7 +452,7 @@ GL.Challenge = {
                 <div class="ch-ready-rank">${_rankBadge(_xp(me))}</div>
                 <div class="ch-ready-name">${myName} <span class="you-badge">vous</span></div>
                 ${_titleHtml(me)}
-                <div class="ch-ready-status" id="myReadyStatus">${myReady ? '✅ Prêt !' : '⏳ En attente...'}</div>
+                <div class="ch-ready-status" id="myReadyStatus">${myReady ? 'Prêt !' : 'En attente...'}</div>
               </div>
 
               <div class="ch-ready-vs-badge">VS</div>
@@ -522,7 +463,7 @@ GL.Challenge = {
                 <div class="ch-ready-rank">${_rankBadge(_xp(opp))}</div>
                 <div class="ch-ready-name">${oppName}</div>
                 ${_titleHtml(opp)}
-                <div class="ch-ready-status" id="oppReadyStatus">${oppReady ? '✅ Prêt !' : '⏳ En attente...'}</div>
+                <div class="ch-ready-status" id="oppReadyStatus">${oppReady ? 'Prêt !' : 'En attente...'}</div>
               </div>
             </div>
 
@@ -539,10 +480,10 @@ GL.Challenge = {
       if (readyBtn) {
         readyBtn.addEventListener('click', async () => {
           readyBtn.disabled = true;
-          readyBtn.textContent = '✅ Prêt !';
+          readyBtn.textContent = 'Prêt !';
           myReady = true;
           await this._setReady(challenge.id, isChallenger);
-          container.querySelector('#myReadyStatus').textContent = '✅ Prêt !';
+          container.querySelector('#myReadyStatus').textContent = 'Prêt !';
           container.querySelector('#myReadyPlayer').classList.add('is-ready');
           readyBtn.replaceWith(Object.assign(document.createElement('p'), {
             className: 'ch-ready-waiting-msg',
@@ -564,7 +505,7 @@ GL.Challenge = {
         oppReady = true;
         const el   = container.querySelector('#oppReadyStatus');
         const card = container.querySelector('#oppReadyPlayer');
-        if (el)   el.textContent = '✅ Prêt !';
+        if (el)   el.textContent = 'Prêt !';
         if (card) card.classList.add('is-ready');
       }
       if (bothReady) this._startQuiz(container, updated);

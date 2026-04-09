@@ -52,6 +52,7 @@
   animation: mapTarget 1.2s ease-in-out infinite;
 }
 .country.dimmed { fill: #111e30; opacity: 0.6; }
+g.country-marker.dimmed circle { cursor: default !important; }
 .country.continent-active { fill: #1d3555; }
 .country.africa-color:hover { fill: rgba(249,115,22,0.5); }
 .country.americas-color:hover { fill: rgba(34,197,94,0.5); }

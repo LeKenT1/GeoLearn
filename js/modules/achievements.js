@@ -567,6 +567,11 @@ GL.Achievements = {
           ${this.GROUPS.filter(g => ['streak','quizcount','questions','login','xp'].includes(g.id)).map(groupCardHtml).join('')}
         </div>
 
+        <h3 class="ach-section-title">⚔️ Défi 1V1</h3>
+        <div class="ach-grid">
+          ${this.GROUPS.filter(g => g.id === 'challenge').map(groupCardHtml).join('')}
+        </div>
+
         <h3 class="ach-section-title">${t('ach.section.ultimate')}</h3>
         ${ultimateCardHtml()}
       </div>

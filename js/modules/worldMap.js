@@ -293,10 +293,11 @@ GL.WorldMap = {
           this.gTinyMarkers.attr('transform', event.transform);
           this.gTinyMarkers.selectAll('path.country:not(.selected)').style('stroke-width', `${0.5 / k}px`);
           this.gTinyMarkers.selectAll('path.country.selected').style('stroke-width', `${2 / k}px`);
-          this.gTinyMarkers.selectAll('g.country-marker .marker-dot').attr('r', 2 / k);
-          this.gTinyMarkers.selectAll('g.country-marker .marker-ring')
-            .attr('r', 3.5 / k).style('stroke-width', `${0.6 / k}px`);
-          this.gTinyMarkers.selectAll('g.country-marker .marker-hit').attr('r', 10 / k);
+          this.gTinyMarkers.selectAll('g.country-marker').attr('transform', function() {
+            const x = d3.select(this).attr('data-x');
+            const y = d3.select(this).attr('data-y');
+            return `translate(${x},${y}) scale(${1 / k})`;
+          });
         }
         this._currentTransform = event.transform;
         if (this._activeLabelModes && this._activeLabelModes.size > 0) this._updateLabelPositions();
@@ -1063,6 +1064,8 @@ GL.WorldMap = {
         .attr('class', 'country country-marker')
         .attr('id', `c${numeric}`)
         .attr('transform', `translate(${pt[0]},${pt[1]})`)
+        .attr('data-x', pt[0])
+        .attr('data-y', pt[1])
         .style('cursor', 'pointer');
 
       grp.append('circle')
@@ -1099,6 +1102,7 @@ GL.WorldMap = {
         .on('click', (event) => {
           event.stopPropagation();
           if (map._quizMode && map._onCountryClick) {
+            if (map.currentFilter && map.currentFilter !== 'all' && country.continent !== map.currentFilter) return;
             map._onCountryClick(country, numeric);
             return;
           }
