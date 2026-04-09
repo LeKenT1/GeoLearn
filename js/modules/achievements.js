@@ -73,6 +73,8 @@ GL.Achievements = {
       h => h.type === 'nightmare' && h.total > 0 && (h.score / h.total) >= 1
     ).length;
 
+    const challengeWins = stats.challengeWins || 0;
+
     return {
       stats,
       mastery,
@@ -85,6 +87,7 @@ GL.Achievements = {
       rankedXP: stats.rankedXP || 0,
       loginDays: days.size,
       nightmareGood,
+      challengeWins,
     };
   },
 
@@ -249,6 +252,18 @@ GL.Achievements = {
         { id: 'xp_150', title: 'Confirmé',  titleEn: 'Confirmed',  tier: 2, threshold: 150 },
         { id: 'xp_300', title: 'Expert',    titleEn: 'Expert',     tier: 3, threshold: 300 },
         { id: 'xp_800', title: 'Légende',   titleEn: 'Legend',     tier: 4, threshold: 800 },
+      ]
+    },
+    {
+      id: 'challenge', label: 'Défis gagnés', labelEn: 'Challenges Won', emoji: '⚔️', colorVar: null,
+      colorHex: '#ef4444',
+      current: cs => cs.challengeWins,
+      max: 20, unit: ' défis gagnés', unitEn: ' challenges won',
+      achievements: [
+        { id: 'challenge_1',  title: 'Duelliste',       titleEn: 'Duelist',       tier: 1, threshold: 1  },
+        { id: 'challenge_5',  title: 'Combattant',      titleEn: 'Fighter',       tier: 2, threshold: 5  },
+        { id: 'challenge_10', title: 'Chevalier',       titleEn: 'Knight',        tier: 3, threshold: 10 },
+        { id: 'challenge_20', title: 'Champion du Duel', titleEn: 'Duel Champion', tier: 4, threshold: 20 },
       ]
     },
   ],

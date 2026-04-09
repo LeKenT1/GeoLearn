@@ -70,7 +70,6 @@ GL.Auth = {
 
           const prevUid = localStorage.getItem('gl_prev_uid');
           const accountSwitched = prevUid && prevUid !== session.user.id;
-          console.log('[Auth] prevUid:', prevUid, '| accountSwitched:', accountSwitched);
 
           if (accountSwitched) {
             localStorage.removeItem('gl_prev_uid');

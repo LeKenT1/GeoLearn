@@ -573,6 +573,7 @@ GL.WorldMap = {
     if (!country) return;
 
     if (this._quizMode && this._onCountryClick) {
+      if (this.currentFilter && this.currentFilter !== 'all' && country.continent !== this.currentFilter) return;
       this._onCountryClick(country, d.id);
       return;
     }

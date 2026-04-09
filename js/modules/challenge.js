@@ -75,7 +75,6 @@ GL.Challenge = {
       .eq('user_id', challenge.challenger_id).single();
     const name = data?.username || 'Un joueur';
     GL.UI.toast(`⚔️ ${name} vous défie !`, 'info', 5000);
-    this._playFanfare();
     this._showIncomingModal(challenge, name);
   },
 
@@ -110,8 +109,8 @@ GL.Challenge = {
 
         const t = ctx.currentTime + start;
         gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.16, t + 0.02);   // attaque rapide
-        gain.gain.setValueAtTime(0.16, t + dur - 0.04);
+        gain.gain.linearRampToValueAtTime(0.07, t + 0.02);   // attaque rapide
+        gain.gain.setValueAtTime(0.07, t + dur - 0.04);
         gain.gain.exponentialRampToValueAtTime(0.001, t + dur); // déclin
 
         osc.connect(filter);
@@ -156,6 +155,7 @@ GL.Challenge = {
         </div>
       </div>`;
     document.body.appendChild(modal);
+    this._playFanfare();
 
     let remaining = 60;
     const ticker = setInterval(() => {
@@ -351,7 +351,7 @@ GL.Challenge = {
              onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.id}&size=80'">
         <div class="challenge-player-info">
           <div class="challenge-player-name">${p.name}</div>
-          <div class="challenge-player-xp">${p.xp} XP</div>
+          <div class="challenge-player-xp">${p.title ? `<span class="challenge-player-title tier-${p.titleTier}">${p.title}</span>` : '—'}</div>
         </div>
         ${p.id === selectedId ? '<div class="challenge-player-check">✓</div>' : ''}
       </div>`).join('');
@@ -472,7 +472,7 @@ GL.Challenge = {
     const oppReadyField = isChallenger ? 'challenged_ready' : 'challenger_ready';
 
     const { data: profiles } = await client
-      .from('user_data').select('user_id, username, profile')
+      .from('user_data').select('user_id, username, profile, stats, active_title')
       .in('user_id', [myId, opponentId]);
 
     const me  = profiles?.find(p => p.user_id === myId);
@@ -482,6 +482,18 @@ GL.Challenge = {
     const oppName   = opp?.username || 'Adversaire';
     const myAvatar  = me?.profile?.avatar  ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(me.profile.avatar),  120) : `https://api.dicebear.com/9.x/avataaars/svg?seed=${myId}&size=120`;
     const oppAvatar = opp?.profile?.avatar ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(opp.profile.avatar), 120) : `https://api.dicebear.com/9.x/avataaars/svg?seed=${opponentId}&size=120`;
+
+    const _xp         = (row) => parseInt((row?.stats || {}).rankedXP, 10) || 0;
+    const _rankKey    = (xp)  => GL.Leaderboard._rankKey(xp);
+    const _rankBadge  = (xp)  => GL.RankBadges ? GL.RankBadges.badgeHtml(GL.Leaderboard._rankEntry(_rankKey(xp)), { size: 36, showDesc: false, showXP: false }) : '';
+    const _titleHtml  = (row) => {
+      if (!row?.active_title) return '';
+      const ach = (GL.Achievements?.ACHIEVEMENTS || []).find(a => a.id === row.active_title);
+      if (!ach) return '';
+      const map = ['', 'ach-title-plastic', 'ach-title-bronze', 'ach-title-silver', 'ach-title-gold', 'ach-title-ultimate'];
+      const cls = map[ach.tier || 0] || '';
+      return `<div class="ch-ready-title-text${cls ? ' ' + cls : ''}">${ach.title}</div>`;
+    };
 
     let myReady  = !!challenge[myReadyField];
     let oppReady = !!challenge[oppReadyField];
@@ -496,7 +508,9 @@ GL.Challenge = {
               <div class="ch-ready-player${myReady ? ' is-ready' : ''}" id="myReadyPlayer">
                 <img class="ch-ready-avatar" src="${myAvatar}"
                      onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=me&size=120'">
+                <div class="ch-ready-rank">${_rankBadge(_xp(me))}</div>
                 <div class="ch-ready-name">${myName} <span class="you-badge">vous</span></div>
+                ${_titleHtml(me)}
                 <div class="ch-ready-status" id="myReadyStatus">${myReady ? '✅ Prêt !' : '⏳ En attente...'}</div>
               </div>
 
@@ -505,7 +519,9 @@ GL.Challenge = {
               <div class="ch-ready-player${oppReady ? ' is-ready' : ''}" id="oppReadyPlayer">
                 <img class="ch-ready-avatar" src="${oppAvatar}"
                      onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=opp&size=120'">
+                <div class="ch-ready-rank">${_rankBadge(_xp(opp))}</div>
                 <div class="ch-ready-name">${oppName}</div>
+                ${_titleHtml(opp)}
                 <div class="ch-ready-status" id="oppReadyStatus">${oppReady ? '✅ Prêt !' : '⏳ En attente...'}</div>
               </div>
             </div>
@@ -947,6 +963,13 @@ GL.Challenge = {
     const iWon    = myResult.finish_time < theirResult.finish_time;
     const draw    = myResult.finish_time === theirResult.finish_time;
 
+    if (iWon) {
+      const stats = GL.UI.getStats();
+      stats.challengeWins = (stats.challengeWins || 0) + 1;
+      GL.UI.saveStats(stats);
+      if (GL.Achievements) GL.Achievements.updateNavDot();
+    }
+
     const myAnswers   = myResult.answers   || [];
     const theirAnswers = theirResult.answers || [];
     const myCorrect   = myAnswers.filter(a => a.correct).length;
@@ -1066,8 +1089,12 @@ GL.Challenge = {
     if (!client) return [];
 
     const { data } = await client
-      .from('user_data').select('user_id, username, stats, profile')
+      .from('user_data').select('user_id, username, stats, profile, active_title')
       .not('username', 'is', null);
+
+    const allAchs = GL.Achievements
+      ? [].concat(...GL.Achievements.GROUPS.map(g => g.achievements))
+      : [];
 
     return (data || [])
       .filter(r => r.user_id !== myId)
@@ -1077,7 +1104,12 @@ GL.Challenge = {
         const avatarUrl = prof.avatar
           ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(prof.avatar), 80)
           : `https://api.dicebear.com/9.x/avataaars/svg?seed=${r.user_id}&size=80`;
-        return { id: r.user_id, name: r.username || 'Joueur', xp, avatarUrl };
+        let title = null, titleTier = 0;
+        if (r.active_title) {
+          const ach = allAchs.find(a => a.id === r.active_title);
+          if (ach) { title = ach.title; titleTier = ach.tier || 0; }
+        }
+        return { id: r.user_id, name: r.username || 'Joueur', xp, avatarUrl, title, titleTier };
       })
       .sort((a, b) => b.xp - a.xp);
   },
