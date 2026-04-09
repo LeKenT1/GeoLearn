@@ -56,7 +56,38 @@ GL.Challenge = {
       .eq('user_id', challenge.challenger_id).single();
     const name = data?.username || 'Un joueur';
     GL.UI.toast(`⚔️ ${name} vous défie !`, 'info', 5000);
+    this._playSwordSound();
     this._showIncomingModal(challenge, name);
+  },
+
+  _playSwordSound() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Bruit métallique : oscillateur en dents de scie + filtre passe-bas
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.18);
+
+      filter.type = 'bandpass';
+      filter.frequency.value = 800;
+      filter.Q.value = 2;
+
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.22);
+      osc.onended = () => ctx.close();
+    } catch(e) { /* contexte audio non disponible */ }
   },
 
   _showIncomingModal(challenge, challengerName) {
