@@ -106,7 +106,7 @@ GL.Challenge = {
       clearInterval(ticker);
       modal.remove();
       await this._acceptChallenge(challenge.id);
-      GL.Router.navigate(`quiz/defi/${challenge.id}`);
+      GL.Router.navigate(`/quiz/defi/${challenge.id}`);
     });
     modal.querySelector('#declineChallengeBtn').addEventListener('click', async () => {
       clearInterval(ticker);
@@ -256,7 +256,7 @@ GL.Challenge = {
         return;
       }
       const id = await this._createChallenge(selectedPlayerId, cfg, questions);
-      if (id) GL.Router.navigate(`quiz/defi/${id}`);
+      if (id) GL.Router.navigate(`/quiz/defi/${id}`);
       else { btn.disabled = false; btn.textContent = '⚔️ Lancer le défi'; }
     });
 
