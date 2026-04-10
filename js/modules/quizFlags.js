@@ -57,6 +57,7 @@ GL.QuizFlags = {
               <button class="count-btn" data-count="20">20</button>
               <button class="count-btn" data-count="30">30</button>
               <button class="count-btn" data-count="50">50</button>
+              <button class="count-btn" data-count="all">Tous</button>
             </div>
           </div>
 
@@ -121,7 +122,7 @@ GL.QuizFlags = {
       btn.addEventListener('click', () => {
         container.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        cfg.count = parseInt(btn.dataset.count);
+        cfg.count = btn.dataset.count === 'all' ? Infinity : parseInt(btn.dataset.count);
       });
     });
 

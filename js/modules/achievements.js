@@ -75,6 +75,11 @@ GL.Achievements = {
 
     const challengeWins = stats.challengeWins || 0;
 
+    // Total pts cumulés en Quiz Ultime
+    const ultimatePts = (stats.quizHistory || [])
+      .filter(h => h.type === 'ultimate')
+      .reduce((sum, h) => sum + (h.score || 0), 0);
+
     return {
       stats,
       mastery,
@@ -88,6 +93,7 @@ GL.Achievements = {
       loginDays: days.size,
       nightmareGood,
       challengeWins,
+      ultimatePts,
     };
   },
 
@@ -264,6 +270,18 @@ GL.Achievements = {
         { id: 'challenge_5',  title: 'Combattant',      titleEn: 'Fighter',       tier: 2, threshold: 5  },
         { id: 'challenge_10', title: 'Chevalier',       titleEn: 'Knight',        tier: 3, threshold: 10 },
         { id: 'challenge_20', title: 'Champion du Duel', titleEn: 'Duel Champion', tier: 4, threshold: 20 },
+      ]
+    },
+    {
+      id: 'ultimatequiz', label: 'Quiz Ultime', labelEn: 'Ultimate Quiz', emoji: '👑', colorVar: null,
+      colorHex: '#ec4899',
+      current: cs => cs.ultimatePts,
+      max: 591, unit: ' pts cumulés', unitEn: ' cumulative pts',
+      achievements: [
+        { id: 'ultimate_50',  title: 'Prétendant au Trône', titleEn: 'Throne Pretender',  tier: 1, threshold: 50  },
+        { id: 'ultimate_200', title: 'Conquérant de l\'Atlas', titleEn: 'Atlas Conqueror', tier: 2, threshold: 200 },
+        { id: 'ultimate_350', title: 'Seigneur des Nations', titleEn: 'Lord of Nations',  tier: 3, threshold: 350 },
+        { id: 'ultimate_591', title: 'Roi',                   titleEn: 'King',              tier: 4, threshold: 591 },
       ]
     },
   ],
@@ -559,7 +577,7 @@ GL.Achievements = {
 
         <h3 class="ach-section-title">${t('ach.section.quiztype')} <span class="info-tooltip" data-tooltip="${t('ach.progress.type.info')}">ℹ️</span></h3>
         <div class="ach-grid">
-          ${this.GROUPS.filter(g => ['flags','capitals','map','nightmare'].includes(g.id)).map(groupCardHtml).join('')}
+          ${this.GROUPS.filter(g => ['flags','capitals','map','nightmare','ultimatequiz'].includes(g.id)).map(groupCardHtml).join('')}
         </div>
 
         <h3 class="ach-section-title">${t('ach.section.progress')}</h3>

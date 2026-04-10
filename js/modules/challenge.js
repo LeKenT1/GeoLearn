@@ -69,6 +69,7 @@ GL.Challenge = {
     document.getElementById('challenge-incoming-modal')?.remove();
     const cfg = challenge.config || {};
     const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire' }[cfg.mode] || cfg.mode;
+    const typeLabel = { choice: '🔢 Choix', write: '✏️ Écrire', random: '🎲 Type aléatoire' }[cfg.type];
     const contLabel = cfg.continent === 'all' ? 'Monde entier' : (GL.I18N ? GL.I18N.cont(cfg.continent) : cfg.continent);
     const diffLabel = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' }[cfg.difficulty] || cfg.difficulty;
 
@@ -82,6 +83,7 @@ GL.Challenge = {
         <p class="ch-modal-from"><strong>${challengerName}</strong> vous défie</p>
         <div class="ch-modal-tags">
           <span class="challenge-config-tag">${modeLabel}</span>
+          ${typeLabel && cfg.mode !== 'map' ? `<span class="challenge-config-tag">${typeLabel}</span>` : ''}
           <span class="challenge-config-tag">${cfg.count || '?'} pays</span>
           <span class="challenge-config-tag">${contLabel}</span>
           <span class="challenge-config-tag">${diffLabel}</span>
@@ -159,6 +161,24 @@ GL.Challenge = {
             </div>
           </div>
 
+          <div class="setup-section" id="typeSection">
+            <div class="setup-section-label">Type</div>
+            <div class="challenge-mode-grid">
+              <div class="challenge-mode-card selected" data-type="choice">
+                <div class="challenge-mode-icon">🔢</div>
+                <div class="challenge-mode-name">Choix</div>
+              </div>
+              <div class="challenge-mode-card" data-type="write">
+                <div class="challenge-mode-icon">✏️</div>
+                <div class="challenge-mode-name">Écrire</div>
+              </div>
+              <div class="challenge-mode-card" data-type="random">
+                <div class="challenge-mode-icon">🎲</div>
+                <div class="challenge-mode-name">Aléatoire</div>
+              </div>
+            </div>
+          </div>
+
           <div class="setup-section">
             <div class="setup-section-label">${t('setup.continent')}</div>
             ${GL.UI.continentTabsHtml('all')}
@@ -171,6 +191,7 @@ GL.Challenge = {
               <button class="count-btn" data-count="20">20</button>
               <button class="count-btn" data-count="30">30</button>
               <button class="count-btn" data-count="50">50</button>
+              <button class="count-btn" data-count="all">Tous</button>
             </div>
           </div>
 
@@ -199,15 +220,31 @@ GL.Challenge = {
         </div>
       </div>`;
 
-    const cfg = { mode: 'flags', continent: 'all', count: 10, difficulty: 'normal' };
+    const cfg = { mode: 'flags', type: 'choice', continent: 'all', count: 10, difficulty: 'normal' };
     let selectedPlayerId = null;
     let allPlayers = [];
 
-    container.querySelectorAll('.challenge-mode-card').forEach(card => {
+    const updateTypeSection = () => {
+      const typeCards = container.querySelectorAll('.challenge-mode-card[data-type]');
+      const isMap = cfg.mode === 'map';
+      typeCards.forEach(c => c.classList.toggle('disabled', isMap));
+    };
+
+    container.querySelectorAll('.challenge-mode-card[data-mode]').forEach(card => {
       card.addEventListener('click', () => {
-        container.querySelectorAll('.challenge-mode-card').forEach(c => c.classList.remove('selected'));
+        container.querySelectorAll('.challenge-mode-card[data-mode]').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         cfg.mode = card.dataset.mode;
+        updateTypeSection();
+      });
+    });
+
+    container.querySelectorAll('.challenge-mode-card[data-type]').forEach(card => {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('disabled')) return;
+        container.querySelectorAll('.challenge-mode-card[data-type]').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        cfg.type = card.dataset.type;
       });
     });
     container.querySelectorAll('.filter-tab').forEach(tab => {
@@ -221,7 +258,7 @@ GL.Challenge = {
       btn.addEventListener('click', () => {
         container.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        cfg.count = parseInt(btn.dataset.count);
+        cfg.count = btn.dataset.count === 'all' ? Infinity : parseInt(btn.dataset.count);
       });
     });
     container.querySelectorAll('.diff-btn').forEach(btn => {
@@ -564,8 +601,9 @@ GL.Challenge = {
     }
     state.questionStartTime = Date.now();
     const q = state.questions[state.currentIndex];
-    if (q.type === 'map') this._renderMapQuestion(container, q);
-    else                  this._renderMCQQuestion(container, q);
+    if (q.type === 'map')        this._renderMapQuestion(container, q);
+    else if (q.type === 'text') this._renderWriteQuestion(container, q);
+    else                        this._renderMCQQuestion(container, q);
   },
 
   // ── Affichage du timer ────────────────────────────────────────────────────────
@@ -722,6 +760,98 @@ GL.Challenge = {
     document.addEventListener('keydown', this._keyHandler);
   },
 
+  // ── Question Écriture ─────────────────────────────────────────────────────────
+  _renderWriteQuestion(container, q) {
+    const state = this._quizState;
+
+    let qHtml = '';
+    if (q.subtype === 'flag-to-text') {
+      qHtml = `<div class="quiz-question-label">${q.label}</div>
+        <div class="quiz-flag-container">
+          <span class="fi fi-${q.country.code}" style="height:107px;aspect-ratio:3/2;background-size:contain;background-position:center;background-repeat:no-repeat;display:inline-block;border-radius:8px;box-shadow:var(--shadow-md);"></span>
+        </div>`;
+    } else if (q.subtype === 'country-to-capital-text') {
+      qHtml = `<div class="quiz-question-label">${q.label}</div>
+        <div class="quiz-question-text">${this._n(q.country)}</div>
+        <div class="quiz-flag-container" style="margin-top:0.75rem;">
+          <span class="fi fi-${q.country.code}" style="height:48px;aspect-ratio:3/2;background-size:contain;background-position:center;background-repeat:no-repeat;display:inline-block;border-radius:4px;box-shadow:var(--shadow-sm);"></span>
+        </div>`;
+    }
+
+    const placeholder = q.subtype === 'flag-to-text'
+      ? this._t('quiz.placeholder.country')
+      : this._t('quiz.placeholder.capital');
+
+    container.innerHTML = `
+      <div class="page">
+        <div class="quiz-container">
+          ${this._quizHeader(state)}
+          <div class="quiz-question-card" id="questionCard">${qHtml}</div>
+          <div class="quiz-text-form" id="textForm">
+            <input type="text" class="quiz-text-input" id="textAnswer"
+              placeholder="${placeholder}"
+              autocomplete="off" autocorrect="off" spellcheck="false">
+            <div id="textFeedback" class="quiz-hint"></div>
+            <div style="display:flex;gap:0.75rem;justify-content:center;">
+              <button class="btn btn-primary" id="submitTextBtn" style="min-width:120px;">${this._t('quiz.btn.validate')}</button>
+              <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+7s</span></button>
+            </div>
+          </div>
+          <div class="keyboard-hints">
+            <span class="kbd">Entrée</span>
+            <span style="color:var(--text-muted);font-size:0.75rem;margin-left:0.25rem">${this._t('quiz.hint.enter')}</span>
+          </div>
+        </div>
+      </div>`;
+
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => this._tickTimer(container), 500);
+
+    const input     = container.querySelector('#textAnswer');
+    const feedback  = container.querySelector('#textFeedback');
+    const submitBtn = container.querySelector('#submitTextBtn');
+    let answered = false;
+
+    if (input) setTimeout(() => input.focus(), 100);
+
+    const isEn = GL.I18N && GL.I18N.lang === 'en';
+    const displayAnswer = isEn ? (q.answerAlt || q.answer) : q.answer;
+
+    const handleAnswer = (skipped = false) => {
+      if (answered) return;
+      answered = true;
+      if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+
+      const val = input ? input.value.trim() : '';
+      const isCorrect = !skipped && GL.UI.checkTextAnswer(val, q.answer, q.answerAlt, q.aliases);
+      const timeMs = Date.now() - state.questionStartTime;
+
+      if (!isCorrect) {
+        state.penalties++;
+        const pd = container.querySelector('#penaltiesDisplay');
+        if (pd) pd.textContent = this._penaltyText(state.penalties);
+      }
+
+      state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped, userInput: val });
+
+      if (input) { input.classList.add(isCorrect ? 'correct' : 'wrong'); input.disabled = true; }
+      if (submitBtn) submitBtn.disabled = true;
+      if (!isCorrect && feedback) {
+        feedback.innerHTML = `<span class="quiz-correct-answer">✓ ${displayAnswer}</span>`;
+      }
+
+      setTimeout(() => { state.currentIndex++; this._renderNextQuestion(container); }, 800);
+    };
+
+    if (submitBtn) submitBtn.addEventListener('click', () => handleAnswer(false));
+    if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') handleAnswer(false); });
+    container.querySelector('#skipBtn')?.addEventListener('click', () => handleAnswer(true));
+
+    if (this._keyHandler) document.removeEventListener('keydown', this._keyHandler);
+    this._keyHandler = (e) => { if (e.key === 'Enter' && !answered) handleAnswer(false); };
+    document.addEventListener('keydown', this._keyHandler);
+  },
+
   // ── Question Carte ────────────────────────────────────────────────────────────
   async _renderMapQuestion(container, q) {
     const state = this._quizState;
@@ -782,16 +912,16 @@ GL.Challenge = {
       if (state.challenge.config.continent !== 'all') {
         GL.WorldMap.zoomToContinent(state.challenge.config.continent);
       }
-      GL.WorldMap._onCountryClick = (clickedCode) => {
+      GL.WorldMap._onCountryClick = (clickedCountry, numericId) => {
         if (answered) return;
-        const isCorrect = clickedCode === q.country.code;
+        const isCorrect = clickedCountry.code === q.country.code;
         const feedback  = container.querySelector('#mapFeedback');
         if (isCorrect) {
           if (feedback) { feedback.textContent = '✓ Correct !'; feedback.className = 'quiz-map-feedback correct'; }
-          GL.WorldMap.highlightCountry(q.country.numeric, 'correct');
+          GL.WorldMap.highlightCountry(numericId, 'correct');
         } else {
           if (feedback) { feedback.textContent = `✗ ${this._n(q.country)}`; feedback.className = 'quiz-map-feedback wrong'; }
-          GL.WorldMap.highlightCountry(q.country.numeric, 'wrong');
+          GL.WorldMap.highlightCountry(numericId, 'wrong');
           setTimeout(() => GL.WorldMap.highlightCountry(q.country.numeric, 'correct'), 600);
         }
         handleMapAnswer(isCorrect);
@@ -987,13 +1117,39 @@ GL.Challenge = {
       ? GL.QuizEngine.weightedPick(pool, count, GL.UI.getStats().diffScore || {})
       : GL.QuizEngine.pickRandom(pool, count);
 
-    const qtypes = ['flags', 'capitals', 'map'];
-    return selected.map(country => ({
-      code:  country.code,
-      qtype: (cfg.mode === 'nightmare' || cfg.mode === 'random')
-        ? qtypes[Math.floor(Math.random() * qtypes.length)]
-        : cfg.mode,
-    }));
+    const type     = cfg.type || 'choice';
+    const pickType = () => type === 'random' ? (Math.random() < 0.5 ? 'choice' : 'write') : type;
+
+    // Cauchemar : 3 questions par pays (nom → capitale → carte)
+    if (cfg.mode === 'nightmare') {
+      return selected.flatMap(country => {
+        const t = pickType();
+        return [
+          { code: country.code, qtype: t === 'write' ? 'nightmare-name-text'    : 'nightmare-name-mcq' },
+          { code: country.code, qtype: t === 'write' ? 'nightmare-capital-text' : 'nightmare-capital-mcq' },
+          { code: country.code, qtype: 'nightmare-map' },
+        ];
+      });
+    }
+
+    return selected.map(country => {
+      if (cfg.mode === 'map') return { code: country.code, qtype: 'map' };
+
+      const t = pickType();
+
+      if (cfg.mode === 'random') {
+        const roll = Math.floor(Math.random() * 3);
+        if (roll === 2) return { code: country.code, qtype: 'map' };
+        const base = roll === 0 ? 'flags' : 'capitals';
+        return { code: country.code, qtype: t === 'write' ? `write-${base}` : base };
+      }
+
+      // flags ou capitals
+      if (t === 'write') {
+        return { code: country.code, qtype: cfg.mode === 'flags' ? 'write-flags' : 'write-capitals' };
+      }
+      return { code: country.code, qtype: cfg.mode };
+    });
   },
 
   _buildQuestions(challenge) {
@@ -1004,10 +1160,17 @@ GL.Challenge = {
       const country = GL.COUNTRIES.find(c => c.code === q.code);
       if (!country) return null;
       switch (q.qtype || config.mode) {
-        case 'flags':    return GL.QuizEngine.genFlagToName(country, pool);
-        case 'capitals': return GL.QuizEngine.genCountryToCapital(country, pool);
-        case 'map':      return GL.QuizEngine.genMapQuestion(country, 'name');
-        default:         return GL.QuizEngine.genFlagToName(country, pool);
+        case 'flags':                 return GL.QuizEngine.genFlagToName(country, pool);
+        case 'capitals':              return GL.QuizEngine.genCountryToCapital(country, pool);
+        case 'map':                   return GL.QuizEngine.genMapQuestion(country, 'name');
+        case 'write-flags':           return GL.QuizEngine.genFlagToText(country);
+        case 'write-capitals':        return GL.QuizEngine.genCountryToCapitalText(country);
+        case 'nightmare-name-mcq':    return GL.QuizEngine.genFlagToName(country, pool);
+        case 'nightmare-name-text':   return GL.QuizEngine.genFlagToText(country);
+        case 'nightmare-capital-mcq': return GL.QuizEngine.genCountryToCapital(country, pool);
+        case 'nightmare-capital-text':return GL.QuizEngine.genCountryToCapitalText(country);
+        case 'nightmare-map':         return GL.QuizEngine.genMapQuestion(country, 'flag');
+        default:                      return GL.QuizEngine.genFlagToName(country, pool);
       }
     }).filter(Boolean);
   },
@@ -1015,9 +1178,12 @@ GL.Challenge = {
   _configLabel(cfg) {
     if (!cfg) return '';
     const mode  = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire' }[cfg.mode] || cfg.mode;
+    const type  = { choice: '🔢 Choix', write: '✏️ Écrire', random: '🎲 Type aléatoire' }[cfg.type];
     const cont  = cfg.continent === 'all' ? '🌍 Monde entier' : (GL.I18N ? GL.I18N.cont(cfg.continent) : cfg.continent);
     const diff  = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' }[cfg.difficulty] || cfg.difficulty;
+    const typeTag = (cfg.mode !== 'map' && type) ? `<span class="challenge-config-tag">${type}</span>` : '';
     return `<span class="challenge-config-tag">${mode}</span>
+            ${typeTag}
             <span class="challenge-config-tag">${cfg.count} pays</span>
             <span class="challenge-config-tag">${cont}</span>
             <span class="challenge-config-tag">${diff}</span>`;

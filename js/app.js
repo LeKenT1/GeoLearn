@@ -67,6 +67,7 @@ GL.App = {
       '/quiz/capitales': (el) => GL.QuizCapitals.render(el),
       '/quiz/carte':     (el) => GL.QuizMap.render(el),
       '/quiz/cauchemar': (el) => GL.QuizNightmare.render(el),
+      '/quiz/ultime':    (el) => GL.QuizUltimate.render(el),
       '/quiz/defi':      (el) => GL.Challenge.render(el),
       '/quiz/defi/:id':  (el, p) => GL.Challenge.renderChallenge(el, p),
       '/carte':          (el) => this.renderWorldMap(el),
@@ -74,11 +75,25 @@ GL.App = {
       '/succes':         (el) => GL.Achievements.render(el),
       '/profil':         (el) => GL.Profile.render(el),
       '/classement':     (el) => GL.Leaderboard.render(el),
+      '/test':           (el) => GL.FlagTest && GL.FlagTest.render(el),
     });
 
     GL.Profile.init();
     if (GL.Challenge) GL.Challenge.init();
     if (GL.Achievements) GL.Achievements.updateNavDot();
+
+    // Lien test visible uniquement en local
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      const navLinks = document.getElementById('navLinks');
+      if (navLinks) {
+        const testLink = document.createElement('a');
+        testLink.href = '#/test';
+        testLink.className = 'nav-link';
+        testLink.textContent = '🧪 Test';
+        testLink.style.cssText = 'color:var(--accent);font-weight:700;';
+        navLinks.appendChild(testLink);
+      }
+    }
   },
 
   _updateNavLabels() {
@@ -94,6 +109,7 @@ GL.App = {
     set('navQuizCap',   t('nav.quiz.capitals'));
     set('navQuizMap',   t('nav.quiz.map'));
     set('navQuizNight',      t('nav.quiz.nightmare'));
+    set('navQuizUltimate',   t('nav.quiz.ultimate'));
     set('navQuizChallenge',  '⚔️ Défi');
     const quizBtn = document.getElementById('navQuizBtn');
     if (quizBtn) quizBtn.childNodes[0].textContent = t('nav.quiz') + ' ';
@@ -170,6 +186,11 @@ GL.App = {
                 <div class="quiz-pick-icon">💀</div>
                 <div class="quiz-pick-name">${t('feat.nightmare.title')}</div>
                 <div class="quiz-pick-desc">${t('feat.nightmare.desc')}</div>
+              </a>
+              <a href="#/quiz/ultime" class="quiz-pick-item quiz-pick-ultimate">
+                <div class="quiz-pick-icon">👑</div>
+                <div class="quiz-pick-name">${t('feat.ultimate.title')}</div>
+                <div class="quiz-pick-desc">${t('feat.ultimate.desc')}</div>
               </a>
               <a href="#/quiz/defi" class="quiz-pick-item quiz-pick-challenge">
                 <div class="quiz-pick-icon">⚔️</div>
@@ -258,6 +279,14 @@ GL.App = {
                 </div>
                 <span class="home-track-arrow">→</span>
               </a>
+              <a href="#/quiz/ultime" class="home-track home-track-ultimate">
+                <div class="home-track-icon">👑</div>
+                <div class="home-track-body">
+                  <div class="home-track-title">${t('feat.ultimate.title')}</div>
+                  <div class="home-track-desc">${t('feat.ultimate.desc')}</div>
+                </div>
+                <span class="home-track-arrow">→</span>
+              </a>
             </div>
           </div>
 
@@ -305,6 +334,14 @@ GL.App = {
                   <div class="feature-card-title">${t('feat.nightmare.title')}</div>
                   <div class="feature-card-desc">${t('feat.nightmare.desc')}</div>
                   <div class="feature-card-arrow">${t('feat.nightmare.link')}</div>
+                </div>
+              </a>
+              <a href="#/quiz/ultime" style="text-decoration:none;">
+                <div class="feature-card" style="border-color:rgba(245,158,11,0.4);background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(236,72,153,0.07),rgba(139,92,246,0.07));">
+                  <div class="feature-card-icon">👑</div>
+                  <div class="feature-card-title">${t('feat.ultimate.title')}</div>
+                  <div class="feature-card-desc">${t('feat.ultimate.desc')}</div>
+                  <div class="feature-card-arrow">${t('feat.ultimate.link')}</div>
                 </div>
               </a>
             </div>

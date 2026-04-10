@@ -1,6 +1,6 @@
 window.GL = window.GL || {};
 
-GL.QuizNightmare = {
+GL.QuizUltimate = {
   session: null,
   keyHandler: null,
 
@@ -12,102 +12,66 @@ GL.QuizNightmare = {
     this.cleanup();
     GL.WorldMap.cleanup();
     const t = this._t.bind(this);
+
     container.innerHTML = `
       <div class="page">
-        <div class="quiz-setup">
-          <div class="quiz-setup-title">${t('quiz.nightmare.title')}</div>
-          <p class="quiz-setup-subtitle">${t('quiz.nightmare.subtitle')}</p>
-          
-          <div class="setup-section">
-            <div class="setup-section-label">${t('setup.continent')}</div>
-            ${GL.UI.continentTabsHtml('all')}
+        <div class="quiz-setup ultimate-mode" style="max-width:480px;display:flex;flex-direction:column;align-items:center;">
+          <span class="ultimate-crown">👑</span>
+          <div class="ultimate-setup-title">${t('quiz.ultimate.title')}</div>
+          <p class="quiz-setup-subtitle" style="text-align:center;max-width:420px;margin:0.5rem auto 1.5rem;">${t('quiz.ultimate.subtitle')}</p>
+
+          <div class="ultimate-country-count-badge" id="ultimateCountBadge">
+            👑 <span id="ultimateCountNum">…</span> ${t('quiz.ultimate.countries')}
           </div>
 
-          <div class="setup-section">
-            <div class="setup-section-label">${t('setup.countries')}</div>
-            <div class="count-selector">
-              <button class="count-btn selected" data-count="5">5</button>
-              <button class="count-btn" data-count="10">10</button>
-              <button class="count-btn" data-count="15">15</button>
-              <button class="count-btn" data-count="20">20</button>
-              <button class="count-btn" data-count="all">Tous</button>
-            </div>
-          </div>
-
-          <div class="setup-section">
-            <div class="setup-section-label">${t('setup.difficulty')}</div>
-            <div class="difficulty-selector">
-              <button class="diff-btn" data-diff="easy">${t('setup.diff.easy')}<br><small>${t('setup.diff.easy.sub')}</small></button>
-              <button class="diff-btn selected" data-diff="normal">${t('setup.diff.normal')}<br><small>${t('setup.diff.normal.sub')}</small></button>
-              <button class="diff-btn" data-diff="hard">${t('setup.diff.hard')}<br><small>${t('setup.diff.hard.sub')}</small></button>
-            </div>
-          </div>
-
-          <div style="margin-top:2rem;">
-            <button class="btn btn-primary btn-lg" id="startNightmareBtn" style="width:100%;background:linear-gradient(135deg,#7c3aed,#dc2626);box-shadow:0 4px 20px rgba(124,58,237,0.4);">
-              ${t('setup.start.nightmare')}
+          <div style="margin-top:2rem;width:100%;">
+            <button class="btn btn-lg btn-ultimate" id="startUltimateBtn" style="width:100%;font-size:1.1rem;padding:1rem 1.5rem;">
+              ${t('quiz.ultimate.start')}
             </button>
           </div>
+          <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem;width:100%;">
+            🏆 ${t('quiz.ultimate.ranked.note')}
+          </p>
         </div>
       </div>
     `;
 
-    this._setupConfig = { continent: 'all', count: 5, difficulty: 'normal' };
     this._bindSetupEvents(container);
   },
 
+  _getPool() {
+    return GL.COUNTRIES.filter(c => c.numeric > 0 && GL.WorldMap.getVisibleCodes().has(c.numeric));
+  },
+
   _bindSetupEvents(container) {
-    const cfg = this._setupConfig;
-
-    container.querySelectorAll('.filter-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        container.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        cfg.continent = tab.dataset.c;
-      });
+    this._prepareMapData().then(() => {
+      const badge = container.querySelector('#ultimateCountNum');
+      if (badge) badge.textContent = this._getPool().length;
     });
 
-    container.querySelectorAll('.count-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        container.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        cfg.count = btn.dataset.count === 'all' ? Infinity : parseInt(btn.dataset.count);
-      });
-    });
-
-    container.querySelectorAll('.diff-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        container.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        cfg.difficulty = btn.dataset.diff;
-      });
-    });
-
-    container.querySelector('#startNightmareBtn').addEventListener('click', async () => {
-      const btn = container.querySelector('#startNightmareBtn');
+    container.querySelector('#startUltimateBtn').addEventListener('click', async () => {
+      const btn = container.querySelector('#startUltimateBtn');
       btn.disabled = true;
       btn.textContent = this._t('quiz.loading.map');
 
       await this._prepareMapData();
 
-      const pool = GL.QuizEngine.getPool(cfg.continent, cfg.difficulty)
-        .filter(c => c.numeric > 0 && GL.WorldMap.getVisibleCodes().has(c.numeric));
+      const pool = this._getPool();
 
       if (pool.length < 4) {
         GL.UI.toast(this._t('quiz.err.notenough'), 'error');
         btn.disabled = false;
-        btn.textContent = this._t('setup.start.nightmare');
+        btn.innerHTML = `✨ ${this._t('quiz.ultimate.start')}`;
         return;
       }
 
-      const selected = GL.QuizEngine.pickRandom(pool, Math.min(cfg.count, pool.length));
+      const selected = GL.QuizEngine.pickRandom(pool, pool.length);
       const questions = selected.map(country => ({ country, stepResults: [null, null, null] }));
 
       const peakBefore = GL.UI.getStats().rankedXP || 0;
       const discoveredBefore = GL.UI.computeDiscovered(GL.UI.getStats());
       this.session = {
         questions,
-        config: cfg,
         currentIndex: 0,
         score: 0,
         maxScore: questions.length * 3,
@@ -133,7 +97,7 @@ GL.QuizNightmare = {
       GL.WorldMap.visibleCodes = new Set(countries.features.map(f => +f.id));
       GL.WorldMap.buildNumericMap();
     } catch(e) {
-      console.error('Nightmare map load error:', e);
+      console.error('Ultimate map load error:', e);
     }
   },
 
@@ -166,11 +130,11 @@ GL.QuizNightmare = {
 
     if (isMapStep) {
       container.innerHTML = `
-        <div class="page page-fullwidth">
+        <div class="page page-fullwidth ultimate-mode">
           <div class="quiz-map-header">
             <div class="quiz-progress-wrap" style="flex:1;">
               <div class="quiz-progress-text">
-                <span>${t('result.countries')} ${session.currentIndex + 1} / ${session.questions.length}</span>
+                <span>👑 ${session.currentIndex + 1} / ${session.questions.length}</span>
                 <span>${session.score}/${session.maxScore} pts</span>
               </div>
               <div class="quiz-progress-bar">
@@ -193,7 +157,7 @@ GL.QuizNightmare = {
             `).join('')}
           </div>
 
-          <div class="quiz-map-question-bar" id="nightmareMapBar">
+          <div class="quiz-map-question-bar" id="ultimateMapBar">
             <div></div>
             <div class="quiz-map-prompt">
               <div>
@@ -204,19 +168,19 @@ GL.QuizNightmare = {
             <div id="mapFeedback" class="quiz-map-feedback empty">${t('nightmare.map.clickprompt')}</div>
           </div>
 
-          <div class="map-wrapper" id="nightmareMapWrapper" style="cursor:crosshair;">
+          <div class="map-wrapper" id="ultimateMapWrapper" style="cursor:crosshair;">
             <div class="map-loading"><span class="map-loading-spinner">🌍</span> ${t('quiz.map.loading')}</div>
           </div>
         </div>
       `;
     } else {
       container.innerHTML = `
-        <div class="page">
+        <div class="page ultimate-mode">
           <div class="quiz-container">
             <div class="quiz-header">
               <div class="quiz-progress-wrap">
                 <div class="quiz-progress-text">
-                  <span>${t('result.countries')} ${session.currentIndex + 1} / ${session.questions.length}</span>
+                  <span>👑 ${session.currentIndex + 1} / ${session.questions.length}</span>
                   <span>${session.score}/${session.maxScore} pts</span>
                 </div>
                 <div class="quiz-progress-bar">
@@ -252,7 +216,7 @@ GL.QuizNightmare = {
                 autocomplete="off" autocorrect="off" spellcheck="false">
               <div id="textFeedback" class="quiz-hint"></div>
               <div style="display:flex;gap:0.75rem;justify-content:center;">
-                <button class="btn btn-primary" id="submitTextBtn">${t('quiz.btn.validate')}</button>
+                <button class="btn btn-ultimate" id="submitTextBtn" style="min-width:120px;">${t('quiz.btn.validate')}</button>
                 <button class="btn btn-ghost btn-sm" id="hintBtn" title="${t('quiz.hint.warning')}">${t('quiz.btn.hint')}</button>
               </div>
             </div>
@@ -289,11 +253,9 @@ GL.QuizNightmare = {
     const submitBtn = container.querySelector('#submitTextBtn');
     const hintBtn = container.querySelector('#hintBtn');
     let answered = false;
-    let hintShown = false;
 
     if (input) setTimeout(() => input.focus(), 100);
 
-    // Accept both FR and EN answers
     const answer = step === 0 ? q.country.nameFr : q.country.capitalFr;
     const answerAlt = step === 0 ? q.country.name : q.country.capital;
 
@@ -317,29 +279,42 @@ GL.QuizNightmare = {
 
     if (submitBtn) submitBtn.addEventListener('click', handleSubmit);
     if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
-    let hintPending = false;
-    const showHint = () => {
-      const hintSrc = (GL.I18N && GL.I18N.lang === 'en') ? answerAlt : answer;
-      const hint = hintSrc.slice(0, Math.ceil(hintSrc.length / 3));
-      feedback.textContent = `${t('quiz.hint.prefix')}${hint}…"`;
-      hintShown = true;
-      hintPending = false;
-      hintBtn.textContent = t('quiz.btn.hint');
-      hintBtn.classList.remove('hint-btn--warn');
-      const rankedEl = container.querySelector('#rankedIndicator');
-      if (rankedEl) rankedEl.classList.add('ranked-indicator--voided');
-      if (input) input.focus();
-    };
+
+    const isEn = GL.I18N && GL.I18N.lang === 'en';
+    const nopeMessages = isEn ? [
+      '😂 Did you really think so?',
+      '👑 This is the Ultimate.',
+      '🫵 Figure it out.',
+      '💀 No hints. Ever.',
+      '🙅 Nope.',
+      '😤 We\'re serious here.',
+      '🌍 The world shows no mercy.',
+      '👁️ You know that you know.',
+      '🫠 Seriously?',
+      '🤡 A hint… lol.',
+    ] : [
+      '😂 T\'as cru quoi ?',
+      '👑 C\'est l\'Ultime ici.',
+      '🫵 Débrouille-toi.',
+      '💀 Pas d\'indice. Jamais.',
+      '🙅 Non.',
+      '😤 On est sérieux là.',
+      '🌍 Le monde ne pardonne pas.',
+      '👁️ Tu sais que tu sais.',
+      '🫠 Vraiment ?',
+      '🤡 Un indice… lol.',
+    ];
+    let nopeIndex = 0;
+
     if (hintBtn) hintBtn.addEventListener('click', () => {
-      if (answered || hintShown) return;
-      if (!hintPending) {
-        hintPending = true;
-        hintBtn.textContent = t('quiz.hint.confirm.btn');
-        hintBtn.classList.add('hint-btn--warn');
-        if (feedback) feedback.innerHTML = `<span class="quiz-hint-confirm-msg">${t('quiz.hint.confirm')}</span>`;
-      } else {
-        showHint();
-      }
+      if (answered) return;
+      const msg = nopeMessages[nopeIndex % nopeMessages.length];
+      nopeIndex++;
+      if (feedback) feedback.innerHTML = `<span style="color:var(--text-muted);font-style:italic;">${msg}</span>`;
+      hintBtn.classList.remove('btn-hint-nope');
+      void hintBtn.offsetWidth; // reflow pour relancer l'animation
+      hintBtn.classList.add('btn-hint-nope');
+      if (input) input.focus();
     });
 
     this.keyHandler = (e) => {
@@ -354,7 +329,7 @@ GL.QuizNightmare = {
   async _initMapStep(container, q) {
     if (this.keyHandler) document.removeEventListener('keydown', this.keyHandler);
 
-    const mapWrapper = container.querySelector('#nightmareMapWrapper');
+    const mapWrapper = container.querySelector('#ultimateMapWrapper');
     GL.WorldMap.cleanup();
 
     try {
@@ -364,13 +339,9 @@ GL.QuizNightmare = {
       GL.WorldMap.buildNumericMap();
       GL.WorldMap._quizMode = true;
       GL.WorldMap._onCountryClick = null;
-      GL.WorldMap.currentFilter = this.session.config.continent;
+      GL.WorldMap.currentFilter = 'all';
 
       GL.WorldMap.renderMap(mapWrapper);
-
-      if (this.session.config.continent !== 'all') {
-        GL.WorldMap.zoomToContinent(this.session.config.continent);
-      }
 
       let answered = false;
       GL.WorldMap._onCountryClick = (clickedCountry, numericId) => {
@@ -432,12 +403,48 @@ GL.QuizNightmare = {
       }
     }
 
+    // Mode Ultime : toute erreur met fin au quiz
+    if (!isCorrect) {
+      const goToResults = () => {
+        GL._onRouteLeave = null;
+        clearTimeout(failTimer);
+        GL.WorldMap.cleanup();
+        this._renderResults(container);
+      };
+      const failTimer = setTimeout(goToResults, step === 2 ? 2500 : 2000);
+      GL._onRouteLeave = () => { clearTimeout(failTimer); };
+
+      if (step !== 2) {
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'quiz-actions';
+        actionsDiv.innerHTML = `<button class="btn btn-ghost btn-sm" id="stepNextBtn">${t('quiz.ultimate.see_results')}</button>`;
+        const textForm = container.querySelector('#textForm');
+        if (textForm) textForm.after(actionsDiv);
+        actionsDiv.querySelector('#stepNextBtn').addEventListener('click', goToResults);
+        this.keyHandler = (e) => { if (e.key === 'Enter') goToResults(); };
+        document.addEventListener('keydown', this.keyHandler);
+      } else {
+        const mapBar = container.querySelector('#ultimateMapBar');
+        if (mapBar) {
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'quiz-actions';
+          actionsDiv.style.cssText = 'margin-top:0.75rem;';
+          actionsDiv.innerHTML = `<button class="btn btn-ghost btn-sm" id="stepNextBtn">${t('quiz.ultimate.see_results')}</button>`;
+          mapBar.after(actionsDiv);
+          actionsDiv.querySelector('#stepNextBtn').addEventListener('click', goToResults);
+          this.keyHandler = (e) => { if (e.key === 'Enter') goToResults(); };
+          document.addEventListener('keydown', this.keyHandler);
+        }
+      }
+      return;
+    }
+
     const allDone = q.stepResults.every(r => r !== null);
 
     if (!allDone) {
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'quiz-actions';
-      actionsDiv.innerHTML = `<button class="btn btn-primary" id="stepNextBtn">${t('result.nextstep')}</button>`;
+      actionsDiv.innerHTML = `<button class="btn btn-ultimate" id="stepNextBtn" style="min-width:140px;">${t('result.nextstep')}</button>`;
 
       const textForm = container.querySelector('#textForm');
       if (textForm) textForm.after(actionsDiv);
@@ -458,13 +465,13 @@ GL.QuizNightmare = {
       document.addEventListener('keydown', this.keyHandler);
     } else {
       if (step === 2) {
-        const mapBar = container.querySelector('#nightmareMapBar');
+        const mapBar = container.querySelector('#ultimateMapBar');
         if (mapBar) {
           const actionsDiv = document.createElement('div');
           actionsDiv.className = 'quiz-actions';
           actionsDiv.style.cssText = 'margin-top:0.75rem;';
           const isLast = session.currentIndex + 1 >= session.questions.length;
-          actionsDiv.innerHTML = `<button class="btn btn-primary" id="stepNextBtn">${isLast ? t('nightmare.summary.final') : t('nightmare.summary.btn')}</button>`;
+          actionsDiv.innerHTML = `<button class="btn btn-ultimate" id="stepNextBtn" style="min-width:160px;">${isLast ? t('nightmare.summary.final') : t('nightmare.summary.btn')}</button>`;
           mapBar.after(actionsDiv);
 
           let advanced = false;
@@ -495,16 +502,17 @@ GL.QuizNightmare = {
     const correct = q.stepResults.filter(Boolean).length;
     const allCorrect = correct === 3;
     const stepLabels = [t('nightmare.step.name'), t('nightmare.step.capital'), t('nightmare.step.map.short')];
-
     const isLast = session.currentIndex + 1 >= session.questions.length;
 
+    const summaryEmoji = correct === 3 ? '🌟' : correct === 2 ? '👍' : correct === 1 ? '😓' : '💀';
+
     container.innerHTML = `
-      <div class="page">
+      <div class="page ultimate-mode">
         <div class="quiz-container">
           <div class="quiz-header">
             <div class="quiz-progress-wrap">
               <div class="quiz-progress-text">
-                <span>${t('result.countries')} ${session.currentIndex + 1} / ${session.questions.length}</span>
+                <span>👑 ${session.currentIndex + 1} / ${session.questions.length}</span>
                 <span>${session.score}/${session.maxScore} pts</span>
               </div>
               <div class="quiz-progress-bar">
@@ -516,7 +524,7 @@ GL.QuizNightmare = {
             </div>
           </div>
 
-          <div class="nightmare-country-summary">
+          <div class="ultimate-country-summary">
             <span class="fi fi-${q.country.code}" style="width:80px;height:53px;background-size:cover;border-radius:6px;box-shadow:var(--shadow-md);display:inline-block;"></span>
             <div class="nightmare-summary-name">${this._n(q.country)}</div>
             <div class="nightmare-summary-capital">🏛️ ${this._cap(q.country)}</div>
@@ -530,13 +538,13 @@ GL.QuizNightmare = {
             </div>
 
             <div class="nightmare-summary-score">
-              ${correct === 3 ? t('nightmare.summary.perfect') : correct === 2 ? t('nightmare.summary.close') : correct === 1 ? t('nightmare.summary.meh') : t('nightmare.summary.fail')}
-              &nbsp;${correct}/3 points
+              ${summaryEmoji} ${correct === 3 ? t('nightmare.summary.perfect') : correct === 2 ? t('nightmare.summary.close') : correct === 1 ? t('nightmare.summary.meh') : t('nightmare.summary.fail')}
+              &nbsp;${correct}/3
             </div>
           </div>
 
           <div class="quiz-actions">
-            <button class="btn btn-primary" id="nextCountryBtn">
+            <button class="btn btn-ultimate" id="nextCountryBtn" style="min-width:160px;">
               ${isLast ? t('nightmare.results.btn') : t('nightmare.next')}
             </button>
           </div>
@@ -563,6 +571,13 @@ GL.QuizNightmare = {
 
   _renderResults(container) {
     const { session } = this;
+
+    // Score parfait → écran de victoire
+    if (session.score === session.maxScore) {
+      this._renderVictory(container);
+      return;
+    }
+
     const t = this._t.bind(this);
     const pct = Math.round(session.score / session.maxScore * 100);
     const stars = GL.UI.starsForScore(pct);
@@ -570,9 +585,14 @@ GL.QuizNightmare = {
     GL.WorldMap.cleanup();
     GL.UI.updateMaxStreak(session.maxStreak);
     GL.UI.saveCurrentStreak(session.streak);
-    GL.UI.recordQuizResult('nightmare', session.score, session.maxScore, session.config.continent);
+    GL.UI.recordQuizResult('ultimate', session.score, session.maxScore, 'all');
 
-    const resultTitle = pct >= 80 ? t('nightmare.great') : pct >= 60 ? t('nightmare.ok') : pct >= 40 ? t('nightmare.meh') : t('nightmare.fail');
+    const resultTitle = pct >= 90 ? t('quiz.ultimate.result.legend') :
+                        pct >= 75 ? t('quiz.ultimate.result.great') :
+                        pct >= 50 ? t('quiz.ultimate.result.ok') :
+                        pct >= 30 ? t('quiz.ultimate.result.meh') :
+                                    t('quiz.ultimate.result.fail');
+
     const stepLabels = [t('nightmare.step.name.short'), t('nightmare.step.capital.short'), t('nightmare.step.map.short')];
 
     const peakBefore = session.peakBefore || 0;
@@ -591,13 +611,19 @@ GL.QuizNightmare = {
     const rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter, peakBefore, peakAfter };
     const rankHtml = GL.QuizFlags._rankCardHtml(rankData, t);
 
+    const duration = Math.round((Date.now() - session.startTime) / 60000);
+
     container.innerHTML = `
-      <div class="page">
+      <div class="page ultimate-mode">
         <div class="results-container">
-          <div class="results-stars">${stars}</div>
-          <div class="results-title">${resultTitle}</div>
-          <div class="results-subtitle">${t('quiz.ranked')} · ${t('quiz.nightmare.title')}</div>
-          <div class="results-score-big">${pct}%</div>
+
+          <div class="ultimate-results-header">
+            <div class="ultimate-fireworks">✨ 👑 ✨</div>
+            <div class="results-stars">${stars}</div>
+            <div class="ultimate-results-score">${pct}%</div>
+            <div class="results-title">${resultTitle}</div>
+            <div class="results-subtitle">${t('quiz.ranked')} · ${t('quiz.ultimate.title')}</div>
+          </div>
 
           <div class="results-stats-row">
             <div class="results-stat">
@@ -612,42 +638,66 @@ GL.QuizNightmare = {
               <div class="results-stat-num">${session.maxStreak}</div>
               <div class="results-stat-label">${t('result.streak')}</div>
             </div>
+            <div class="results-stat">
+              <div class="results-stat-num">${duration} min</div>
+              <div class="results-stat-label">${t('quiz.ultimate.result.time')}</div>
+            </div>
           </div>
 
           ${rankHtml}
 
           <div class="wrong-answers">
-            <div class="wrong-answers-title">${t('nightmare.results')}</div>
-            ${session.questions.map(q => {
-              const correct = q.stepResults.filter(Boolean).length;
-              const borderColor = correct === 3 ? '#22c55e' : correct === 0 ? '#ef4444' : '#f59e0b';
-              const stepAnswers = [q.country.nameFr, q.country.capitalFr, null];
-              const chips = q.stepResults.map((r, i) => {
-                const userIn = q.stepUserInputs && q.stepUserInputs[i];
-                const correctAns = stepAnswers[i];
-                const bg = r ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)';
-                const col = r ? '#22c55e' : '#ef4444';
-                const icon = r ? '✓' : '✕';
-                const detail = !r && correctAns
-                  ? (userIn ? ` · <s style="opacity:0.7">${userIn}</s> → <b style="color:#22c55e">${correctAns}</b>` : ` · <b style="color:#ef4444">${correctAns}</b>`)
-                  : '';
-                return `<span style="font-size:0.72rem;padding:0.18rem 0.5rem;border-radius:4px;font-weight:600;background:${bg};color:${col};white-space:nowrap;">${icon} ${stepLabels[i]}${detail}</span>`;
-              }).join('');
-              return `
-                <div class="wrong-answer-item" style="flex-direction:column;align-items:stretch;gap:0.3rem;border:1px solid ${borderColor};border-radius:var(--radius-md);padding:0.45rem 0.65rem;margin-bottom:0.4rem;">
-                  <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span class="fi fi-${q.country.code}" style="width:30px;height:20px;background-size:cover;border-radius:2px;display:inline-block;flex-shrink:0;"></span>
-                    <span style="flex:1;font-size:0.85rem;font-weight:600;">${this._n(q.country)}</span>
-                    <span style="font-size:0.75rem;font-weight:700;color:${borderColor};">${correct}/3</span>
-                  </div>
-                  <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">${chips}</div>
-                </div>
-              `;
-            }).join('')}
+            <div class="wrong-answers-title">${t('quiz.ultimate.results.label')}</div>
+            ${(() => {
+              // Pays joués : ceux qui ont au moins une étape complétée
+              const played = session.questions.filter(q => q.stepResults.some(r => r !== null));
+              // Séparer : parfaitement réussis (3/3) et celui raté
+              const perfect = played.filter(q => q.stepResults.filter(Boolean).length === q.stepResults.filter(r => r !== null).length && q.stepResults.every(r => r === true));
+              const failed  = played.filter(q => q.stepResults.some(r => r === false));
+
+              const countryRow = (q, isFailed) => {
+                const done = q.stepResults.filter(r => r !== null);
+                const correct = q.stepResults.filter(r => r === true).length;
+                const borderColor = isFailed ? '#ef4444' : '#22c55e';
+                const stepAnswers = [q.country.nameFr, q.country.capitalFr, null];
+                const chips = q.stepResults.map((r, i) => {
+                  if (r === null) return '';
+                  const userIn = q.stepUserInputs && q.stepUserInputs[i];
+                  const correctAns = stepAnswers[i];
+                  const bg = r ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)';
+                  const col = r ? '#22c55e' : '#ef4444';
+                  const icon = r ? '✓' : '✕';
+                  const detail = !r && correctAns
+                    ? (userIn ? ` · <s style="opacity:0.7">${userIn}</s> → <b style="color:#22c55e">${correctAns}</b>` : ` · <b style="color:#ef4444">${correctAns}</b>`)
+                    : '';
+                  return `<span style="font-size:0.72rem;padding:0.18rem 0.5rem;border-radius:4px;font-weight:600;background:${bg};color:${col};white-space:nowrap;">${icon} ${stepLabels[i]}${detail}</span>`;
+                }).join('');
+                return `
+                  <div class="wrong-answer-item" style="flex-direction:column;align-items:stretch;gap:0.3rem;border:1px solid ${borderColor};border-radius:var(--radius-md);padding:0.45rem 0.65rem;margin-bottom:0.4rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <span class="fi fi-${q.country.code}" style="width:30px;height:20px;background-size:cover;border-radius:2px;display:inline-block;flex-shrink:0;"></span>
+                      <span style="flex:1;font-size:0.85rem;font-weight:600;">${this._n(q.country)}</span>
+                      <span style="font-size:0.75rem;font-weight:700;color:${borderColor};">${correct}/${done.length}</span>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">${chips}</div>
+                  </div>`;
+              };
+
+              let html = '';
+              if (failed.length) {
+                html += `<div style="font-size:0.75rem;font-weight:700;color:#ef4444;margin:0.5rem 0 0.25rem;">💀 ${t('quiz.ultimate.results.fail')}</div>`;
+                html += failed.map(q => countryRow(q, true)).join('');
+              }
+              if (perfect.length) {
+                html += `<div style="font-size:0.75rem;font-weight:700;color:#22c55e;margin:0.75rem 0 0.25rem;">✓ ${t('quiz.ultimate.results.ok')} (${perfect.length})</div>`;
+                html += perfect.map(q => countryRow(q, false)).join('');
+              }
+              return html || `<p style="color:var(--text-muted);font-size:0.85rem;">—</p>`;
+            })()}
           </div>
 
           <div class="results-buttons">
-            <button class="btn btn-primary" id="retryNightmareBtn">${t('result.retry')}</button>
+            <button class="btn btn-ultimate btn-lg" id="retryUltimateBtn" style="min-width:160px;">${t('result.retry')}</button>
           </div>
         </div>
       </div>
@@ -659,8 +709,88 @@ GL.QuizNightmare = {
       setTimeout(() => GL.RankBadges._triggerLevelUp(rank), 2000);
     }
 
-    container.querySelector('#retryNightmareBtn').addEventListener('click', () => {
-      GL.QuizNightmare.render(container);
+    container.querySelector('#retryUltimateBtn').addEventListener('click', () => {
+      GL.QuizUltimate.render(container);
+    });
+
+    this.cleanup();
+  },
+
+  _renderVictory(container) {
+    const { session } = this;
+    const t = this._t.bind(this);
+
+    GL.WorldMap.cleanup();
+    if (!session._preview) {
+      GL.UI.updateMaxStreak(session.maxStreak);
+      GL.UI.saveCurrentStreak(session.streak || 0);
+      GL.UI.recordQuizResult('ultimate', session.score, session.maxScore, 'all');
+    }
+
+    const peakBefore = session.peakBefore || 0;
+    const discoveredBefore = session.discoveredBefore || 0;
+    const statsAfter = GL.UI.getStats();
+    const peakAfter = statsAfter.rankedXP || 0;
+    const discoveredAfter = GL.UI.computeDiscovered(statsAfter);
+    const gained = peakAfter - peakBefore;
+    const { tier, tierIndex, next } = GL.UI.getRankInfo(peakAfter, discoveredAfter);
+    const prevInfo = GL.UI.getRankInfo(peakBefore, discoveredBefore);
+    const rankUp = tierIndex > prevInfo.tierIndex;
+    const tierEnd = next ? next.min - 1 : GL.UI.RANK_XP_MAX;
+    const tierRange = tierEnd - tier.min;
+    const beforePct = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakBefore - tier.min) / tierRange * 100)) : 100;
+    const afterPct  = tierRange > 0 ? Math.min(100, Math.round(Math.max(0, peakAfter  - tier.min) / tierRange * 100)) : 100;
+    const rankData = { tier, next, gained, rankUp, beforePct, afterPct, discoveredBefore, discoveredAfter, peakBefore, peakAfter };
+    const rankHtml = GL.QuizFlags._rankCardHtml(rankData, t);
+
+    const duration = Math.round((Date.now() - session.startTime) / 60000);
+    const totalCountries = session.questions.length || session.score / 3;
+
+    container.innerHTML = `
+      <div class="ultimate-victory-page">
+        <div class="ult-victory-crown">👑</div>
+
+        <div class="ult-victory-title">${t('quiz.ultimate.victory.title')}</div>
+        <div class="ult-victory-subtitle">${t('quiz.ultimate.victory.subtitle')}</div>
+
+        <div class="ult-victory-score">${session.score}</div>
+        <div class="ult-victory-score-label">${t('result.points')}</div>
+
+        <div class="ult-victory-stats">
+          <div class="ult-victory-stat">
+            <div class="ult-victory-stat-num">${totalCountries}</div>
+            <div class="ult-victory-stat-label">${t('result.countries')}</div>
+          </div>
+          <div class="ult-victory-stat">
+            <div class="ult-victory-stat-num">${session.maxStreak}</div>
+            <div class="ult-victory-stat-label">${t('result.streak')}</div>
+          </div>
+          <div class="ult-victory-stat">
+            <div class="ult-victory-stat-num">${duration} min</div>
+            <div class="ult-victory-stat-label">${t('quiz.ultimate.result.time')}</div>
+          </div>
+        </div>
+
+        <div class="ult-victory-rank-wrap">
+          ${rankHtml}
+        </div>
+
+        <div class="ult-victory-btn-wrap">
+          <button class="btn btn-ultimate btn-lg" id="retryUltimateBtn" style="min-width:200px;font-size:1rem;">
+            ${t('result.retry')}
+          </button>
+        </div>
+      </div>
+    `;
+
+    GL.UI.animateRankBar(container, rankData);
+    if (rankData.rankUp && GL.RankBadges) {
+      const rank = GL.RankBadges.RANKS.find(r => r.key === rankData.tier.key) || GL.RankBadges.RANKS[0];
+      setTimeout(() => GL.RankBadges._triggerLevelUp(rank), 2000);
+    }
+
+    container.querySelector('#retryUltimateBtn').addEventListener('click', () => {
+      GL.QuizUltimate.render(container);
     });
 
     this.cleanup();
