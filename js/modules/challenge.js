@@ -208,14 +208,13 @@ GL.Challenge = {
           <div class="setup-section">
             <div class="setup-section-label">Pénalité par erreur / passage</div>
             <div class="count-selector">
-              <button class="penalty-btn" data-penalty="3">3s</button>
-              <button class="penalty-btn" data-penalty="5">5s</button>
-              <button class="penalty-btn selected" data-penalty="7">7s</button>
-              <button class="penalty-btn" data-penalty="10">10s</button>
-              <button class="penalty-btn" data-penalty="15">15s</button>
-              <button class="penalty-btn" data-penalty="30">30s</button>
-              <button class="penalty-btn" data-penalty="60">60s</button>
-              <button class="penalty-btn" data-penalty="100">100s</button>
+              <button class="count-btn penalty-btn" data-penalty="3">3s</button>
+              <button class="count-btn penalty-btn" data-penalty="5">5s</button>
+              <button class="count-btn penalty-btn selected" data-penalty="7">7s</button>
+              <button class="count-btn penalty-btn" data-penalty="10">10s</button>
+              <button class="count-btn penalty-btn" data-penalty="15">15s</button>
+              <button class="count-btn penalty-btn" data-penalty="30">30s</button>
+
             </div>
           </div>
 
@@ -952,7 +951,7 @@ GL.Challenge = {
         } else {
           if (feedback) { feedback.textContent = `✗ ${this._n(q.country)}`; feedback.className = 'quiz-map-feedback wrong'; }
           GL.WorldMap.highlightCountry(numericId, 'wrong');
-          highlightTimeout = setTimeout(() => GL.WorldMap.highlightCountry(q.country.numeric, 'correct'), 600);
+          GL.WorldMap.highlightCountry(q.country.numeric, 'correct');
         }
         handleMapAnswer(isCorrect);
       };
