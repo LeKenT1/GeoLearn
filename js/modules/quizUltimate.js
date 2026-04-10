@@ -13,6 +13,13 @@ GL.QuizUltimate = {
     GL.WorldMap.cleanup();
     const t = this._t.bind(this);
 
+    const best = GL.UI.getStats().ultimateBest || 0;
+    const bestHtml = best > 0
+      ? `<div style="margin-top:1rem;padding:0.55rem 1.2rem;border-radius:var(--radius-md);background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.3);font-size:0.85rem;color:var(--text-muted);text-align:center;">
+           🏅 ${t('quiz.ultimate.best')} <strong style="color:#ec4899;margin-left:0.3rem;">${best} pts</strong>
+         </div>`
+      : '';
+
     container.innerHTML = `
       <div class="page">
         <div class="quiz-setup ultimate-mode" style="max-width:480px;display:flex;flex-direction:column;align-items:center;">
@@ -23,6 +30,8 @@ GL.QuizUltimate = {
           <div class="ultimate-country-count-badge" id="ultimateCountBadge">
             👑 <span id="ultimateCountNum">…</span> ${t('quiz.ultimate.countries')}
           </div>
+
+          ${bestHtml}
 
           <div style="margin-top:2rem;width:100%;">
             <button class="btn btn-lg btn-ultimate" id="startUltimateBtn" style="width:100%;font-size:1.1rem;padding:1rem 1.5rem;">
