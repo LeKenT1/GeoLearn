@@ -296,11 +296,12 @@ GL.QuizNightmare = {
     // Accept both FR and EN answers
     const answer = step === 0 ? q.country.nameFr : q.country.capitalFr;
     const answerAlt = step === 0 ? q.country.name : q.country.capital;
+    const aliases = step === 0 ? (q.country.aliases || []) : (q.country.capitalAliases || []);
 
     const handleSubmit = () => {
       if (answered) return;
       const val = input ? input.value : '';
-      const isCorrect = GL.UI.checkTextAnswer(val, answer, answerAlt);
+      const isCorrect = GL.UI.checkTextAnswer(val, answer, answerAlt, aliases);
       answered = true;
 
       if (input) {

@@ -758,6 +758,9 @@ GL.WorldMap = {
       .on('end', () => {
         this.svg.selectAll('path.country')
           .classed('selected', false)
+          .classed('target', false)
+          .classed('correct', false)
+          .classed('wrong', false)
           .style('fill', null)
           .style('stroke', null);
         this.svg.selectAll('g.country-marker .marker-dot').style('fill', null);
