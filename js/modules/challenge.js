@@ -268,9 +268,9 @@ GL.Challenge = {
         cfg.continent = tab.dataset.c;
       });
     });
-    container.querySelectorAll('.count-btn').forEach(btn => {
+    container.querySelectorAll('.count-btn:not(.penalty-btn)').forEach(btn => {
       btn.addEventListener('click', () => {
-        container.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
+        container.querySelectorAll('.count-btn:not(.penalty-btn)').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         cfg.count = btn.dataset.count === 'all' ? Infinity : parseInt(btn.dataset.count);
       });
@@ -883,19 +883,21 @@ GL.Challenge = {
       <div class="page" style="max-width:100%;padding:1rem 1.5rem;">
         <div style="max-width:var(--max-width);margin:0 auto;">
           ${this._quizHeader(state)}
-          <div class="quiz-map-question-bar">
-            <div class="quiz-map-prompt">
-              <div>
-                <div class="quiz-map-prompt-label">${q.label}</div>
-                ${q.showAs === 'flag'
-                  ? `<span class="fi fi-${q.country.code}" style="width:72px;height:48px;background-size:cover;border-radius:4px;display:inline-block;box-shadow:var(--shadow-sm);"></span>`
-                  : `<div class="quiz-map-prompt-value">${this._n(q.country)}</div>`}
+          <div style="position:sticky;top:var(--nav-height);z-index:10;background:var(--bg);padding-bottom:0.25rem;">
+            <div class="quiz-map-question-bar">
+              <div class="quiz-map-prompt">
+                <div>
+                  <div class="quiz-map-prompt-label">${q.label}</div>
+                  ${q.showAs === 'flag'
+                    ? `<span class="fi fi-${q.country.code}" style="width:72px;height:48px;background-size:cover;border-radius:4px;display:inline-block;box-shadow:var(--shadow-sm);"></span>`
+                    : `<div class="quiz-map-prompt-value">${this._n(q.country)}</div>`}
+                </div>
               </div>
+              <div id="mapFeedback" class="quiz-map-feedback empty">${this._t('quiz.map.click')}</div>
             </div>
-            <div id="mapFeedback" class="quiz-map-feedback empty">${this._t('quiz.map.click')}</div>
-          </div>
-          <div style="text-align:center;margin:0.5rem 0;">
-            <button class="btn btn-ghost btn-sm" id="skipMapBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
+            <div style="text-align:center;margin:0.25rem 0;">
+              <button class="btn btn-ghost btn-sm" id="skipMapBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
+            </div>
           </div>
           <div class="map-wrapper" id="quizMapWrapper" style="margin-top:0.5rem;cursor:crosshair;"></div>
         </div>
@@ -937,7 +939,7 @@ GL.Challenge = {
       GL.WorldMap._onCountryClick = null;
       GL.WorldMap.currentFilter   = state.challenge.config.continent;
       GL.WorldMap.renderMap(container.querySelector('#quizMapWrapper'));
-      container.querySelector('#quizMapWrapper')?.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
       if (state.challenge.config.continent !== 'all') {
         GL.WorldMap.zoomToContinent(state.challenge.config.continent);
       }
@@ -1233,7 +1235,7 @@ GL.Challenge = {
       : [];
 
     return (data || [])
-      .filter(r => r.user_id !== myId)
+      .filter(r => myId && r.user_id !== myId)
       .map(r => {
         const xp    = parseInt((r.stats || {}).rankedXP, 10) || 0;
         const prof  = r.profile || {};
