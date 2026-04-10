@@ -87,6 +87,7 @@ GL.Challenge = {
           <span class="challenge-config-tag">${cfg.count || '?'} pays</span>
           <span class="challenge-config-tag">${contLabel}</span>
           <span class="challenge-config-tag">${diffLabel}</span>
+          <span class="challenge-config-tag">⚠️ ${cfg.penalty ?? 7}s pénalité</span>
         </div>
         <div class="ch-modal-countdown">
           <span id="challengeCountdown">60</span>s pour répondre
@@ -205,6 +206,20 @@ GL.Challenge = {
           </div>
 
           <div class="setup-section">
+            <div class="setup-section-label">Pénalité par erreur / passage</div>
+            <div class="count-selector">
+              <button class="penalty-btn" data-penalty="3">3s</button>
+              <button class="penalty-btn" data-penalty="5">5s</button>
+              <button class="penalty-btn selected" data-penalty="7">7s</button>
+              <button class="penalty-btn" data-penalty="10">10s</button>
+              <button class="penalty-btn" data-penalty="15">15s</button>
+              <button class="penalty-btn" data-penalty="30">30s</button>
+              <button class="penalty-btn" data-penalty="60">60s</button>
+              <button class="penalty-btn" data-penalty="100">100s</button>
+            </div>
+          </div>
+
+          <div class="setup-section">
             <div class="setup-section-label">Choisir un adversaire</div>
             <input type="text" class="challenge-search-input" id="playerSearchInput" placeholder="Rechercher un joueur...">
             <div class="challenge-player-list" id="playerList">
@@ -220,7 +235,7 @@ GL.Challenge = {
         </div>
       </div>`;
 
-    const cfg = { mode: 'flags', type: 'choice', continent: 'all', count: 10, difficulty: 'normal' };
+    const cfg = { mode: 'flags', type: 'choice', continent: 'all', count: 10, difficulty: 'normal', penalty: 7 };
     let selectedPlayerId = null;
     let allPlayers = [];
 
@@ -266,6 +281,13 @@ GL.Challenge = {
         container.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         cfg.difficulty = btn.dataset.diff;
+      });
+    });
+    container.querySelectorAll('.penalty-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        container.querySelectorAll('.penalty-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        cfg.penalty = parseInt(btn.dataset.penalty);
       });
     });
 
@@ -582,6 +604,7 @@ GL.Challenge = {
       questions,
       currentIndex: 0,
       penalties: 0,
+      penaltyMs: (challenge.config.penalty ?? 7) * 1000,
       answers: [],
       startTime: Date.now(),
       questionStartTime: Date.now(),
@@ -612,7 +635,7 @@ GL.Challenge = {
     const el = container.querySelector('#challengeTimer');
     if (!el || !state) return;
     const elapsed  = Date.now() - state.startTime;
-    const penalty  = state.penalties * this.PENALTY_MS;
+    const penalty  = state.penalties * state.penaltyMs;
     el.textContent = this._formatTime(elapsed + penalty);
   },
 
@@ -623,8 +646,9 @@ GL.Challenge = {
     return `${min}:${sec.toString().padStart(2, '0')}`;
   },
 
-  _penaltyText(penalties) {
-    return penalties > 0 ? `⚠️ +${penalties * 7}s pénalités` : '';
+  _penaltyText(penalties, penaltyMs) {
+    const s = (penaltyMs ?? this.PENALTY_MS) / 1000;
+    return penalties > 0 ? `⚠️ +${penalties * s}s pénalités` : '';
   },
 
   _quizHeader(state) {
@@ -632,7 +656,7 @@ GL.Challenge = {
     return `
       <div class="ch-timer-bar">
         <div class="ch-timer-elapsed" id="challengeTimer">0:00</div>
-        <div class="ch-timer-penalties" id="penaltiesDisplay">${this._penaltyText(state.penalties)}</div>
+        <div class="ch-timer-penalties" id="penaltiesDisplay">${this._penaltyText(state.penalties, state.penaltyMs)}</div>
       </div>
       <div class="quiz-header">
         <div class="quiz-progress-wrap">
@@ -699,7 +723,7 @@ GL.Challenge = {
           <div class="quiz-question-card" id="questionCard">${qHtml}</div>
           ${optsHtml}
           <div style="text-align:center;margin-top:1rem;">
-            <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+7s</span></button>
+            <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
           </div>
           <div class="keyboard-hints">
             <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span>
@@ -727,7 +751,7 @@ GL.Challenge = {
       if (!isCorrect) {
         state.penalties++;
         const pd = container.querySelector('#penaltiesDisplay');
-        if (pd) pd.textContent = this._penaltyText(state.penalties);
+        if (pd) pd.textContent = this._penaltyText(state.penalties, state.penaltyMs);
       }
 
       state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped, answerCode: code });
@@ -794,7 +818,7 @@ GL.Challenge = {
             <div id="textFeedback" class="quiz-hint"></div>
             <div style="display:flex;gap:0.75rem;justify-content:center;">
               <button class="btn btn-primary" id="submitTextBtn" style="min-width:120px;">${this._t('quiz.btn.validate')}</button>
-              <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+7s</span></button>
+              <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
             </div>
           </div>
           <div class="keyboard-hints">
@@ -829,7 +853,7 @@ GL.Challenge = {
       if (!isCorrect) {
         state.penalties++;
         const pd = container.querySelector('#penaltiesDisplay');
-        if (pd) pd.textContent = this._penaltyText(state.penalties);
+        if (pd) pd.textContent = this._penaltyText(state.penalties, state.penaltyMs);
       }
 
       state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped, userInput: val });
@@ -872,7 +896,7 @@ GL.Challenge = {
             <div id="mapFeedback" class="quiz-map-feedback empty">${this._t('quiz.map.click')}</div>
           </div>
           <div style="text-align:center;margin:0.5rem 0;">
-            <button class="btn btn-ghost btn-sm" id="skipMapBtn">Passer <span class="ch-skip-penalty">+7s</span></button>
+            <button class="btn btn-ghost btn-sm" id="skipMapBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
           </div>
           <div class="map-wrapper" id="quizMapWrapper" style="margin-top:0.5rem;cursor:crosshair;"></div>
         </div>
@@ -882,6 +906,7 @@ GL.Challenge = {
     state.timerInterval = setInterval(() => this._tickTimer(container), 500);
 
     let answered = false;
+    let highlightTimeout = null;
 
     const handleMapAnswer = (isCorrect, skipped = false) => {
       if (answered) return;
@@ -891,10 +916,14 @@ GL.Challenge = {
       if (!isCorrect) {
         state.penalties++;
         const pd = container.querySelector('#penaltiesDisplay');
-        if (pd) pd.textContent = this._penaltyText(state.penalties);
+        if (pd) pd.textContent = this._penaltyText(state.penalties, state.penaltyMs);
       }
       state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped });
-      setTimeout(() => { state.currentIndex++; this._renderNextQuestion(container); }, 500);
+      setTimeout(() => {
+        if (highlightTimeout) { clearTimeout(highlightTimeout); highlightTimeout = null; }
+        state.currentIndex++;
+        this._renderNextQuestion(container);
+      }, 500);
     };
 
     container.querySelector('#skipMapBtn')?.addEventListener('click', () => handleMapAnswer(false, true));
@@ -909,6 +938,7 @@ GL.Challenge = {
       GL.WorldMap._onCountryClick = null;
       GL.WorldMap.currentFilter   = state.challenge.config.continent;
       GL.WorldMap.renderMap(container.querySelector('#quizMapWrapper'));
+      container.querySelector('#quizMapWrapper')?.scrollIntoView({ behavior: 'instant', block: 'nearest' });
       if (state.challenge.config.continent !== 'all') {
         GL.WorldMap.zoomToContinent(state.challenge.config.continent);
       }
@@ -922,7 +952,7 @@ GL.Challenge = {
         } else {
           if (feedback) { feedback.textContent = `✗ ${this._n(q.country)}`; feedback.className = 'quiz-map-feedback wrong'; }
           GL.WorldMap.highlightCountry(numericId, 'wrong');
-          setTimeout(() => GL.WorldMap.highlightCountry(q.country.numeric, 'correct'), 600);
+          highlightTimeout = setTimeout(() => GL.WorldMap.highlightCountry(q.country.numeric, 'correct'), 600);
         }
         handleMapAnswer(isCorrect);
       };
@@ -940,7 +970,7 @@ GL.Challenge = {
     GL.WorldMap.cleanup();
 
     const elapsed    = Date.now() - state.startTime;
-    const penaltyMs  = state.penalties * this.PENALTY_MS;
+    const penaltyMs  = state.penalties * state.penaltyMs;
     const totalTime  = elapsed + penaltyMs;
 
     container.innerHTML = `
