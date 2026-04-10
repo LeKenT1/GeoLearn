@@ -161,6 +161,9 @@ GL.UI = {
     const stats = this.getStats();
     stats.quizHistory.unshift({ type, score, total, continent, date: Date.now() });
     if (stats.quizHistory.length > 20) stats.quizHistory = stats.quizHistory.slice(0, 20);
+    if (type === 'ultimate') {
+      stats.ultimateBest = Math.max(stats.ultimateBest || 0, score || 0);
+    }
     this.saveStats(stats);
   },
 

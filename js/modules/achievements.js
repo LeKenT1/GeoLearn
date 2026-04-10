@@ -75,10 +75,8 @@ GL.Achievements = {
 
     const challengeWins = stats.challengeWins || 0;
 
-    // Total pts cumulés en Quiz Ultime
-    const ultimatePts = (stats.quizHistory || [])
-      .filter(h => h.type === 'ultimate')
-      .reduce((sum, h) => sum + (h.score || 0), 0);
+    // Meilleur score en une seule partie de Quiz Ultime
+    const ultimatePts = stats.ultimateBest || 0;
 
     return {
       stats,
@@ -276,7 +274,7 @@ GL.Achievements = {
       id: 'ultimatequiz', label: 'Quiz Ultime', labelEn: 'Ultimate Quiz', emoji: '👑', colorVar: null,
       colorHex: '#ec4899',
       current: cs => cs.ultimatePts,
-      max: 591, unit: ' pts cumulés', unitEn: ' cumulative pts',
+      max: 591, unit: ' pts', unitEn: ' pts',
       achievements: [
         { id: 'ultimate_50',  title: 'Prétendant au Trône', titleEn: 'Throne Pretender',  tier: 1, threshold: 50  },
         { id: 'ultimate_200', title: 'Conquérant de l\'Atlas', titleEn: 'Atlas Conqueror', tier: 2, threshold: 200 },
