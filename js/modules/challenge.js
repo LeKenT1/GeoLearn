@@ -1253,6 +1253,7 @@ GL.Challenge = {
   },
 
   async _createChallenge(challengedId, config, questions) {
+    await GL.Auth.ensureValidSession();
     const client = GL.Auth._client;
     const myId   = GL.Auth._user.id;
     const { data, error } = await client
@@ -1264,6 +1265,7 @@ GL.Challenge = {
   },
 
   async _acceptChallenge(id) {
+    await GL.Auth.ensureValidSession();
     const { error } = await GL.Auth._client.from('challenges').update({ status: 'active' }).eq('id', id);
     if (error) console.error('[Challenge] accept:', error.message);
   },
@@ -1302,13 +1304,26 @@ GL.Challenge = {
   },
 
   async _submitResult(challengeId, finishTime, penalties, answers) {
-    const { error } = await GL.Auth._client.from('challenge_results').upsert({
+    // Refresh le token si besoin (peut expirer pendant un long défi)
+    await GL.Auth.ensureValidSession();
+
+    const doUpsert = () => GL.Auth._client.from('challenge_results').upsert({
       challenge_id: challengeId,
       user_id:      GL.Auth._user.id,
       finish_time:  finishTime,
       penalties,
       answers,
     });
+
+    let { error } = await doUpsert();
+
+    // Si erreur JWT, forcer un refresh explicite et réessayer une fois
+    if (error && (error.status === 401 || error.message?.toLowerCase().includes('jwt') || error.message?.toLowerCase().includes('token'))) {
+      console.warn('[Challenge] Token expiré, refresh forcé...');
+      await GL.Auth._client.auth.refreshSession();
+      ({ error } = await doUpsert());
+    }
+
     if (error) console.error('[Challenge] submitResult:', error.message);
   },
 

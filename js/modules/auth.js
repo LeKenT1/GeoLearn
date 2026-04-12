@@ -161,6 +161,19 @@ GL.Auth = {
 
   isLoggedIn() { return !!this._user; },
 
+  // ── Garantit une session valide (refresh si token expiré) ───────────────────
+  async ensureValidSession() {
+    if (!this._client) return false;
+    try {
+      const { data, error } = await this._client.auth.getSession();
+      if (error || !data?.session) return false;
+      this._user = data.session.user;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
   isGoogleUser() {
     return this._user?.app_metadata?.provider === 'google';
   },
