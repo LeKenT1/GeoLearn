@@ -767,6 +767,8 @@
 @media (max-width: 520px) {
   .profile-style-grid { grid-template-columns: repeat(3, 1fr); }
   .nav-avatar-name    { display: none; }
+  .nav-avatar-info    { display: none; }
+  #navProfileBtn      { padding: 0.3rem; }
   .profile-modal      { padding: 2rem 1.25rem 1.5rem; }
 }
 

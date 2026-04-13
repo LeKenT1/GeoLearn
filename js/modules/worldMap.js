@@ -179,9 +179,10 @@ GL.WorldMap = {
     this.gLabels = null;
 
     const W = wrapper.clientWidth || 900;
+    const isMobile = W < 600;
     const H = this._fullscreen
       ? (wrapper.clientHeight || window.innerHeight - 64)
-      : Math.round(W * 0.52);
+      : isMobile ? Math.round(W * 0.88) : Math.round(W * 0.52);
 
     this.projection = d3.geoMercator()
       .scale(W / (2.1 * Math.PI))
@@ -522,7 +523,8 @@ GL.WorldMap = {
 
     const wrapper = this.svg.node().parentElement;
     const W = wrapper.clientWidth || 900;
-    const H = Math.round(W * 0.52);
+    const isMobile = W < 600;
+    const H = isMobile ? Math.round(W * 0.88) : Math.round(W * 0.52);
 
     const [[lon0, lat0], [lon1, lat1]] = bounds;
     const p0 = this.projection([lon0, lat1]);

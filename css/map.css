@@ -449,6 +449,7 @@ g.country-marker.dimmed circle { cursor: default !important; }
   .map-info-panel { width: 220px; padding: 0.9rem; }
   .map-left-panel { display: none; }
   .quiz-map-question-bar { padding: 0.75rem 1rem; }
+  #quizMapWrapper { min-height: 55vw; }
 }
 
 @media (max-width: 540px) {
