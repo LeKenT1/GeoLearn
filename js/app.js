@@ -68,8 +68,9 @@ GL.App = {
       '/quiz/carte':     (el) => GL.QuizMap.render(el),
       '/quiz/cauchemar': (el) => GL.QuizNightmare.render(el),
       '/quiz/ultime':    (el) => GL.QuizUltimate.render(el),
-      '/quiz/defi':      (el) => GL.Challenge.render(el),
-      '/quiz/defi/:id':  (el, p) => GL.Challenge.renderChallenge(el, p),
+      '/quiz/defi':            (el) => GL.Challenge.render(el),
+      '/quiz/defi/:id':        (el, p) => GL.Challenge.renderChallenge(el, p),
+      '/quiz/defi-groupe/:id': (el, p) => GL.GroupChallenge.renderChallenge(el, p),
       '/carte':          (el) => this.renderWorldMap(el),
       '/stats':          (el) => this.renderStats(el),
       '/succes':         (el) => GL.Achievements.render(el),
@@ -80,6 +81,7 @@ GL.App = {
 
     GL.Profile.init();
     if (GL.Challenge) GL.Challenge.init();
+    if (GL.GroupChallenge) GL.GroupChallenge.init();
     if (GL.Achievements) GL.Achievements.updateNavDot();
 
     // Lien test visible uniquement en local
@@ -195,7 +197,7 @@ GL.App = {
               <a href="#/quiz/defi" class="quiz-pick-item quiz-pick-challenge">
                 <div class="quiz-pick-icon">⚔️</div>
                 <div class="quiz-pick-name">Défi <span class="beta-badge">Béta</span></div>
-                <div class="quiz-pick-desc">Affrontez un joueur en 1V1</div>
+                <div class="quiz-pick-desc">1V1 ou jusqu'à 5 joueurs avec classement</div>
               </a>
             </div>
           </div>

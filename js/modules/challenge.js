@@ -134,7 +134,7 @@ GL.Challenge = {
       <div class="page">
         <div class="quiz-setup">
           <div class="quiz-setup-title">⚔️ Mode Défi <span class="beta-badge">Béta</span></div>
-          <p class="quiz-setup-subtitle">Affrontez un autre joueur — le plus rapide gagne</p>
+          <p class="quiz-setup-subtitle">1 adversaire = duel, 2 à 4 = défi en groupe — le plus rapide gagne</p>
 
           <div class="setup-section">
             <div class="setup-section-label">Mode de jeu</div>
@@ -219,7 +219,10 @@ GL.Challenge = {
           </div>
 
           <div class="setup-section">
-            <div class="setup-section-label">Choisir un adversaire</div>
+            <div class="setup-section-label">
+              Choisir les adversaires
+              <span class="gc-max-badge">max 4</span>
+            </div>
             <input type="text" class="challenge-search-input" id="playerSearchInput" placeholder="Rechercher un joueur...">
             <div class="challenge-player-list" id="playerList">
               <div class="challenge-loading">Chargement des joueurs...</div>
@@ -228,15 +231,30 @@ GL.Challenge = {
 
           <div style="margin-top:2rem;">
             <button class="btn btn-primary btn-lg" id="sendChallengeBtn" style="width:100%;" disabled>
-              Choisissez un adversaire pour lancer le défi
+              Choisissez au moins un adversaire
             </button>
           </div>
         </div>
       </div>`;
 
     const cfg = { mode: 'flags', type: 'choice', continent: 'all', count: 10, difficulty: 'normal', penalty: 7 };
-    let selectedPlayerId = null;
-    let allPlayers = [];
+    let selectedIds = new Set();
+    let allPlayers  = [];
+
+    const updateBtn = () => {
+      const btn = container.querySelector('#sendChallengeBtn');
+      const n = selectedIds.size;
+      if (n === 0) {
+        btn.disabled    = true;
+        btn.textContent = 'Choisissez au moins un adversaire';
+      } else if (n === 1) {
+        btn.disabled    = false;
+        btn.textContent = '⚔️ Défi 1V1';
+      } else {
+        btn.disabled    = false;
+        btn.textContent = `🏆 Défi en groupe (${n + 1} joueurs)`;
+      }
+    };
 
     const updateTypeSection = () => {
       const typeCards = container.querySelectorAll('.challenge-mode-card[data-type]');
@@ -290,83 +308,74 @@ GL.Challenge = {
       });
     });
 
-    const searchInput = container.querySelector('#playerSearchInput');
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.toLowerCase();
+    const refreshList = () => {
+      const q = container.querySelector('#playerSearchInput')?.value.toLowerCase() || '';
       const filtered = q ? allPlayers.filter(p => p.name.toLowerCase().includes(q)) : allPlayers;
-      this._renderPlayerList(container, filtered, selectedPlayerId, (id) => {
-        selectedPlayerId = id;
-        const btn = container.querySelector('#sendChallengeBtn');
-        btn.disabled = false;
-        btn.textContent = '⚔️ Lancer le défi';
+      this._renderPlayerList(container, filtered, selectedIds, (id) => {
+        if (selectedIds.has(id))       selectedIds.delete(id);
+        else if (selectedIds.size < 4) selectedIds.add(id);
+        else { GL.UI.toast('Maximum 4 adversaires', 'warning'); return; }
+        refreshList();
+        updateBtn();
       });
-    });
+    };
+
+    container.querySelector('#playerSearchInput').addEventListener('input', refreshList);
 
     container.querySelector('#sendChallengeBtn').addEventListener('click', async () => {
-      if (!selectedPlayerId) return;
+      if (!selectedIds.size) return;
       if (!GL.Auth.isLoggedIn()) {
         GL.UI.toast('Connectez-vous pour défier un joueur', 'warning');
         return;
       }
       const btn = container.querySelector('#sendChallengeBtn');
       btn.disabled = true;
-      btn.textContent = 'Envoi du défi...';
+      btn.textContent = 'Création du défi...';
 
       const questions = this._generateQuestions(cfg);
       if (!questions.length) {
         GL.UI.toast('Pas assez de pays pour ce continent/difficulté', 'error');
-        btn.disabled = false;
-        btn.textContent = '⚔️ Lancer le défi';
-        return;
+        btn.disabled = false; updateBtn(); return;
       }
-      const id = await this._createChallenge(selectedPlayerId, cfg, questions);
-      if (id) GL.Router.navigate(`/quiz/defi/${id}`);
-      else { btn.disabled = false; btn.textContent = '⚔️ Lancer le défi'; }
+
+      if (selectedIds.size === 1) {
+        const [opponentId] = selectedIds;
+        const id = await this._createChallenge(opponentId, cfg, questions);
+        if (id) GL.Router.navigate(`/quiz/defi/${id}`);
+        else { btn.disabled = false; updateBtn(); }
+      } else {
+        const id = await GL.GroupChallenge._createGroupChallenge([...selectedIds], cfg, questions);
+        if (id) GL.Router.navigate(`/quiz/defi-groupe/${id}`);
+        else { btn.disabled = false; updateBtn(); }
+      }
     });
 
-    this._fetchUsers().then(players => {
-      allPlayers = players;
-      this._renderPlayerList(container, players, selectedPlayerId, (id) => {
-        selectedPlayerId = id;
-        const btn = container.querySelector('#sendChallengeBtn');
-        btn.disabled = false;
-        btn.textContent = '⚔️ Lancer le défi';
-      });
-    });
+    this._fetchUsers().then(players => { allPlayers = players; refreshList(); });
   },
 
-  _renderPlayerList(container, players, selectedId, onSelect) {
+  _renderPlayerList(container, players, selectedIds, onToggle) {
     const list = container.querySelector('#playerList');
     if (!list) return;
     if (!players.length) {
       list.innerHTML = '<div class="challenge-empty">Aucun joueur disponible</div>';
       return;
     }
-    list.innerHTML = players.map(p => `
-      <div class="challenge-player-row${p.id === selectedId ? ' selected' : ''}" data-id="${p.id}">
-        <img class="challenge-player-avatar" src="${p.avatarUrl}"
-             onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.id}&size=80'">
-        <div class="challenge-player-info">
-          <div class="challenge-player-name">${p.name}</div>
-          <div class="challenge-player-xp">${p.title ? `<span class="challenge-player-title tier-${p.titleTier}">${p.title}</span>` : '—'}</div>
-        </div>
-        ${p.id === selectedId ? '<div class="challenge-player-check">✓</div>' : ''}
-      </div>`).join('');
+    list.innerHTML = players.map(p => {
+      const sel = selectedIds.has(p.id);
+      return `
+        <div class="challenge-player-row${sel ? ' selected' : ''}" data-id="${p.id}">
+          <img class="challenge-player-avatar" src="${p.avatarUrl}"
+               onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.id}&size=80'">
+          <div class="challenge-player-info">
+            <div class="challenge-player-name">${p.name}</div>
+            <div class="challenge-player-xp">${p.title ? `<span class="challenge-player-title tier-${p.titleTier}">${p.title}</span>` : '—'}</div>
+          </div>
+          <div class="gc-player-checkbox${sel ? ' checked' : ''}">${sel ? '✓' : ''}</div>
+        </div>`;
+    }).join('');
 
-    list.querySelectorAll('.challenge-player-row').forEach(row => {
-      row.addEventListener('click', () => {
-        list.querySelectorAll('.challenge-player-row').forEach(r => {
-          r.classList.remove('selected');
-          r.querySelector('.challenge-player-check')?.remove();
-        });
-        row.classList.add('selected');
-        const check = document.createElement('div');
-        check.className = 'challenge-player-check';
-        check.textContent = '✓';
-        row.appendChild(check);
-        onSelect(row.dataset.id);
-      });
-    });
+    list.querySelectorAll('.challenge-player-row').forEach(row =>
+      row.addEventListener('click', () => onToggle(row.dataset.id)));
   },
 
   // ── Route handler : /quiz/defi/:id ───────────────────────────────────────────
@@ -979,12 +988,16 @@ GL.Challenge = {
         <div class="loader-content"><div class="loader-globe">⏳</div><p>Envoi des résultats...</p></div>
       </div>`;
 
-    await this._submitResult(state.challenge.id, totalTime, state.penalties, state.answers);
-    this._renderWaitingForOpponent(container, state.challenge, {
-      finish_time: totalTime,
-      penalties: state.penalties,
-      answers: state.answers,
-    });
+    if (state._finishCallback) {
+      await state._finishCallback(container, totalTime, state.penalties, state.answers);
+    } else {
+      await this._submitResult(state.challenge.id, totalTime, state.penalties, state.answers);
+      this._renderWaitingForOpponent(container, state.challenge, {
+        finish_time: totalTime,
+        penalties: state.penalties,
+        answers: state.answers,
+      });
+    }
   },
 
   // ── Attente que l'adversaire finisse ─────────────────────────────────────────

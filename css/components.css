@@ -3918,3 +3918,130 @@
   .btn { padding: 0.6rem 1.1rem; font-size: 0.85rem; }
   .btn-lg { padding: 0.75rem 1.4rem; font-size: 0.9rem; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   GROUP CHALLENGE
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Badge "max N" dans le label de section */
+.gc-max-badge {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.12rem 0.5rem;
+  border-radius: 1rem;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+/* Checkbox dans la liste multi-select */
+.gc-player-checkbox {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700;
+  color: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.gc-player-checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* ── Invite list (créateur en attente) ──────────────────────────────────── */
+.gc-invite-list {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  margin-top: 1.5rem; width: 100%; max-width: 360px;
+}
+.gc-invite-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--card-bg); border-radius: 0.75rem;
+  padding: 0.75rem 1rem; border: 1px solid var(--border);
+}
+.gc-invite-status-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.gc-dot-pending  { background: var(--text-muted); }
+.gc-dot-accepted { background: #22c55e; }
+.gc-dot-declined { background: #ef4444; }
+.gc-invite-name        { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.gc-invite-status-text { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
+
+/* ── Ready screen (lobby) ───────────────────────────────────────────────── */
+.gc-ready-list {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  margin: 1.75rem 0; width: 100%; max-width: 360px;
+}
+.gc-ready-player {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 0.75rem; padding: 0.75rem 1rem;
+  transition: background 0.25s, border-color 0.25s;
+}
+.gc-ready-player.is-ready {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+.gc-ready-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--text-muted); flex-shrink: 0; transition: background 0.3s;
+}
+.gc-ready-dot.ready { background: #22c55e; }
+.gc-ready-name  { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.gc-ready-label { font-size: 0.78rem; color: var(--text-secondary); }
+.gc-ready-config {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  justify-content: center; margin-bottom: 0.5rem;
+}
+
+/* ── Waiting screen – others list ─────────────────────────────────────── */
+.gc-wait-others { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
+.gc-wait-row {
+  display: flex; align-items: center; gap: 0.65rem;
+  font-size: 0.88rem; padding: 0.4rem 0;
+}
+
+/* ── Final ranking ──────────────────────────────────────────────────────── */
+.gc-ranking {
+  max-width: var(--max-width); margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  display: flex; flex-direction: column; align-items: center;
+}
+.gc-ranking-list {
+  display: flex; flex-direction: column; gap: 0.7rem;
+  width: 100%; max-width: 500px; margin: 1.5rem 0;
+}
+.gc-rank-row {
+  display: flex; align-items: center; gap: 0.9rem;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 1rem; padding: 0.875rem 1.25rem;
+  transition: box-shadow 0.2s;
+}
+.gc-rank-row.gc-rank-first {
+  background: linear-gradient(135deg, rgba(250,196,0,0.12) 0%, rgba(250,196,0,0.04) 100%);
+  border-color: rgba(250,196,0,0.45);
+  box-shadow: 0 2px 12px rgba(250,196,0,0.12);
+}
+.gc-rank-row.gc-rank-me {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(99,102,241,0.18);
+}
+.gc-rank-pos { font-size: 1.5rem; min-width: 2rem; text-align: center; flex-shrink: 0; }
+.gc-rank-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.gc-rank-info  { flex: 1; min-width: 0; }
+.gc-rank-name  { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-rank-detail { font-size: 0.76rem; color: var(--text-secondary); margin-top: 0.1rem; }
+.gc-rank-time  { font-size: 1.05rem; font-weight: 700; color: var(--primary); white-space: nowrap; flex-shrink: 0; }
+
+@media (max-width: 480px) {
+  .gc-rank-row    { padding: 0.7rem 0.9rem; gap: 0.6rem; }
+  .gc-rank-avatar { width: 36px; height: 36px; }
+  .gc-rank-pos    { font-size: 1.2rem; min-width: 1.6rem; }
+  .gc-rank-time   { font-size: 0.9rem; }
+}
