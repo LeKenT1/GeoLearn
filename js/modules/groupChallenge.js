@@ -10,9 +10,12 @@ GL.GroupChallenge = {
 
   // ── Init ──────────────────────────────────────────────────────────────────────
   init() {
+    console.log('[GC] init() appelé');
     GL.Auth.ready.then(() => {
+      console.log('[GC] Auth.ready résolu — isLoggedIn:', GL.Auth.isLoggedIn(), '| userId:', GL.Auth._user?.id);
       if (GL.Auth.isLoggedIn()) this._startGlobalListener();
       GL.Auth?._client?.auth.onAuthStateChange((event) => {
+        console.log('[GC] onAuthStateChange:', event);
         if (event === 'SIGNED_IN')  this._startGlobalListener();
         if (event === 'SIGNED_OUT') this._stopGlobalListener();
       });
@@ -22,15 +25,27 @@ GL.GroupChallenge = {
   _startGlobalListener() {
     const client = GL.Auth?._client;
     const userId = GL.Auth?._user?.id;
-    if (!client || !userId) return;
-    if (this._globalChannel) client.removeChannel(this._globalChannel);
+    console.log('[GC] _startGlobalListener() — client:', !!client, '| userId:', userId);
+    if (!client || !userId) {
+      console.warn('[GC] _startGlobalListener() annulé — client ou userId manquant');
+      return;
+    }
+    if (this._globalChannel) {
+      console.log('[GC] ancien globalChannel trouvé, on le supprime');
+      client.removeChannel(this._globalChannel);
+    }
     this._globalChannel = client
       .channel('gl-gc-incoming')
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'group_challenge_participants',
         filter: `user_id=eq.${userId}`,
-      }, (p) => this._onIncomingInvite(p.new))
-      .subscribe();
+      }, (p) => {
+        console.log('[GC] 📨 INSERT reçu sur group_challenge_participants:', p.new);
+        this._onIncomingInvite(p.new);
+      })
+      .subscribe((status, err) => {
+        console.log('[GC] globalChannel subscribe status:', status, err || '');
+      });
   },
 
   _stopGlobalListener() {
@@ -48,14 +63,23 @@ GL.GroupChallenge = {
   },
 
   async _onIncomingInvite(participant) {
+    console.log('[GC] _onIncomingInvite() — participantId:', participant.id, '| challengeId:', participant.challenge_id, '| userId:', participant.user_id);
     const client = GL.Auth._client;
-    const { data: challenge } = await client
+    const { data: challenge, error: chErr } = await client
       .from('group_challenges').select('*').eq('id', participant.challenge_id).single();
-    if (!challenge || challenge.status !== 'pending') return;
-    if (challenge.creator_id === GL.Auth._user?.id) return; // créateur déjà accepté
+    console.log('[GC] _onIncomingInvite() — challenge status:', challenge?.status, '| error:', chErr?.message);
+    if (!challenge || challenge.status !== 'pending') {
+      console.warn('[GC] _onIncomingInvite() — ignoré (challenge null ou status ≠ pending)');
+      return;
+    }
+    if (challenge.creator_id === GL.Auth._user?.id) {
+      console.log('[GC] _onIncomingInvite() — ignoré (je suis le créateur)');
+      return;
+    }
     const { data: creator } = await client
       .from('user_data').select('username').eq('user_id', challenge.creator_id).single();
     const name = creator?.username || 'Un joueur';
+    console.log('[GC] _onIncomingInvite() — affichage modal de', name);
     GL.UI.toast(`🏆 ${name} vous invite à un défi en groupe !`, 'info', 6000);
     this._showInviteModal(challenge, participant.id, name);
   },
@@ -102,12 +126,14 @@ GL.GroupChallenge = {
 
     modal.querySelector('#gcModalAccept').addEventListener('click', async () => {
       clearInterval(ticker); modal.remove();
+      console.log('[GC] modal → ACCEPTER participantId:', participantId);
       await this._respondToInvite(participantId, 'accepted');
       await this._tryActivateIfAllResponded(challenge.id);
       GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
     });
     modal.querySelector('#gcModalDecline').addEventListener('click', async () => {
       clearInterval(ticker); modal.remove();
+      console.log('[GC] modal → REFUSER participantId:', participantId);
       await this._respondToInvite(participantId, 'declined');
       await this._tryActivateIfAllResponded(challenge.id);
     });
@@ -319,6 +345,7 @@ GL.GroupChallenge = {
 
   // ── Route handler : /quiz/defi-groupe/:id ────────────────────────────────────
   async renderChallenge(container, { id }) {
+    console.log('[GC] renderChallenge() — id:', id);
     this._unsubscribeGC();
     GL.WorldMap.cleanup();
 
@@ -329,28 +356,37 @@ GL.GroupChallenge = {
 
     const client = GL.Auth?._client;
     if (!client || !GL.Auth.isLoggedIn()) {
+      console.warn('[GC] renderChallenge() — non connecté');
       container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><p>Connectez-vous pour participer</p><a href="#/quiz/defi-groupe" class="btn btn-primary">Retour</a></div>`;
       return;
     }
     const myId = GL.Auth._user.id;
+    console.log('[GC] renderChallenge() — myId:', myId);
 
-    const [{ data: challenge }, { data: participants }] = await Promise.all([
+    const [{ data: challenge, error: chErr }, { data: participants, error: pErr }] = await Promise.all([
       client.from('group_challenges').select('*').eq('id', id).single(),
       client.from('group_challenge_participants').select('*').eq('challenge_id', id),
     ]);
+    console.log('[GC] renderChallenge() — challenge:', challenge, '| chErr:', chErr?.message);
+    console.log('[GC] renderChallenge() — participants:', participants, '| pErr:', pErr?.message);
 
     if (!challenge) {
+      console.warn('[GC] renderChallenge() — défi introuvable');
       container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><h3>Défi introuvable</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
       return;
     }
 
     const parts  = participants || [];
     const myPart = parts.find(p => p.user_id === myId);
+    console.log('[GC] renderChallenge() — myPart:', myPart);
 
     if (!myPart) {
+      console.warn('[GC] renderChallenge() — pas de participant trouvé pour myId:', myId);
       container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><h3>Vous n'êtes pas invité à ce défi</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
       return;
     }
+
+    console.log('[GC] renderChallenge() — challenge.status:', challenge.status, '| myPart.invite_status:', myPart.invite_status, '| myPart.ready:', myPart.ready, '| myPart.finished_at:', myPart.finished_at);
 
     if (challenge.status === 'cancelled') {
       container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Défi annulé</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
@@ -358,6 +394,7 @@ GL.GroupChallenge = {
     }
 
     if (challenge.status === 'finished') {
+      console.log('[GC] renderChallenge() → _renderRanking (status finished)');
       await this._renderRanking(container, challenge, parts);
       return;
     }
@@ -365,7 +402,9 @@ GL.GroupChallenge = {
     // J'ai déjà joué
     if (myPart.result && myPart.finished_at) {
       const accepted = parts.filter(p => p.invite_status === 'accepted');
-      if (accepted.every(p => p.finished_at)) {
+      const allDone  = accepted.every(p => p.finished_at);
+      console.log('[GC] renderChallenge() — j\'ai déjà joué | allDone:', allDone);
+      if (allDone) {
         await this._renderRanking(container, challenge, parts);
       } else {
         this._renderWaitingScreen(container, challenge, myPart.result);
@@ -375,14 +414,18 @@ GL.GroupChallenge = {
 
     if (challenge.status === 'pending') {
       if (challenge.creator_id === myId) {
+        console.log('[GC] renderChallenge() → _renderPendingCreator');
         this._renderPendingCreator(container, challenge, parts);
       } else if (myPart.invite_status === 'pending') {
+        console.log('[GC] renderChallenge() → _renderInlineInvite');
         const { data: creator } = await client
           .from('user_data').select('username').eq('user_id', challenge.creator_id).single();
         this._renderInlineInvite(container, challenge, myPart, creator?.username || 'Un joueur');
       } else if (myPart.invite_status === 'accepted') {
+        console.log('[GC] renderChallenge() → _renderAcceptedWaiting');
         this._renderAcceptedWaiting(container, challenge, parts);
       } else {
+        console.log('[GC] renderChallenge() — défi refusé (pending, invite_status declined)');
         container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><h3>Vous avez refusé ce défi</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
       }
       return;
@@ -390,14 +433,18 @@ GL.GroupChallenge = {
 
     if (challenge.status === 'active') {
       if (myPart.invite_status === 'declined') {
+        console.log('[GC] renderChallenge() — défi refusé (active, invite_status declined)');
         container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><h3>Vous avez refusé ce défi</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
         return;
       }
       const accepted = parts.filter(p => p.invite_status === 'accepted');
       const allReady = accepted.length > 0 && accepted.every(p => p.ready);
+      console.log('[GC] renderChallenge() — active | accepted.length:', accepted.length, '| allReady:', allReady);
       if (allReady) {
+        console.log('[GC] renderChallenge() → _startQuiz');
         await this._startQuiz(container, challenge);
       } else {
+        console.log('[GC] renderChallenge() → _renderReadyScreen');
         this._renderReadyScreen(container, challenge, parts);
       }
     }
@@ -472,18 +519,21 @@ GL.GroupChallenge = {
         event: 'UPDATE', schema: 'public', table: 'group_challenge_participants',
         filter: `challenge_id=eq.${challenge.id}`,
       }, async (payload) => {
+        console.log('[GC] _renderPendingCreator — UPDATE reçu:', payload.new.user_id, '| invite_status:', payload.new.invite_status);
         const idx = currentParts.findIndex(p => p.user_id === payload.new.user_id);
         if (idx !== -1) currentParts[idx] = payload.new;
         const listEl = container.querySelector('#gcInviteList');
         if (listEl) listEl.innerHTML = renderRows(currentParts);
         await checkAllResponded();
       })
-      .subscribe(async (status) => {
+      .subscribe(async (status, err) => {
+        console.log('[GC] _renderPendingCreator — subscribe status:', status, err || '');
         if (status !== 'SUBSCRIBED') return;
         // Guard : recharger les participants au cas où des réponses sont arrivées
         // pendant la navigation vers cet écran
-        const { data: fresh } = await client
+        const { data: fresh, error: freshErr } = await client
           .from('group_challenge_participants').select('*').eq('challenge_id', challenge.id);
+        console.log('[GC] _renderPendingCreator — guard re-fetch:', fresh?.map(p => `${p.user_id.slice(0,8)}:${p.invite_status}`), '| error:', freshErr?.message);
         if (!fresh) return;
         currentParts = fresh;
         const listEl = container.querySelector('#gcInviteList');
@@ -574,14 +624,17 @@ GL.GroupChallenge = {
         event: 'UPDATE', schema: 'public', table: 'group_challenges',
         filter: `id=eq.${challenge.id}`,
       }, (payload) => {
+        console.log('[GC] _renderAcceptedWaiting — UPDATE group_challenges reçu:', payload.new.status);
         if (payload.new.status === 'active')    go();
         else if (payload.new.status === 'cancelled') cancel();
       })
-      .subscribe(async (status) => {
+      .subscribe(async (status, err) => {
+        console.log('[GC] _renderAcceptedWaiting — subscribe status:', status, err || '');
         if (status !== 'SUBSCRIBED') return;
         // Guard : l'événement a peut-être été envoyé avant que l'abonnement soit prêt
-        const { data } = await client
+        const { data, error: gErr } = await client
           .from('group_challenges').select('status').eq('id', challenge.id).single();
+        console.log('[GC] _renderAcceptedWaiting — guard re-fetch status:', data?.status, '| error:', gErr?.message);
         if (data?.status === 'active')    go();
         else if (data?.status === 'cancelled') cancel();
       });
@@ -657,16 +710,21 @@ GL.GroupChallenge = {
         event: 'UPDATE', schema: 'public', table: 'group_challenge_participants',
         filter: `challenge_id=eq.${challenge.id}`,
       }, async (payload) => {
+        console.log('[GC] _renderReadyScreen — UPDATE reçu:', payload.new.user_id, '| ready:', payload.new.ready);
         const idx = localParts.findIndex(p => p.user_id === payload.new.user_id);
         if (idx !== -1) localParts[idx] = { ...localParts[idx], ready: payload.new.ready };
         const listEl = container.querySelector('#gcReadyList');
         if (listEl) listEl.innerHTML = renderList();
-        if (localParts.every(p => p.ready)) {
+        const allReady = localParts.every(p => p.ready);
+        console.log('[GC] _renderReadyScreen — allReady:', allReady, '| localParts ready:', localParts.map(p => `${p.user_id.slice(0,8)}:${p.ready}`));
+        if (allReady) {
           client.removeChannel(ch); this._gcChannel = null;
           await this._startQuiz(container, challenge);
         }
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('[GC] _renderReadyScreen — subscribe status:', status, err || '');
+      });
 
     this._gcChannel = ch;
     GL._onRouteLeave = () => { client.removeChannel(ch); this._gcChannel = null; };
@@ -712,6 +770,7 @@ GL.GroupChallenge = {
 
   // ── Attente que les autres finissent ─────────────────────────────────────────
   _renderWaitingScreen(container, challenge, myResult) {
+    console.log('[GC] _renderWaitingScreen() — challengeId:', challenge.id, '| myResult.finish_time:', myResult?.finish_time);
     const client  = GL.Auth._client;
     const myId    = GL.Auth._user.id;
     const correct = (myResult.answers || []).filter(a => a.correct).length;
@@ -747,7 +806,8 @@ GL.GroupChallenge = {
     let localParts = [];
 
     client.from('group_challenge_participants').select('*').eq('challenge_id', challenge.id)
-      .then(async ({ data: parts }) => {
+      .then(async ({ data: parts, error: wErr }) => {
+        console.log('[GC] _renderWaitingScreen — participants chargés:', parts?.length, '| error:', wErr?.message);
         localParts = parts || [];
 
         // Charger les noms
@@ -778,18 +838,23 @@ GL.GroupChallenge = {
             event: 'UPDATE', schema: 'public', table: 'group_challenge_participants',
             filter: `challenge_id=eq.${challenge.id}`,
           }, async (payload) => {
+            console.log('[GC] _renderWaitingScreen — UPDATE reçu:', payload.new.user_id, '| finished_at:', payload.new.finished_at);
             const idx = localParts.findIndex(p => p.user_id === payload.new.user_id);
             if (idx !== -1) localParts[idx] = payload.new;
             refresh();
             const acc = localParts.filter(p => p.invite_status === 'accepted');
-            if (acc.every(p => p.finished_at)) {
+            const allDone = acc.every(p => p.finished_at);
+            console.log('[GC] _renderWaitingScreen — allDone:', allDone, '| acc:', acc.map(p => `${p.user_id.slice(0,8)}:${!!p.finished_at}`));
+            if (allDone) {
               client.removeChannel(ch); this._gcChannel = null;
               await client.from('group_challenges')
                 .update({ status: 'finished' }).eq('id', challenge.id).eq('status', 'active');
               await this._renderRanking(container, challenge, localParts);
             }
           })
-          .subscribe();
+          .subscribe((status, err) => {
+            console.log('[GC] _renderWaitingScreen — subscribe status:', status, err || '');
+          });
 
         this._gcChannel = ch;
         GL._onRouteLeave = () => { client.removeChannel(ch); this._gcChannel = null; };
@@ -879,70 +944,94 @@ GL.GroupChallenge = {
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
   async _createGroupChallenge(invitedIds, config, questions) {
+    console.log('[GC] _createGroupChallenge() — invitedIds:', invitedIds, '| config:', config, '| questions.length:', questions.length);
     await GL.Auth.ensureValidSession();
     const client = GL.Auth._client;
     const myId   = GL.Auth._user.id;
+    console.log('[GC] _createGroupChallenge() — myId:', myId);
 
     const { data: gc, error } = await client
       .from('group_challenges')
       .insert({ creator_id: myId, config, questions, status: 'pending' })
       .select('id').single();
     if (error) {
-      console.error('[GroupChallenge] create:', error.message);
+      console.error('[GC] _createGroupChallenge() — erreur création group_challenges:', error.message, error);
       GL.UI.toast('Erreur création du défi', 'error');
       return null;
     }
+    console.log('[GC] _createGroupChallenge() — group_challenge créé, id:', gc.id);
 
     const rows = [
       { challenge_id: gc.id, user_id: myId, invite_status: 'accepted' },
       ...invitedIds.map(uid => ({ challenge_id: gc.id, user_id: uid, invite_status: 'pending' })),
     ];
+    console.log('[GC] _createGroupChallenge() — insertion participants:', rows);
     const { error: pErr } = await client.from('group_challenge_participants').insert(rows);
     if (pErr) {
-      console.error('[GroupChallenge] participants insert:', pErr.message);
+      console.error('[GC] _createGroupChallenge() — erreur insertion participants:', pErr.message, pErr);
       GL.UI.toast('Erreur envoi des invitations', 'error');
       return null;
     }
+    console.log('[GC] _createGroupChallenge() — participants insérés OK');
     return gc.id;
   },
 
   async _respondToInvite(participantId, status) {
+    console.log('[GC] _respondToInvite() — participantId:', participantId, '| status:', status);
     await GL.Auth.ensureValidSession();
     const { error } = await GL.Auth._client
       .from('group_challenge_participants')
       .update({ invite_status: status })
       .eq('id', participantId);
-    if (error) console.error('[GroupChallenge] respond:', error.message);
+    if (error) {
+      console.error('[GC] _respondToInvite() — erreur:', error.message, error);
+    } else {
+      console.log('[GC] _respondToInvite() — succès');
+    }
   },
 
   async _tryActivate(challengeId) {
+    console.log('[GC] _tryActivate() — challengeId:', challengeId);
     const { error } = await GL.Auth._client
       .from('group_challenges')
       .update({ status: 'active' })
       .eq('id', challengeId)
       .eq('status', 'pending');
-    if (error) console.error('[GroupChallenge] activate:', error.message);
+    if (error) {
+      console.error('[GC] _tryActivate() — erreur:', error.message, error);
+    } else {
+      console.log('[GC] _tryActivate() — succès (ou déjà actif, pas d\'erreur)');
+    }
   },
 
   async _tryActivateIfAllResponded(challengeId) {
-    const { data: parts } = await GL.Auth._client
-      .from('group_challenge_participants').select('invite_status').eq('challenge_id', challengeId);
+    console.log('[GC] _tryActivateIfAllResponded() — challengeId:', challengeId);
+    const { data: parts, error } = await GL.Auth._client
+      .from('group_challenge_participants').select('invite_status, user_id').eq('challenge_id', challengeId);
+    console.log('[GC] _tryActivateIfAllResponded() — parts:', parts, '| error:', error?.message);
     if (!parts) return;
     const allResponded = parts.every(p => p.invite_status !== 'pending');
     const anyAccepted  = parts.some(p => p.invite_status === 'accepted');
+    console.log('[GC] _tryActivateIfAllResponded() — allResponded:', allResponded, '| anyAccepted:', anyAccepted);
     if (allResponded && anyAccepted) await this._tryActivate(challengeId);
   },
 
   async _setReady(challengeId, userId) {
+    console.log('[GC] _setReady() — challengeId:', challengeId, '| userId:', userId);
     const { error } = await GL.Auth._client
       .from('group_challenge_participants')
       .update({ ready: true })
       .eq('challenge_id', challengeId)
       .eq('user_id', userId);
-    if (error) console.error('[GroupChallenge] setReady:', error.message);
+    if (error) {
+      console.error('[GC] _setReady() — erreur:', error.message, error);
+    } else {
+      console.log('[GC] _setReady() — succès');
+    }
   },
 
   async _submitGroupResult(challengeId, finishTime, penalties, answers) {
+    console.log('[GC] _submitGroupResult() — challengeId:', challengeId, '| finishTime:', finishTime, '| penalties:', penalties, '| answers.length:', answers?.length);
     await GL.Auth.ensureValidSession();
     const userId = GL.Auth._user.id;
 
@@ -957,10 +1046,15 @@ GL.GroupChallenge = {
 
     let { error } = await doUpdate();
     if (error && (error.status === 401 || error.message?.toLowerCase().includes('jwt'))) {
+      console.warn('[GC] _submitGroupResult() — JWT expiré, refresh session...');
       await GL.Auth._client.auth.refreshSession();
       ({ error } = await doUpdate());
     }
-    if (error) console.error('[GroupChallenge] submitResult:', error.message);
+    if (error) {
+      console.error('[GC] _submitGroupResult() — erreur:', error.message, error);
+    } else {
+      console.log('[GC] _submitGroupResult() — résultat soumis OK');
+    }
   },
 
   async _cancelGroupChallenge(challengeId) {

@@ -36,16 +36,28 @@ GL.Challenge = {
   _startGlobalListener() {
     const client = GL.Auth?._client;
     const userId = GL.Auth?._user?.id;
-    if (!client || !userId) return;
-    if (this._globalChannel) client.removeChannel(this._globalChannel);
+    console.log('[CH] _startGlobalListener() — client:', !!client, '| userId:', userId);
+    if (!client || !userId) {
+      console.warn('[CH] _startGlobalListener() annulé — client ou userId manquant');
+      return;
+    }
+    if (this._globalChannel) {
+      console.log('[CH] ancien globalChannel trouvé, on le supprime');
+      client.removeChannel(this._globalChannel);
+    }
 
     this._globalChannel = client
       .channel('gl-challenges-incoming')
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'challenges',
         filter: `challenged_id=eq.${userId}`,
-      }, (payload) => this._onIncomingChallenge(payload.new))
-      .subscribe();
+      }, (payload) => {
+        console.log('[CH] 📨 INSERT reçu sur challenges:', payload.new);
+        this._onIncomingChallenge(payload.new);
+      })
+      .subscribe((status, err) => {
+        console.log('[CH] globalChannel subscribe status:', status, err || '');
+      });
   },
 
   _stopGlobalListener() {
@@ -350,7 +362,12 @@ GL.Challenge = {
       }
     });
 
-    this._fetchUsers().then(players => { allPlayers = players; refreshList(); });
+    console.log('[CH] render() — lancement _fetchUsers(), GL.Auth._user avant:', GL.Auth?._user?.id ?? 'null');
+    this._fetchUsers().then(players => {
+      console.log('[CH] render() — _fetchUsers() terminé, joueurs:', players.length);
+      allPlayers = players;
+      refreshList();
+    });
   },
 
   _renderPlayerList(container, players, selectedIds, onToggle) {
@@ -1235,22 +1252,31 @@ GL.Challenge = {
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
   async _fetchUsers() {
+    console.log('[CH] _fetchUsers() — début | GL.Auth._user avant wait:', GL.Auth?._user?.id ?? 'null');
+    const t0 = Date.now();
     if (GL.Auth?.ready) {
       await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 3000))]);
     }
+    console.log('[CH] _fetchUsers() — après Auth.ready (' + (Date.now() - t0) + 'ms) | GL.Auth._user:', GL.Auth?._user?.id ?? 'null');
     const client = GL.Auth?._client;
     const myId   = GL.Auth?._user?.id;
-    if (!client) return [];
+    console.log('[CH] _fetchUsers() — client:', !!client, '| myId:', myId);
+    if (!client) {
+      console.warn('[CH] _fetchUsers() — annulé (pas de client)');
+      return [];
+    }
 
-    const { data } = await client
+    const { data, error: fetchErr } = await client
       .from('user_data').select('user_id, username, stats, profile, active_title')
       .not('username', 'is', null);
+
+    console.log('[CH] _fetchUsers() — fetch résultat: data.length:', data?.length ?? 'null', '| error:', fetchErr?.message);
 
     const allAchs = GL.Achievements
       ? [].concat(...GL.Achievements.GROUPS.map(g => g.achievements))
       : [];
 
-    return (data || [])
+    const result = (data || [])
       .filter(r => r.user_id !== myId)
       .map(r => {
         const xp    = parseInt((r.stats || {}).rankedXP, 10) || 0;
@@ -1266,6 +1292,9 @@ GL.Challenge = {
         return { id: r.user_id, name: r.username || 'Joueur', xp, avatarUrl, title, titleTier };
       })
       .sort((a, b) => b.xp - a.xp);
+
+    console.log('[CH] _fetchUsers() — joueurs retournés:', result.length, '(dont moi exclu si myId connu)');
+    return result;
   },
 
   async _createChallenge(challengedId, config, questions) {
