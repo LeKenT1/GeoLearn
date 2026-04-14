@@ -1053,7 +1053,8 @@ GL.GroupChallenge = {
           ${restHtml ? `<div class="gc-ranking-list" style="max-width:500px;width:100%;margin:0 auto 1.5rem;">${restHtml}</div>` : ''}
           ${detailHtml}
           <div class="gc-results-btns">
-            <a href="#/quiz/defi" class="btn btn-primary">Nouveau défi</a>
+            <button class="btn btn-primary" id="gcRelancerBtn">🔁 Relancer</button>
+            <a href="#/quiz/defi" class="btn btn-ghost">Autre défi</a>
             <a href="#/" class="btn btn-ghost">Accueil</a>
           </div>
         </div>
