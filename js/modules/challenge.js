@@ -1291,41 +1291,55 @@ GL.Challenge = {
   },
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
-  async _fetchUsers(timeoutMs = 12000) {
-    console.log('[CH] _fetchUsers() — début | timeout:', timeoutMs, '| GL.Auth._user avant wait:', GL.Auth?._user?.id ?? 'null');
+  async _fetchUsers(timeoutMs = 15000) {
+    console.log('[CH] _fetchUsers() — début (fetch natif) | timeout:', timeoutMs);
     const t0 = Date.now();
     if (GL.Auth?.ready) {
       await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 3000))]);
     }
-    console.log('[CH] _fetchUsers() — après Auth.ready (' + (Date.now() - t0) + 'ms) | GL.Auth._user:', GL.Auth?._user?.id ?? 'null');
-    const client = GL.Auth?._client;
-    const myId   = GL.Auth?._user?.id;
-    console.log('[CH] _fetchUsers() — client:', !!client, '| myId:', myId);
-    if (!client) {
-      console.warn('[CH] _fetchUsers() — annulé (pas de client)');
+    const myId = GL.Auth?._user?.id;
+    console.log('[CH] _fetchUsers() — après Auth.ready (' + (Date.now() - t0) + 'ms) | myId:', myId ?? 'null');
+    if (!myId) {
+      console.warn('[CH] _fetchUsers() — pas de session, abandon');
       return [];
     }
 
-    const fetchPromise = client
-      .from('user_data').select('user_id, username, stats, profile, active_title')
-      .not('username', 'is', null);
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), timeoutMs)
-    );
+    // Récupère le token de session pour l'Authorization header
+    const session = await GL.Auth._client.auth.getSession();
+    const token   = session.data?.session?.access_token || GL_CONFIG.SUPABASE_ANON_KEY;
 
-    let data, fetchErr;
+    const url = `${GL_CONFIG.SUPABASE_URL}/rest/v1/user_data`
+      + `?select=user_id,username,stats,profile,active_title`
+      + `&username=not.is.null`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      console.warn('[CH] _fetchUsers() — AbortController timeout déclenché');
+      controller.abort();
+    }, timeoutMs);
+
+    let data;
     try {
-      ({ data, error: fetchErr } = await Promise.race([fetchPromise, timeoutPromise]));
+      const resp = await fetch(url, {
+        headers: {
+          'apikey':        GL_CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type':  'application/json',
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!resp.ok) {
+        console.error('[CH] _fetchUsers() — HTTP', resp.status, resp.statusText);
+        return null;
+      }
+      data = await resp.json();
+      console.log('[CH] _fetchUsers() — data.length:', data?.length ?? 'null');
     } catch (e) {
-      console.error('[CH] _fetchUsers() — timeout/exception:', e.message);
+      clearTimeout(timer);
+      console.error('[CH] _fetchUsers() — fetch échoué:', e.message);
       return null;
     }
-    if (fetchErr) {
-      console.error('[CH] _fetchUsers() — erreur Supabase:', fetchErr.message);
-      return null;
-    }
-
-    console.log('[CH] _fetchUsers() — fetch résultat: data.length:', data?.length ?? 'null');
 
     const allAchs = GL.Achievements
       ? [].concat(...GL.Achievements.GROUPS.map(g => g.achievements))
@@ -1348,7 +1362,7 @@ GL.Challenge = {
       })
       .sort((a, b) => b.xp - a.xp);
 
-    console.log('[CH] _fetchUsers() — joueurs retournés:', result.length, '(dont moi exclu si myId connu)');
+    console.log('[CH] _fetchUsers() — joueurs retournés:', result.length);
     return result;
   },
 
