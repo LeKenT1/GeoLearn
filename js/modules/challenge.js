@@ -1235,6 +1235,9 @@ GL.Challenge = {
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
   async _fetchUsers() {
+    if (GL.Auth?.ready) {
+      await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 3000))]);
+    }
     const client = GL.Auth?._client;
     const myId   = GL.Auth?._user?.id;
     if (!client) return [];
@@ -1248,7 +1251,7 @@ GL.Challenge = {
       : [];
 
     return (data || [])
-      .filter(r => !myId || r.user_id !== myId)
+      .filter(r => r.user_id !== myId)
       .map(r => {
         const xp    = parseInt((r.stats || {}).rankedXP, 10) || 0;
         const prof  = r.profile || {};

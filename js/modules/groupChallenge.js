@@ -451,6 +451,21 @@ GL.GroupChallenge = {
       if (remaining <= 0) { clearInterval(ticker); this._tryActivate(challenge.id); }
     }, 1000);
 
+    const checkAllResponded = async () => {
+      const allResponded = currentParts.every(p => p.invite_status !== 'pending');
+      const anyAccepted  = currentParts.some(p => p.invite_status === 'accepted');
+      if (!allResponded) return false;
+      clearInterval(ticker);
+      client.removeChannel(ch); this._gcChannel = null;
+      if (anyAccepted) {
+        await this._tryActivate(challenge.id);
+        GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
+      } else {
+        container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Tout le monde a refusé</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
+      }
+      return true;
+    };
+
     const ch = client
       .channel(`gc-pending-${challenge.id}`)
       .on('postgres_changes', {
@@ -461,21 +476,26 @@ GL.GroupChallenge = {
         if (idx !== -1) currentParts[idx] = payload.new;
         const listEl = container.querySelector('#gcInviteList');
         if (listEl) listEl.innerHTML = renderRows(currentParts);
-
-        const allResponded = currentParts.every(p => p.invite_status !== 'pending');
-        const anyAccepted  = currentParts.some(p => p.invite_status === 'accepted');
-        if (allResponded) {
-          clearInterval(ticker);
-          client.removeChannel(ch); this._gcChannel = null;
-          if (anyAccepted) {
-            await this._tryActivate(challenge.id);
-            GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
-          } else {
-            container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Tout le monde a refusé</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
-          }
-        }
+        await checkAllResponded();
       })
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status !== 'SUBSCRIBED') return;
+        // Guard : recharger les participants au cas où des réponses sont arrivées
+        // pendant la navigation vers cet écran
+        const { data: fresh } = await client
+          .from('group_challenge_participants').select('*').eq('challenge_id', challenge.id);
+        if (!fresh) return;
+        currentParts = fresh;
+        const listEl = container.querySelector('#gcInviteList');
+        if (listEl) listEl.innerHTML = renderRows(currentParts);
+        fresh.filter(p => p.user_id !== myId && !names[p.user_id]).forEach(async p => {
+          const { data } = await client.from('user_data').select('username').eq('user_id', p.user_id).single();
+          names[p.user_id] = data?.username || 'Joueur';
+          const el = container.querySelector('#gcInviteList');
+          if (el) el.innerHTML = renderRows(currentParts);
+        });
+        await checkAllResponded();
+      });
 
     this._gcChannel = ch;
     GL._onRouteLeave = () => {
@@ -536,24 +556,38 @@ GL.GroupChallenge = {
         </div>
       </div>`;
 
+    let gone = false;
+    const go = () => {
+      if (gone) return; gone = true;
+      client.removeChannel(ch); this._gcChannel = null;
+      GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
+    };
+    const cancel = () => {
+      if (gone) return; gone = true;
+      client.removeChannel(ch); this._gcChannel = null;
+      container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Défi annulé</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
+    };
+
     const ch = client
       .channel(`gc-acc-wait-${challenge.id}`)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'group_challenges',
         filter: `id=eq.${challenge.id}`,
       }, (payload) => {
-        if (payload.new.status === 'active') {
-          client.removeChannel(ch); this._gcChannel = null;
-          GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
-        } else if (payload.new.status === 'cancelled') {
-          client.removeChannel(ch); this._gcChannel = null;
-          container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Défi annulé</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
-        }
+        if (payload.new.status === 'active')    go();
+        else if (payload.new.status === 'cancelled') cancel();
       })
-      .subscribe();
+      .subscribe(async (status) => {
+        if (status !== 'SUBSCRIBED') return;
+        // Guard : l'événement a peut-être été envoyé avant que l'abonnement soit prêt
+        const { data } = await client
+          .from('group_challenges').select('status').eq('id', challenge.id).single();
+        if (data?.status === 'active')    go();
+        else if (data?.status === 'cancelled') cancel();
+      });
 
     this._gcChannel = ch;
-    GL._onRouteLeave = () => { client.removeChannel(ch); this._gcChannel = null; };
+    GL._onRouteLeave = () => { gone = true; client.removeChannel(ch); this._gcChannel = null; };
   },
 
   // ── Lobby "Prêt ?" ────────────────────────────────────────────────────────────
