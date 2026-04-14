@@ -1059,6 +1059,22 @@ GL.GroupChallenge = {
           </div>
         </div>
       </div>`;
+
+    container.querySelector('#gcRelancerBtn').addEventListener('click', async () => {
+      const btn = container.querySelector('#gcRelancerBtn');
+      btn.disabled = true; btn.textContent = 'Création...';
+
+      const opponentIds = ranked.filter(p => !p.isMe).map(p => p.userId);
+      const questions   = GL.Challenge._generateQuestions(challenge.config);
+      if (!questions.length) {
+        GL.UI.toast('Pas assez de pays pour ce mode', 'error');
+        btn.disabled = false; btn.textContent = '🔁 Relancer';
+        return;
+      }
+      const newId = await this._createGroupChallenge(opponentIds, challenge.config, questions);
+      if (newId) GL.Router.navigate(`/quiz/defi-groupe/${newId}`);
+      else { btn.disabled = false; btn.textContent = '🔁 Relancer'; }
+    });
   },
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
