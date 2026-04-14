@@ -1202,11 +1202,27 @@ GL.Challenge = {
           </div>
 
           <div style="display:flex;gap:1rem;justify-content:center;margin-top:2rem;flex-wrap:wrap;">
-            <a href="#/quiz/defi" class="btn btn-primary">Nouveau défi</a>
+            <button class="btn btn-primary" id="ch1v1RelancerBtn">🔁 Relancer</button>
+            <a href="#/quiz/defi" class="btn btn-ghost">Autre défi</a>
             <a href="#/" class="btn btn-ghost">Accueil</a>
           </div>
         </div>
       </div>`;
+
+    container.querySelector('#ch1v1RelancerBtn').addEventListener('click', async () => {
+      const btn = container.querySelector('#ch1v1RelancerBtn');
+      btn.disabled = true; btn.textContent = 'Création...';
+
+      const questions = this._generateQuestions(challenge.config);
+      if (!questions.length) {
+        GL.UI.toast('Pas assez de pays pour ce mode', 'error');
+        btn.disabled = false; btn.textContent = '🔁 Relancer';
+        return;
+      }
+      const newId = await this._createChallenge(oppId, challenge.config, questions);
+      if (newId) GL.Router.navigate(`/quiz/defi/${newId}`);
+      else { btn.disabled = false; btn.textContent = '🔁 Relancer'; }
+    });
   },
 
   // ── Helpers génération de questions ──────────────────────────────────────────
@@ -1304,9 +1320,16 @@ GL.Challenge = {
       return [];
     }
 
-    // Récupère le token de session pour l'Authorization header
-    const session = await GL.Auth._client.auth.getSession();
-    const token   = session.data?.session?.access_token || GL_CONFIG.SUPABASE_ANON_KEY;
+    // Lit le token depuis localStorage — synchrone, aucun appel réseau
+    let token = GL_CONFIG.SUPABASE_ANON_KEY;
+    try {
+      const ref = GL_CONFIG.SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
+      if (ref) {
+        const stored = localStorage.getItem(`sb-${ref}-auth-token`);
+        if (stored) token = JSON.parse(stored).access_token || token;
+      }
+    } catch (e) { /* garder le fallback anon key */ }
+    console.log('[CH] _fetchUsers() — token récupéré depuis localStorage (longueur:', token.length, ')');
 
     const url = `${GL_CONFIG.SUPABASE_URL}/rest/v1/user_data`
       + `?select=user_id,username,stats,profile,active_title`
