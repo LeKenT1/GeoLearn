@@ -8,6 +8,7 @@ GL.Challenge = {
   _challengeChannel: null,
   _keyHandler:       null,
   _quizState:        null,
+  _usersCache:       null,  // cache de la liste des joueurs
 
   _t(key)     { return GL.I18N ? GL.I18N.t(key) : key; },
   _n(country) { return GL.I18N ? GL.I18N.name(country) : country.nameFr; },
@@ -16,13 +17,28 @@ GL.Challenge = {
   // ── Init : écoute globale des défis entrants ─────────────────────────────────
   init() {
     GL.Auth.ready.then(() => {
-      if (GL.Auth.isLoggedIn()) this._startGlobalListener();
+      if (GL.Auth.isLoggedIn()) {
+        this._startGlobalListener();
+        this._prefetchUsers();
+      }
       const client = GL.Auth?._client;
       if (client) {
         client.auth.onAuthStateChange((event) => {
-          if (event === 'SIGNED_IN')  this._startGlobalListener();
-          if (event === 'SIGNED_OUT') this._stopGlobalListener();
+          if (event === 'SIGNED_IN')  { this._startGlobalListener(); this._prefetchUsers(); }
+          if (event === 'SIGNED_OUT') { this._stopGlobalListener(); this._usersCache = null; }
         });
+      }
+    });
+  },
+
+  _prefetchUsers() {
+    console.log('[CH] _prefetchUsers() — lancement du pre-fetch');
+    this._fetchUsers(15000).then(players => {
+      if (players !== null) {
+        this._usersCache = players;
+        console.log('[CH] _prefetchUsers() — cache prêt,', players.length, 'joueurs');
+      } else {
+        console.warn('[CH] _prefetchUsers() — échec, pas de cache');
       }
     });
   },
@@ -362,21 +378,20 @@ GL.Challenge = {
       }
     });
 
-    const loadPlayers = (attempt = 1) => {
-      const listEl = container.querySelector('#playerList');
-      if (listEl) {
-        listEl.innerHTML = attempt === 1
-          ? '<div class="challenge-loading">Chargement des joueurs...</div>'
-          : '<div class="challenge-loading">Connexion lente, nouvelle tentative...</div>';
+    const loadPlayers = () => {
+      // Utilise le cache si disponible (pré-fetché au moment de init())
+      if (this._usersCache) {
+        console.log('[CH] loadPlayers() — cache hit,', this._usersCache.length, 'joueurs');
+        allPlayers = this._usersCache;
+        refreshList();
+        return;
       }
-      console.log('[CH] loadPlayers() tentative', attempt);
-      this._fetchUsers(attempt === 1 ? 12000 : 30000).then(players => {
-        console.log('[CH] loadPlayers() tentative', attempt, '→', players === null ? 'ERREUR' : players.length + ' joueurs');
+      console.log('[CH] loadPlayers() — pas de cache, fetch direct');
+      const listEl = container.querySelector('#playerList');
+      if (listEl) listEl.innerHTML = '<div class="challenge-loading">Chargement des joueurs...</div>';
+      this._fetchUsers(15000).then(players => {
+        console.log('[CH] loadPlayers() fetch →', players === null ? 'ERREUR' : players.length + ' joueurs');
         if (players === null) {
-          if (attempt < 3) {
-            setTimeout(() => loadPlayers(attempt + 1), 300);
-            return;
-          }
           const listEl2 = container.querySelector('#playerList');
           if (listEl2) listEl2.innerHTML = `
             <div class="challenge-empty" style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
@@ -384,9 +399,10 @@ GL.Challenge = {
               <button class="btn btn-ghost" id="retryLoadPlayers" style="font-size:0.85rem;padding:0.4rem 1rem;">Réessayer</button>
             </div>`;
           const retryBtn = container.querySelector('#retryLoadPlayers');
-          if (retryBtn) retryBtn.addEventListener('click', () => loadPlayers(1));
+          if (retryBtn) retryBtn.addEventListener('click', loadPlayers);
           return;
         }
+        this._usersCache = players;
         allPlayers = players;
         refreshList();
       });

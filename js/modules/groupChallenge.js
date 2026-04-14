@@ -319,7 +319,20 @@ GL.GroupChallenge = {
       else { btn.disabled = false; updateSendBtn(); }
     });
 
-    GL.Challenge._fetchUsers().then(players => { allPlayers = players; refreshList(); });
+    if (GL.Challenge._usersCache) {
+      console.log('[GC] render() — cache hit,', GL.Challenge._usersCache.length, 'joueurs');
+      allPlayers = GL.Challenge._usersCache;
+      refreshList();
+    } else {
+      console.log('[GC] render() — pas de cache, fetch direct');
+      GL.Challenge._fetchUsers(15000).then(players => {
+        if (players) {
+          GL.Challenge._usersCache = players;
+          allPlayers = players;
+          refreshList();
+        }
+      });
+    }
   },
 
   _renderMultiPlayerList(container, players, selectedIds, onToggle) {
@@ -922,9 +935,10 @@ GL.GroupChallenge = {
     const ranked = parts
       .filter(p => p.invite_status === 'accepted' && p.result)
       .map(p => {
-        const prof    = profiles?.find(pr => pr.user_id === p.user_id);
-        const result  = p.result;
-        const correct = (result.answers || []).filter(a => a.correct).length;
+        const prof      = profiles?.find(pr => pr.user_id === p.user_id);
+        const result    = p.result;
+        const answers   = result.answers || [];
+        const correct   = answers.filter(a => a.correct).length;
         const avatarUrl = prof?.profile?.avatar
           ? GL.Profile.avatarUrl(GL.Profile.migrateAvatar(prof.profile.avatar), 80)
           : `https://api.dicebear.com/9.x/avataaars/svg?seed=${p.user_id}&size=80`;
@@ -934,6 +948,7 @@ GL.GroupChallenge = {
           avatarUrl,
           finishTime: result.finish_time,
           penalties:  result.penalties || 0,
+          answers,
           correct,
           total,
           isMe: p.user_id === myId,
@@ -948,37 +963,97 @@ GL.GroupChallenge = {
       if (GL.Achievements) GL.Achievements.updateNavDot();
     }
 
-    const medal   = (i) => ['🥇', '🥈', '🥉'][i] ?? `#${i + 1}`;
     const myPos   = ranked.findIndex(p => p.isMe);
     const winText = myPos === 0 ? '🏆 Victoire !'
       : myPos === 1 ? '🥈 2ème place !'
       : myPos === 2 ? '🥉 3ème place !'
-      : myPos >= 0  ? `#${myPos + 1}ème place`
+      : myPos >= 0  ? `#${myPos + 1} ème place`
       : 'Résultats';
+    const winClass = myPos === 0 ? 'win' : myPos > 0 ? 'lose' : '';
+
+    // ── Podium visuel (top 3) ──
+    const podiumOrder = [ranked[1], ranked[0], ranked[2]].filter(Boolean); // 2nd - 1st - 3rd
+    const podiumPos   = [2, 1, 3];
+    const podiumPodiumHtml = `
+      <div class="gc-podium">
+        ${podiumOrder.map((p, i) => {
+          const pos = podiumPos[i];
+          const medal = ['🥇','🥈','🥉'][pos - 1];
+          return `
+            <div class="gc-podium-player gc-podium-pos-${pos}${p.isMe ? ' gc-podium-me' : ''}">
+              <div class="gc-podium-avatar-wrap">
+                <img class="gc-podium-avatar" src="${p.avatarUrl}"
+                     onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.userId}&size=80'">
+                <span class="gc-podium-medal">${medal}</span>
+              </div>
+              <div class="gc-podium-name">${p.name}${p.isMe ? ' <span class="you-badge">toi</span>' : ''}</div>
+              <div class="gc-podium-time">${GL.Challenge._formatTime(p.finishTime)}</div>
+              <div class="gc-podium-step">
+                <span class="gc-podium-step-num">${pos}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+
+    // ── Joueurs 4e et au-delà ──
+    const restHtml = ranked.slice(3).map((p, i) => `
+      <div class="gc-rank-row${p.isMe ? ' gc-rank-me' : ''}">
+        <div class="gc-rank-pos">#${i + 4}</div>
+        <img class="gc-rank-avatar" src="${p.avatarUrl}"
+             onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.userId}&size=64'">
+        <div class="gc-rank-info">
+          <div class="gc-rank-name">${p.name}${p.isMe ? ' <span class="you-badge">vous</span>' : ''}</div>
+          <div class="gc-rank-detail">${p.correct}/${p.total} ✓ &nbsp;•&nbsp; ${p.penalties} pen.</div>
+        </div>
+        <div class="gc-rank-time">${GL.Challenge._formatTime(p.finishTime)}</div>
+      </div>`).join('');
+
+    // ── Tableau de détail des réponses ──
+    const icon = (a) => !a ? '—' : a.correct ? '✅' : a.skipped ? '⏭️' : '❌';
+    const time = (a) => a && a.timeMs != null ? `${(a.timeMs / 1000).toFixed(1)}s` : '—';
+    const cols = ranked.length;
+
+    const detailHtml = `
+      <div class="gc-detail-section">
+        <h4 class="gc-detail-title">Détail des réponses</h4>
+        <div class="gc-detail-scroll">
+          <div class="gc-detail-table" style="--gc-cols:${cols}">
+            <div class="gc-detail-head">
+              <div class="gc-detail-country-cell">Pays</div>
+              ${ranked.map((p, i) => `
+                <div class="gc-detail-player-head${p.isMe ? ' gc-detail-me' : ''}">
+                  <img src="${p.avatarUrl}" onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.userId}&size=32'" style="width:22px;height:22px;border-radius:50%;vertical-align:middle;margin-right:0.3rem;">
+                  ${p.name.split(' ')[0]}
+                </div>`).join('')}
+            </div>
+            ${(challenge.questions || []).map((q, qi) => {
+              const country = GL.COUNTRIES.find(c => c.code === q.code);
+              return `
+                <div class="gc-detail-row">
+                  <div class="gc-detail-country-cell">
+                    <span class="fi fi-${q.code}" style="width:20px;height:13px;background-size:cover;display:inline-block;border-radius:2px;vertical-align:middle;margin-right:0.35rem;flex-shrink:0;"></span>
+                    <span>${country ? this._n(country) : q.code}</span>
+                  </div>
+                  ${ranked.map(p => {
+                    const a = p.answers[qi];
+                    const ok = a?.correct;
+                    return `<div class="gc-detail-cell ${ok ? 'gc-cell-ok' : 'gc-cell-no'}">${icon(a)}<br><span class="gc-detail-time">${time(a)}</span></div>`;
+                  }).join('')}
+                </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
 
     container.innerHTML = `
       <div class="page">
-        <div class="gc-ranking">
-
-          <div class="ch-recap-winner ${myPos === 0 ? 'win' : myPos > 0 ? 'lose' : ''}">${winText}</div>
-
-          <div class="gc-ranking-list">
-            ${ranked.map((p, i) => `
-              <div class="gc-rank-row${p.isMe ? ' gc-rank-me' : ''}${i === 0 ? ' gc-rank-first' : ''}">
-                <div class="gc-rank-pos">${medal(i)}</div>
-                <img class="gc-rank-avatar" src="${p.avatarUrl}"
-                     onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=${p.userId}&size=64'">
-                <div class="gc-rank-info">
-                  <div class="gc-rank-name">${p.name}${p.isMe ? ' <span class="you-badge">vous</span>' : ''}</div>
-                  <div class="gc-rank-detail">${p.correct}/${p.total} ✓ &nbsp;•&nbsp; ${p.penalties} pen.</div>
-                </div>
-                <div class="gc-rank-time">${GL.Challenge._formatTime(p.finishTime)}</div>
-              </div>`).join('')}
-          </div>
-
-          <div style="display:flex;gap:1rem;justify-content:center;margin-top:2.5rem;flex-wrap:wrap;">
-            <a href="#/quiz/defi-groupe" class="btn btn-primary">Nouveau défi</a>
-            <a href="#/quiz/defi" class="btn btn-ghost">Défi 1v1</a>
+        <div class="gc-results">
+          <div class="ch-recap-winner ${winClass}">${winText}</div>
+          ${podiumPodiumHtml}
+          ${restHtml ? `<div class="gc-ranking-list" style="max-width:500px;width:100%;margin:0 auto 1.5rem;">${restHtml}</div>` : ''}
+          ${detailHtml}
+          <div class="gc-results-btns">
+            <a href="#/quiz/defi" class="btn btn-primary">Nouveau défi</a>
             <a href="#/" class="btn btn-ghost">Accueil</a>
           </div>
         </div>
