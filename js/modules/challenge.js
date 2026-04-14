@@ -362,13 +362,21 @@ GL.Challenge = {
       }
     });
 
-    const loadPlayers = () => {
+    const loadPlayers = (attempt = 1) => {
       const listEl = container.querySelector('#playerList');
-      if (listEl) listEl.innerHTML = '<div class="challenge-loading">Chargement des joueurs...</div>';
-      console.log('[CH] render() — lancement _fetchUsers(), GL.Auth._user avant:', GL.Auth?._user?.id ?? 'null');
-      this._fetchUsers().then(players => {
-        console.log('[CH] render() — _fetchUsers() terminé, joueurs:', players === null ? 'ERREUR' : players.length);
+      if (listEl) {
+        listEl.innerHTML = attempt === 1
+          ? '<div class="challenge-loading">Chargement des joueurs...</div>'
+          : '<div class="challenge-loading">Connexion lente, nouvelle tentative...</div>';
+      }
+      console.log('[CH] loadPlayers() tentative', attempt);
+      this._fetchUsers(attempt === 1 ? 12000 : 30000).then(players => {
+        console.log('[CH] loadPlayers() tentative', attempt, '→', players === null ? 'ERREUR' : players.length + ' joueurs');
         if (players === null) {
+          if (attempt < 3) {
+            setTimeout(() => loadPlayers(attempt + 1), 300);
+            return;
+          }
           const listEl2 = container.querySelector('#playerList');
           if (listEl2) listEl2.innerHTML = `
             <div class="challenge-empty" style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
@@ -376,7 +384,7 @@ GL.Challenge = {
               <button class="btn btn-ghost" id="retryLoadPlayers" style="font-size:0.85rem;padding:0.4rem 1rem;">Réessayer</button>
             </div>`;
           const retryBtn = container.querySelector('#retryLoadPlayers');
-          if (retryBtn) retryBtn.addEventListener('click', loadPlayers);
+          if (retryBtn) retryBtn.addEventListener('click', () => loadPlayers(1));
           return;
         }
         allPlayers = players;
@@ -1267,8 +1275,8 @@ GL.Challenge = {
   },
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
-  async _fetchUsers() {
-    console.log('[CH] _fetchUsers() — début | GL.Auth._user avant wait:', GL.Auth?._user?.id ?? 'null');
+  async _fetchUsers(timeoutMs = 12000) {
+    console.log('[CH] _fetchUsers() — début | timeout:', timeoutMs, '| GL.Auth._user avant wait:', GL.Auth?._user?.id ?? 'null');
     const t0 = Date.now();
     if (GL.Auth?.ready) {
       await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 3000))]);
@@ -1286,15 +1294,15 @@ GL.Challenge = {
       .from('user_data').select('user_id, username, stats, profile, active_title')
       .not('username', 'is', null);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 10000)
+      setTimeout(() => reject(new Error('timeout')), timeoutMs)
     );
 
     let data, fetchErr;
     try {
       ({ data, error: fetchErr } = await Promise.race([fetchPromise, timeoutPromise]));
     } catch (e) {
-      console.error('[CH] _fetchUsers() — requête Supabase timeout ou exception:', e.message);
-      return null; // null = erreur, [] = liste vide réelle
+      console.error('[CH] _fetchUsers() — timeout/exception:', e.message);
+      return null;
     }
     if (fetchErr) {
       console.error('[CH] _fetchUsers() — erreur Supabase:', fetchErr.message);

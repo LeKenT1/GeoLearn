@@ -498,15 +498,19 @@ GL.GroupChallenge = {
       if (remaining <= 0) { clearInterval(ticker); this._tryActivate(challenge.id); }
     }, 1000);
 
+    let poll = null;
+
     const checkAllResponded = async () => {
       const allResponded = currentParts.every(p => p.invite_status !== 'pending');
       const anyAccepted  = currentParts.some(p => p.invite_status === 'accepted');
       if (!allResponded) return false;
       clearInterval(ticker);
+      clearInterval(poll);
       client.removeChannel(ch); this._gcChannel = null;
       if (anyAccepted) {
         await this._tryActivate(challenge.id);
-        GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
+        console.log('[GC] _renderPendingCreator — checkAllResponded → renderChallenge directement');
+        await this.renderChallenge(container, { id: challenge.id });
       } else {
         container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Tout le monde a refusé</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Nouveau défi</a></div>`;
       }
@@ -548,7 +552,7 @@ GL.GroupChallenge = {
       });
 
     // Polling fallback : si les events Realtime n'arrivent pas (RLS/réseau), on recheck toutes les 2s
-    const poll = setInterval(async () => {
+    poll = setInterval(async () => {
       const { data: fresh } = await client
         .from('group_challenge_participants').select('*').eq('challenge_id', challenge.id);
       if (!fresh) return;
@@ -633,12 +637,12 @@ GL.GroupChallenge = {
 
     let gone = false;
     let poll = null;
-    const go = () => {
+    const go = async () => {
       if (gone) return; gone = true;
       clearInterval(poll);
       client.removeChannel(ch); this._gcChannel = null;
-      // Naviguer seulement si l'URL courante est déjà cette page (évite double-render si appelé depuis renderChallenge)
-      GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
+      console.log('[GC] _renderAcceptedWaiting — go() → renderChallenge directement');
+      await this.renderChallenge(container, { id: challenge.id });
     };
     const cancel = () => {
       if (gone) return; gone = true;
