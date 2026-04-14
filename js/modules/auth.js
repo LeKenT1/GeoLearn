@@ -264,7 +264,6 @@ GL.Auth = {
 
         const d = payload.new;
         if (!d) return;
-        console.log('[Auth] Realtime → mise à jour reçue depuis un autre appareil');
 
         if (d.profile) localStorage.setItem('gl_profile', JSON.stringify(d.profile));
         if (d.stats)   localStorage.setItem('gl_stats',   JSON.stringify(d.stats));
@@ -284,7 +283,6 @@ GL.Auth = {
         }
       })
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') console.log('[Auth] Realtime connecté (sync multi-appareils)');
       });
   },
 
@@ -330,7 +328,6 @@ GL.Auth = {
   // ── Pull DB → local ─────────────────────────────────────────────────────────
   async _pull() {
     if (!this._user || !this._client) return false;
-    console.log('[Auth] _pull() pour uid:', this._user.id);
 
     let { data, error } = await this._client
       .from('user_data')
@@ -344,9 +341,7 @@ GL.Auth = {
       if (migrated) data = migrated;
     }
 
-    if (!data || (!data.profile && !data.stats)) { console.log('[Auth] _pull() → aucune donnée'); return false; }
 
-    console.log('[Auth] _pull() → données trouvées, profile:', !!data.profile, 'stats:', !!data.stats);
     if (data.profile)      localStorage.setItem('gl_profile',      JSON.stringify(data.profile));
     if (data.stats)        localStorage.setItem('gl_stats',        JSON.stringify(data.stats));
     if (data.active_title) localStorage.setItem('gl_active_title', data.active_title);

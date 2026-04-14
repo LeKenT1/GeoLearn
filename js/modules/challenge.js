@@ -32,11 +32,9 @@ GL.Challenge = {
   },
 
   _prefetchUsers() {
-    console.log('[CH] _prefetchUsers() — lancement du pre-fetch');
     this._fetchUsers(15000).then(players => {
       if (players !== null) {
         this._usersCache = players;
-        console.log('[CH] _prefetchUsers() — cache prêt,', players.length, 'joueurs');
       } else {
         console.warn('[CH] _prefetchUsers() — échec, pas de cache');
       }
@@ -52,13 +50,11 @@ GL.Challenge = {
   _startGlobalListener() {
     const client = GL.Auth?._client;
     const userId = GL.Auth?._user?.id;
-    console.log('[CH] _startGlobalListener() — client:', !!client, '| userId:', userId);
     if (!client || !userId) {
       console.warn('[CH] _startGlobalListener() annulé — client ou userId manquant');
       return;
     }
     if (this._globalChannel) {
-      console.log('[CH] ancien globalChannel trouvé, on le supprime');
       client.removeChannel(this._globalChannel);
     }
 
@@ -68,11 +64,9 @@ GL.Challenge = {
         event: 'INSERT', schema: 'public', table: 'challenges',
         filter: `challenged_id=eq.${userId}`,
       }, (payload) => {
-        console.log('[CH] 📨 INSERT reçu sur challenges:', payload.new);
         this._onIncomingChallenge(payload.new);
       })
       .subscribe((status, err) => {
-        console.log('[CH] globalChannel subscribe status:', status, err || '');
       });
   },
 
@@ -381,16 +375,13 @@ GL.Challenge = {
     const loadPlayers = () => {
       // Utilise le cache si disponible (pré-fetché au moment de init())
       if (this._usersCache) {
-        console.log('[CH] loadPlayers() — cache hit,', this._usersCache.length, 'joueurs');
         allPlayers = this._usersCache;
         refreshList();
         return;
       }
-      console.log('[CH] loadPlayers() — pas de cache, fetch direct');
       const listEl = container.querySelector('#playerList');
       if (listEl) listEl.innerHTML = '<div class="challenge-loading">Chargement des joueurs...</div>';
       this._fetchUsers(15000).then(players => {
-        console.log('[CH] loadPlayers() fetch →', players === null ? 'ERREUR' : players.length + ' joueurs');
         if (players === null) {
           const listEl2 = container.querySelector('#playerList');
           if (listEl2) listEl2.innerHTML = `
@@ -1308,13 +1299,11 @@ GL.Challenge = {
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────
   async _fetchUsers(timeoutMs = 15000) {
-    console.log('[CH] _fetchUsers() — début (fetch natif) | timeout:', timeoutMs);
     const t0 = Date.now();
     if (GL.Auth?.ready) {
       await Promise.race([GL.Auth.ready, new Promise(r => setTimeout(r, 3000))]);
     }
     const myId = GL.Auth?._user?.id;
-    console.log('[CH] _fetchUsers() — après Auth.ready (' + (Date.now() - t0) + 'ms) | myId:', myId ?? 'null');
     if (!myId) {
       console.warn('[CH] _fetchUsers() — pas de session, abandon');
       return [];
@@ -1329,7 +1318,6 @@ GL.Challenge = {
         if (stored) token = JSON.parse(stored).access_token || token;
       }
     } catch (e) { /* garder le fallback anon key */ }
-    console.log('[CH] _fetchUsers() — token récupéré depuis localStorage (longueur:', token.length, ')');
 
     const url = `${GL_CONFIG.SUPABASE_URL}/rest/v1/user_data`
       + `?select=user_id,username,stats,profile,active_title`
@@ -1357,7 +1345,6 @@ GL.Challenge = {
         return null;
       }
       data = await resp.json();
-      console.log('[CH] _fetchUsers() — data.length:', data?.length ?? 'null');
     } catch (e) {
       clearTimeout(timer);
       console.error('[CH] _fetchUsers() — fetch échoué:', e.message);
@@ -1385,7 +1372,6 @@ GL.Challenge = {
       })
       .sort((a, b) => b.xp - a.xp);
 
-    console.log('[CH] _fetchUsers() — joueurs retournés:', result.length);
     return result;
   },
 
