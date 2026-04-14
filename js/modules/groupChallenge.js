@@ -547,9 +547,28 @@ GL.GroupChallenge = {
         await checkAllResponded();
       });
 
+    // Polling fallback : si les events Realtime n'arrivent pas (RLS/réseau), on recheck toutes les 2s
+    const poll = setInterval(async () => {
+      const { data: fresh } = await client
+        .from('group_challenge_participants').select('*').eq('challenge_id', challenge.id);
+      if (!fresh) return;
+      const changed = fresh.some(fp => {
+        const old = currentParts.find(p => p.user_id === fp.user_id);
+        return old && old.invite_status !== fp.invite_status;
+      });
+      if (changed) {
+        console.log('[GC] _renderPendingCreator — poll: changement détecté', fresh.map(p => `${p.user_id.slice(0,8)}:${p.invite_status}`));
+        currentParts = fresh;
+        const listEl = container.querySelector('#gcInviteList');
+        if (listEl) listEl.innerHTML = renderRows(currentParts);
+        await checkAllResponded();
+      }
+    }, 2000);
+
     this._gcChannel = ch;
     GL._onRouteLeave = () => {
       clearInterval(ticker);
+      clearInterval(poll);
       client.removeChannel(ch); this._gcChannel = null;
       this._cancelGroupChallenge(challenge.id);
     };
@@ -581,11 +600,17 @@ GL.GroupChallenge = {
       </div>`;
 
     container.querySelector('#gcInlineAccept').addEventListener('click', async () => {
+      const btn = container.querySelector('#gcInlineAccept');
+      btn.disabled = true; btn.textContent = 'Acceptation...';
+      console.log('[GC] _renderInlineInvite — ACCEPTER, participantId:', myPart.id);
       await this._respondToInvite(myPart.id, 'accepted');
       await this._tryActivateIfAllResponded(challenge.id);
-      GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
+      // Ne pas naviguer vers la même URL (le router ne re-rendrait pas) — re-render directement
+      console.log('[GC] _renderInlineInvite — re-render direct après acceptation');
+      await this.renderChallenge(container, { id: challenge.id });
     });
     container.querySelector('#gcInlineDecline').addEventListener('click', async () => {
+      console.log('[GC] _renderInlineInvite — REFUSER, participantId:', myPart.id);
       await this._respondToInvite(myPart.id, 'declined');
       await this._tryActivateIfAllResponded(challenge.id);
       container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><h3>Défi refusé</h3><a href="#/quiz/defi-groupe" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
@@ -607,13 +632,17 @@ GL.GroupChallenge = {
       </div>`;
 
     let gone = false;
+    let poll = null;
     const go = () => {
       if (gone) return; gone = true;
+      clearInterval(poll);
       client.removeChannel(ch); this._gcChannel = null;
+      // Naviguer seulement si l'URL courante est déjà cette page (évite double-render si appelé depuis renderChallenge)
       GL.Router.navigate(`/quiz/defi-groupe/${challenge.id}`);
     };
     const cancel = () => {
       if (gone) return; gone = true;
+      clearInterval(poll);
       client.removeChannel(ch); this._gcChannel = null;
       container.innerHTML = `<div class="page" style="text-align:center;padding:4rem;"><div style="font-size:3rem">😞</div><h3>Défi annulé</h3><a href="#/quiz/defi" class="btn btn-primary" style="margin-top:1.5rem">Retour</a></div>`;
     };
@@ -639,8 +668,18 @@ GL.GroupChallenge = {
         else if (data?.status === 'cancelled') cancel();
       });
 
+    // Polling fallback toutes les 2s (si Realtime ne délivre pas l'event)
+    poll = setInterval(async () => {
+      if (gone) { clearInterval(poll); return; }
+      const { data } = await client
+        .from('group_challenges').select('status').eq('id', challenge.id).single();
+      console.log('[GC] _renderAcceptedWaiting — poll status:', data?.status);
+      if (data?.status === 'active')    go();
+      else if (data?.status === 'cancelled') cancel();
+    }, 2000);
+
     this._gcChannel = ch;
-    GL._onRouteLeave = () => { gone = true; client.removeChannel(ch); this._gcChannel = null; };
+    GL._onRouteLeave = () => { gone = true; clearInterval(poll); client.removeChannel(ch); this._gcChannel = null; };
   },
 
   // ── Lobby "Prêt ?" ────────────────────────────────────────────────────────────
