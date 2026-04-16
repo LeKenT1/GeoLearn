@@ -76,7 +76,7 @@ GL.GroupChallenge = {
   _showInviteModal(challenge, participantId, creatorName) {
     document.getElementById('gc-invite-modal')?.remove();
     const cfg = challenge.config || {};
-    const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire' }[cfg.mode] || cfg.mode;
+    const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire', culture: '📚 Culture' }[cfg.mode] || cfg.mode;
     const contLabel = cfg.continent === 'all' ? 'Monde entier' : (GL.I18N?.cont(cfg.continent) ?? cfg.continent);
     const diffLabel = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' }[cfg.difficulty] || cfg.difficulty;
 
@@ -92,7 +92,7 @@ GL.GroupChallenge = {
           <span class="challenge-config-tag">${modeLabel}</span>
           <span class="challenge-config-tag">${cfg.count || '?'} pays</span>
           <span class="challenge-config-tag">${contLabel}</span>
-          <span class="challenge-config-tag">${diffLabel}</span>
+          ${cfg.mode !== 'culture' ? `<span class="challenge-config-tag">${diffLabel}</span>` : ''}
           <span class="challenge-config-tag">⚠️ ${cfg.penalty ?? 7}s pénalité</span>
         </div>
         <div class="ch-modal-countdown"><span id="gcModalCountdown">60</span>s pour répondre</div>
@@ -146,6 +146,7 @@ GL.GroupChallenge = {
               <div class="challenge-mode-card" data-mode="map"><div class="challenge-mode-icon">📍</div><div class="challenge-mode-name">Carte</div></div>
               <div class="challenge-mode-card" data-mode="nightmare"><div class="challenge-mode-icon">💀</div><div class="challenge-mode-name">Cauchemar</div></div>
               <div class="challenge-mode-card" data-mode="random"><div class="challenge-mode-icon">🎲</div><div class="challenge-mode-name">Aléatoire</div></div>
+              <div class="challenge-mode-card" data-mode="culture"><div class="challenge-mode-icon">📚</div><div class="challenge-mode-name">Culture</div></div>
             </div>
           </div>
 
@@ -174,7 +175,7 @@ GL.GroupChallenge = {
             </div>
           </div>
 
-          <div class="setup-section">
+          <div class="setup-section" id="gcDifficultySection">
             <div class="setup-section-label">${t('setup.difficulty')}</div>
             <div class="difficulty-selector">
               <button class="diff-btn" data-diff="easy">${t('setup.diff.easy')}<br><small>${t('setup.diff.easy.sub')}</small></button>
@@ -221,6 +222,8 @@ GL.GroupChallenge = {
     const updateTypeSection = () => {
       const isMap = cfg.mode === 'map';
       container.querySelectorAll('.challenge-mode-card[data-type]').forEach(c => c.classList.toggle('disabled', isMap));
+      const diffSection = container.querySelector('#gcDifficultySection');
+      if (diffSection) diffSection.style.display = cfg.mode === 'culture' ? 'none' : '';
     };
 
     const updateSendBtn = () => {
@@ -558,7 +561,7 @@ GL.GroupChallenge = {
   // ── Invitation inline (invité naviguant directement à l'URL) ────────────────
   _renderInlineInvite(container, challenge, myPart, creatorName) {
     const cfg = challenge.config || {};
-    const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire' }[cfg.mode] || cfg.mode;
+    const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire', culture: '📚 Culture' }[cfg.mode] || cfg.mode;
     const contLabel = cfg.continent === 'all' ? 'Monde entier' : (GL.I18N?.cont(cfg.continent) ?? cfg.continent);
 
     container.innerHTML = `

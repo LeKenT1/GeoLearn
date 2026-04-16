@@ -90,7 +90,7 @@ GL.Challenge = {
   _showIncomingModal(challenge, challengerName) {
     document.getElementById('challenge-incoming-modal')?.remove();
     const cfg = challenge.config || {};
-    const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire' }[cfg.mode] || cfg.mode;
+    const modeLabel = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire', culture: '📚 Culture' }[cfg.mode] || cfg.mode;
     const typeLabel = { choice: '🔢 Choix', write: '✏️ Écrire', random: '🎲 Type aléatoire' }[cfg.type];
     const contLabel = cfg.continent === 'all' ? 'Monde entier' : (GL.I18N ? GL.I18N.cont(cfg.continent) : cfg.continent);
     const diffLabel = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' }[cfg.difficulty] || cfg.difficulty;
@@ -105,10 +105,10 @@ GL.Challenge = {
         <p class="ch-modal-from"><strong>${challengerName}</strong> vous défie</p>
         <div class="ch-modal-tags">
           <span class="challenge-config-tag">${modeLabel}</span>
-          ${typeLabel && cfg.mode !== 'map' ? `<span class="challenge-config-tag">${typeLabel}</span>` : ''}
+          ${typeLabel && cfg.mode !== 'map' && cfg.mode !== 'culture' ? `<span class="challenge-config-tag">${typeLabel}</span>` : ''}
           <span class="challenge-config-tag">${cfg.count || '?'} pays</span>
           <span class="challenge-config-tag">${contLabel}</span>
-          <span class="challenge-config-tag">${diffLabel}</span>
+          ${cfg.mode !== 'culture' ? `<span class="challenge-config-tag">${diffLabel}</span>` : ''}
           <span class="challenge-config-tag">⚠️ ${cfg.penalty ?? 7}s pénalité</span>
         </div>
         <div class="ch-modal-countdown">
@@ -181,6 +181,10 @@ GL.Challenge = {
                 <div class="challenge-mode-icon">🎲</div>
                 <div class="challenge-mode-name">Aléatoire</div>
               </div>
+              <div class="challenge-mode-card" data-mode="culture">
+                <div class="challenge-mode-icon">📚</div>
+                <div class="challenge-mode-name">Culture</div>
+              </div>
             </div>
           </div>
 
@@ -218,7 +222,7 @@ GL.Challenge = {
             </div>
           </div>
 
-          <div class="setup-section">
+          <div class="setup-section" id="difficultySection">
             <div class="setup-section-label">${t('setup.difficulty')}</div>
             <div class="difficulty-selector">
               <button class="diff-btn" data-diff="easy">${t('setup.diff.easy')}<br><small>${t('setup.diff.easy.sub')}</small></button>
@@ -282,6 +286,8 @@ GL.Challenge = {
       const typeCards = container.querySelectorAll('.challenge-mode-card[data-type]');
       const isMap = cfg.mode === 'map';
       typeCards.forEach(c => c.classList.toggle('disabled', isMap));
+      const diffSection = container.querySelector('#difficultySection');
+      if (diffSection) diffSection.style.display = cfg.mode === 'culture' ? 'none' : '';
     };
 
     container.querySelectorAll('.challenge-mode-card[data-mode]').forEach(card => {
@@ -645,7 +651,7 @@ GL.Challenge = {
     container.innerHTML = `<div class="page"><div class="ch-countdown"><div class="ch-countdown-number ch-countdown-go">GO !</div></div></div>`;
     await new Promise(r => setTimeout(r, 700));
 
-    if (challenge.config.mode === 'map' || challenge.config.mode === 'nightmare' || challenge.config.mode === 'random') {
+    if (['map', 'nightmare', 'random'].includes(challenge.config.mode)) {
       await GL.QuizMap.prepareMapData();
     }
 
@@ -680,9 +686,11 @@ GL.Challenge = {
     }
     state.questionStartTime = Date.now();
     const q = state.questions[state.currentIndex];
-    if (q.type === 'map')        this._renderMapQuestion(container, q);
-    else if (q.type === 'text') this._renderWriteQuestion(container, q);
-    else                        this._renderMCQQuestion(container, q);
+    if (q.type === 'map')             this._renderMapQuestion(container, q);
+    else if (q.type === 'text')       this._renderWriteQuestion(container, q);
+    else if (q.type === 'culture-mc') this._renderCultureMCQuestion(container, q);
+    else if (q.type === 'culture-text') this._renderCultureWriteQuestion(container, q);
+    else                              this._renderMCQQuestion(container, q);
   },
 
   // ── Affichage du timer ────────────────────────────────────────────────────────
@@ -1020,6 +1028,182 @@ GL.Challenge = {
     }
   },
 
+  // ── Question Culture QCM ──────────────────────────────────────────────────────
+  _renderCultureMCQuestion(container, q) {
+    const state = this._quizState;
+    const keys  = ['1','2','3','4'];
+    const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+    container.innerHTML = `
+      <div class="page">
+        <div class="quiz-container">
+          ${this._quizHeader(state)}
+          <div class="culture-fact-card" id="factCard">
+            <div class="culture-fact-deco">📜</div>
+            <p class="culture-fact-text">${escape(q.fact)}</p>
+            <div class="culture-fact-question">${this._t('quiz.culture.question')}</div>
+          </div>
+          <div class="culture-options" id="cultureOptions">
+            ${q.options.map((opt, i) => `
+              <button class="culture-option" data-code="${opt.code}" data-idx="${i}">
+                <span class="culture-option-key">${keys[i]}</span>
+                <span class="culture-option-label">${this._n(opt)}</span>
+                <span class="fi fi-${opt.code} culture-option-flag"></span>
+              </button>`).join('')}
+          </div>
+          <div style="text-align:center;margin-top:1rem;">
+            <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
+          </div>
+          <div class="keyboard-hints">
+            <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span>
+            <span style="color:var(--text-muted);font-size:0.75rem;margin-left:0.25rem">${this._t('quiz.hint.key')}</span>
+          </div>
+        </div>
+      </div>`;
+
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => this._tickTimer(container), 500);
+
+    const options = container.querySelectorAll('.culture-option');
+    let answered = false;
+
+    const handleAnswer = (btn, skipped = false) => {
+      if (answered) return;
+      answered = true;
+      if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+      options.forEach(b => b.disabled = true);
+
+      const code      = skipped ? null : btn?.dataset.code;
+      const isCorrect = !skipped && code === q.country.code;
+      const timeMs    = Date.now() - state.questionStartTime;
+
+      if (!isCorrect) {
+        state.penalties++;
+        const pd = container.querySelector('#penaltiesDisplay');
+        if (pd) pd.textContent = this._penaltyText(state.penalties, state.penaltyMs);
+      }
+      state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped, answerCode: code });
+
+      if (!skipped) {
+        options.forEach(b => {
+          if (b.dataset.code === q.country.code) b.classList.add('correct');
+          else if (b === btn && !isCorrect)       b.classList.add('wrong');
+        });
+      } else {
+        options.forEach(b => { if (b.dataset.code === q.country.code) b.classList.add('correct'); });
+      }
+
+      const factCard = container.querySelector('#factCard');
+      if (factCard) {
+        const rev = document.createElement('div');
+        rev.className = 'culture-flag-reveal';
+        rev.innerHTML = `<span class="fi fi-${q.country.code}" style="display:inline-block;height:42px;aspect-ratio:3/2;background-size:contain;background-position:center;background-repeat:no-repeat;border-radius:4px;box-shadow:var(--shadow-sm);"></span>
+          <span class="culture-reveal-name">${this._n(q.country)}</span>`;
+        factCard.appendChild(rev);
+      }
+
+      setTimeout(() => { state.currentIndex++; this._renderNextQuestion(container); }, 500);
+    };
+
+    options.forEach(btn => btn.addEventListener('click', () => handleAnswer(btn)));
+    container.querySelector('#skipBtn')?.addEventListener('click', () => handleAnswer(null, true));
+
+    if (this._keyHandler) document.removeEventListener('keydown', this._keyHandler);
+    this._keyHandler = (e) => {
+      if (['1','2','3','4'].includes(e.key)) {
+        const idx = parseInt(e.key) - 1;
+        if (options[idx]) handleAnswer(options[idx]);
+      }
+    };
+    document.addEventListener('keydown', this._keyHandler);
+  },
+
+  // ── Question Culture Écriture ─────────────────────────────────────────────────
+  _renderCultureWriteQuestion(container, q) {
+    const state = this._quizState;
+    const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const isEn = GL.I18N?.lang === 'en';
+    const displayAnswer = isEn ? (q.answerAlt || q.answer) : q.answer;
+
+    container.innerHTML = `
+      <div class="page">
+        <div class="quiz-container">
+          ${this._quizHeader(state)}
+          <div class="culture-fact-card" id="factCard">
+            <div class="culture-fact-deco">📜</div>
+            <p class="culture-fact-text">${escape(q.fact)}</p>
+            <div class="culture-fact-question">${this._t('quiz.culture.question')}</div>
+          </div>
+          <div class="quiz-text-form" id="textForm">
+            <input type="text" class="quiz-text-input" id="textAnswer"
+              placeholder="${this._t('quiz.culture.placeholder')}"
+              autocomplete="off" autocorrect="off" spellcheck="false">
+            <div id="textFeedback" class="quiz-hint"></div>
+            <div style="display:flex;gap:0.75rem;justify-content:center;">
+              <button class="btn btn-primary" id="submitTextBtn" style="min-width:120px;">${this._t('quiz.btn.validate')}</button>
+              <button class="btn btn-ghost btn-sm" id="skipBtn">Passer <span class="ch-skip-penalty">+${state.penaltyMs / 1000}s</span></button>
+            </div>
+          </div>
+          <div class="keyboard-hints">
+            <span class="kbd">Entrée</span>
+            <span style="color:var(--text-muted);font-size:0.75rem;margin-left:0.25rem">${this._t('quiz.hint.enter')}</span>
+          </div>
+        </div>
+      </div>`;
+
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => this._tickTimer(container), 500);
+
+    const input     = container.querySelector('#textAnswer');
+    const feedback  = container.querySelector('#textFeedback');
+    const submitBtn = container.querySelector('#submitTextBtn');
+    let answered = false;
+
+    if (input) setTimeout(() => input.focus(), 100);
+
+    const handleAnswer = (skipped = false) => {
+      if (answered) return;
+      answered = true;
+      if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
+
+      const val = input ? input.value.trim() : '';
+      const isCorrect = !skipped && GL.UI.checkTextAnswer(val, q.answer, q.answerAlt, q.aliases);
+      const timeMs = Date.now() - state.questionStartTime;
+
+      if (!isCorrect) {
+        state.penalties++;
+        const pd = container.querySelector('#penaltiesDisplay');
+        if (pd) pd.textContent = this._penaltyText(state.penalties, state.penaltyMs);
+      }
+      state.answers.push({ countryCode: q.country.code, correct: isCorrect, timeMs, skipped: !!skipped, userInput: val });
+
+      if (input) { input.classList.add(isCorrect ? 'correct' : 'wrong'); input.disabled = true; }
+      if (submitBtn) submitBtn.disabled = true;
+      if (!isCorrect && feedback) {
+        feedback.innerHTML = `<span class="quiz-correct-answer">✓ ${displayAnswer}</span>`;
+      }
+
+      const factCard = container.querySelector('#factCard');
+      if (factCard) {
+        const rev = document.createElement('div');
+        rev.className = 'culture-flag-reveal';
+        rev.innerHTML = `<span class="fi fi-${q.country.code}" style="display:inline-block;height:42px;aspect-ratio:3/2;background-size:contain;background-position:center;background-repeat:no-repeat;border-radius:4px;box-shadow:var(--shadow-sm);"></span>
+          <span class="culture-reveal-name">${this._n(q.country)}</span>`;
+        factCard.appendChild(rev);
+      }
+
+      setTimeout(() => { state.currentIndex++; this._renderNextQuestion(container); }, 800);
+    };
+
+    if (submitBtn) submitBtn.addEventListener('click', () => handleAnswer(false));
+    if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') handleAnswer(false); });
+    container.querySelector('#skipBtn')?.addEventListener('click', () => handleAnswer(true));
+
+    if (this._keyHandler) document.removeEventListener('keydown', this._keyHandler);
+    this._keyHandler = (e) => { if (e.key === 'Enter' && !answered) handleAnswer(false); };
+    document.addEventListener('keydown', this._keyHandler);
+  },
+
   // ── Fin du quiz ───────────────────────────────────────────────────────────────
   async _finishQuiz(container) {
     const state = this._quizState;
@@ -1228,6 +1412,20 @@ GL.Challenge = {
     const type     = cfg.type || 'choice';
     const pickType = () => type === 'random' ? (Math.random() < 0.5 ? 'choice' : 'write') : type;
 
+    // Culture : une question par pays (mc ou text)
+    if (cfg.mode === 'culture') {
+      const facts = GL.CULTURE_FACTS || {};
+      const cultPool = pool.filter(c => facts[c.code]);
+      if (cultPool.length < 4) return [];
+      const cultCount = Math.min(cfg.count, cultPool.length);
+      const cultSelected = GL.QuizEngine.pickRandom(cultPool, cultCount);
+      const pickCultType = () => type === 'random' ? (Math.random() < 0.5 ? 'choice' : 'write') : type;
+      return cultSelected.map(country => ({
+        code: country.code,
+        qtype: pickCultType() === 'write' ? 'culture-text' : 'culture-mc',
+      }));
+    }
+
     // Cauchemar : 3 questions par pays (nom → capitale → carte)
     if (cfg.mode === 'nightmare') {
       return selected.flatMap(country => {
@@ -1278,6 +1476,21 @@ GL.Challenge = {
         case 'nightmare-capital-mcq': return GL.QuizEngine.genCountryToCapital(country, pool);
         case 'nightmare-capital-text':return GL.QuizEngine.genCountryToCapitalText(country);
         case 'nightmare-map':         return GL.QuizEngine.genMapQuestion(country, 'flag');
+        case 'culture-mc': {
+          const lang = GL.I18N?.lang || 'fr';
+          const factsArr = (GL.CULTURE_FACTS?.[country.code]?.[lang]) || (GL.CULTURE_FACTS?.[country.code]?.fr) || [];
+          if (!factsArr.length) return null;
+          const fact = factsArr[Math.floor(Math.random() * factsArr.length)];
+          const options = GL.QuizEngine.generateOptions(country, pool, 4);
+          return { type: 'culture-mc', country, fact, options, answer: country.nameFr, answerAlt: country.name, aliases: country.aliases || [] };
+        }
+        case 'culture-text': {
+          const lang = GL.I18N?.lang || 'fr';
+          const factsArr = (GL.CULTURE_FACTS?.[country.code]?.[lang]) || (GL.CULTURE_FACTS?.[country.code]?.fr) || [];
+          if (!factsArr.length) return null;
+          const fact = factsArr[Math.floor(Math.random() * factsArr.length)];
+          return { type: 'culture-text', country, fact, answer: country.nameFr, answerAlt: country.name, aliases: country.aliases || [] };
+        }
         default:                      return GL.QuizEngine.genFlagToName(country, pool);
       }
     }).filter(Boolean);
@@ -1285,16 +1498,17 @@ GL.Challenge = {
 
   _configLabel(cfg) {
     if (!cfg) return '';
-    const mode  = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire' }[cfg.mode] || cfg.mode;
+    const mode  = { flags: '🏁 Drapeaux', capitals: '🏛️ Capitales', map: '📍 Carte', nightmare: '💀 Cauchemar', random: '🎲 Aléatoire', culture: '📚 Culture' }[cfg.mode] || cfg.mode;
     const type  = { choice: '🔢 Choix', write: '✏️ Écrire', random: '🎲 Type aléatoire' }[cfg.type];
     const cont  = cfg.continent === 'all' ? '🌍 Monde entier' : (GL.I18N ? GL.I18N.cont(cfg.continent) : cfg.continent);
     const diff  = { easy: 'Facile', normal: 'Normal', hard: 'Difficile' }[cfg.difficulty] || cfg.difficulty;
-    const typeTag = (cfg.mode !== 'map' && type) ? `<span class="challenge-config-tag">${type}</span>` : '';
+    const typeTag = (cfg.mode !== 'map' && cfg.mode !== 'culture' && type) ? `<span class="challenge-config-tag">${type}</span>` : '';
+    const diffTag = cfg.mode !== 'culture' ? `<span class="challenge-config-tag">${diff}</span>` : '';
     return `<span class="challenge-config-tag">${mode}</span>
             ${typeTag}
             <span class="challenge-config-tag">${cfg.count} pays</span>
             <span class="challenge-config-tag">${cont}</span>
-            <span class="challenge-config-tag">${diff}</span>`;
+            ${diffTag}`;
   },
 
   // ── Actions Supabase ──────────────────────────────────────────────────────────

@@ -145,8 +145,8 @@ GL.CULTURE_FACTS = {
     en: ["World's longest country: 4,300 km from north to south", "Home to the Atacama Desert, the driest place on Earth", "Home to the European Southern Observatory, the world's largest (ESO)"]
   },
   'cu': {
-    fr: ["Berceau de la salsa, du son cubano et du rhum Havana Club", "Premier pays à éliminer la transmission mère-enfant du VIH (OMS, 2015)", "A autant de médecins par habitant que les pays les plus développés"],
-    en: ["Birthplace of salsa, son cubano, and Havana Club rum", "First country to eliminate mother-to-child HIV transmission (WHO, 2015)", "Has as many doctors per capita as the world's most developed nations"]
+    fr: ["Berceau de la salsa, du boléro et d'un célèbre rhum exporté dans le monde entier", "Premier pays à éliminer la transmission mère-enfant du VIH (OMS, 2015)", "A autant de médecins par habitant que les pays les plus développés"],
+    en: ["Birthplace of salsa, the bolero, and one of the world's most famous rums", "First country to eliminate mother-to-child HIV transmission (WHO, 2015)", "Has as many doctors per capita as the world's most developed nations"]
   },
   'bo': {
     fr: ["Seul pays d'Amérique du Sud sans accès à la mer (depuis 1884)", "Abrite le plus haut lac navigable du monde : le Titicaca (3 800 m)", "Surnommé le « Tibet des Amériques » pour ses hauts plateaux andins"],
@@ -161,8 +161,8 @@ GL.CULTURE_FACTS = {
     en: ["Home to Angel Falls, the world's highest waterfall (979m)", "Has the world's largest proven oil reserves", "Has one of Latin America's greatest carnivals (Barranquilla Carnival)"]
   },
   'pa': {
-    fr: ["Abrite le canal de Panama, l'une des voies navigables les plus importantes au monde", "Donne son nom au célèbre chapeau Panama, fabriqué en réalité en Équateur", "Pont terrestre entre l'Amérique du Nord et l'Amérique du Sud"],
-    en: ["Home to the Panama Canal, one of the world's most important waterways", "Gives its name to the famous Panama hat, actually made in Ecuador", "Land bridge connecting North and South America"]
+    fr: ["Abrite le canal de Panama, l'une des voies navigables les plus importantes au monde", "A donné son nom à un célèbre chapeau à larges bords, fabriqué en réalité en Équateur", "Pont terrestre entre l'Amérique du Nord et l'Amérique du Sud"],
+    en: ["Home to the Panama Canal, one of the world's most important waterways", "Gave its name to a famous wide-brimmed hat, despite it actually being made in Ecuador", "Land bridge connecting North and South America"]
   },
   'jm': {
     fr: ["Berceau du reggae et de Bob Marley", "Pays d'Usain Bolt, l'homme le plus rapide de l'histoire (9,58 s sur 100 m)", "Île ayant le plus de médailles olympiques par habitant en athlétisme"],
@@ -243,8 +243,8 @@ GL.CULTURE_FACTS = {
     en: ["Home to Angkor Wat, the world's largest religious complex", "Suffered one of the deadliest genocides of the 20th century (Khmer Rouge, 1975-1979)", "Has the only national flag in the world depicting a building"]
   },
   'lk': {
-    fr: ["Surnommée « Perle de l'Océan Indien » pour sa beauté naturelle", "Premier producteur mondial de thé de Ceylan", "Connue pour ses saphirs bleus, parmi les plus beaux du monde"],
-    en: ["Called the 'Pearl of the Indian Ocean' for its natural beauty", "World's leading producer of Ceylon tea", "Famous for its Ceylon blue sapphires, among the world's most prized gems"]
+    fr: ["Surnommée « Perle de l'Océan Indien » pour sa beauté naturelle", "L'un des premiers producteurs mondiaux de thé noir, réputé dans le monde entier pour sa qualité", "Connue pour ses saphirs bleus, parmi les pierres précieuses les plus prisées au monde"],
+    en: ["Called the 'Pearl of the Indian Ocean' for its natural beauty", "One of the world's top black tea producers, famed globally for its exceptional quality", "Famous for its blue sapphires, among the world's most prized precious gems"]
   },
   'jo': {
     fr: ["Abrite Pétra, l'une des sept merveilles du monde moderne", "Abrite le Wadi Rum, désert mythique utilisé dans des films comme Lawrence d'Arabie", "Possède l'un des taux de criminalité les plus bas du Moyen-Orient"],
@@ -293,8 +293,8 @@ GL.CULTURE_FACTS = {
     en: ["Only African country never colonized (except a brief Italian occupation 1936-1941)", "Birthplace of coffee, according to the legend of Kaldi and his goats", "Has a unique calendar: 13 months and 7 years behind the Gregorian calendar"]
   },
   'ke': {
-    fr: ["La Vallée du Rift au Kenya a livré certains des plus vieux ossements humains jamais trouvés", "Pays des coureurs de fond les plus rapides du monde (marathons et 800 m)", "Abrite le Masai Mara, théâtre de la plus grande migration animale annuelle au monde"],
-    en: ["Kenya's Rift Valley has yielded some of the oldest human fossils ever found", "Home to the world's fastest long-distance runners (marathons and 800m)", "Home to the Maasai Mara, scene of the world's greatest annual animal migration"]
+    fr: ["La Grande Vallée du Rift a livré certains des plus vieux ossements humains jamais trouvés", "Pays des coureurs de fond les plus rapides du monde (marathons et 800 m)", "Abrite le Masai Mara, théâtre de la plus grande migration animale annuelle au monde"],
+    en: ["The Great Rift Valley has yielded some of the oldest human fossils ever found", "Home to the world's fastest long-distance runners (marathons and 800m)", "Home to the Maasai Mara, scene of the world's greatest annual animal migration"]
   },
   'gh': {
     fr: ["Premier pays africain à accéder à l'indépendance de l'ère moderne (6 mars 1957)", "Berceau du tissu kente, symbole culturel africain reconnu dans le monde entier", "Parmi les premiers producteurs mondiaux de cacao"],
@@ -313,7 +313,7 @@ GL.CULTURE_FACTS = {
     en: ["Home to Kilimanjaro, Africa's highest peak (5,895m)", "Birthplace of Swahili, one of the most widely spoken African languages", "Home to the Serengeti, scene of the world's greatest annual land migration"]
   },
   'cm': {
-    fr: ["Surnommé « l'Afrique en miniature » pour sa diversité géographique et culturelle exceptionnelle", "Premier pays africain à atteindre les quarts de finale de la Coupe du Monde (1990, Cameroun)", "Berceau de Roger Milla, légende du football africain"],
+    fr: ["Surnommé « l'Afrique en miniature » pour sa diversité géographique et culturelle exceptionnelle", "Premier pays africain à atteindre les quarts de finale de la Coupe du Monde de football (1990)", "Berceau de Roger Milla, légende du football africain"],
     en: ["Nicknamed 'Africa in miniature' for its exceptional geographic and cultural diversity", "First African country to reach the World Cup quarter-finals (1990)", "Home to Roger Milla, an African football legend"]
   },
   'sn': {
