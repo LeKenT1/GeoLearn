@@ -4397,6 +4397,17 @@
   margin-right: 0.1em;
   font-style: normal;
 }
+/* Closing quote */
+.culture-fact-text::after {
+  content: '"';
+  font-size: 3rem;
+  color: var(--cult-accent);
+  opacity: 0.4;
+  line-height: 0;
+  vertical-align: -0.4em;
+  margin-left: 0.1em;
+  font-style: normal;
+}
 
 .culture-fact-question {
   font-size: 0.78rem;
