@@ -68,6 +68,7 @@ GL.App = {
       '/quiz/carte':     (el) => GL.QuizMap.render(el),
       '/quiz/cauchemar': (el) => GL.QuizNightmare.render(el),
       '/quiz/ultime':    (el) => GL.QuizUltimate.render(el),
+      '/quiz/culture':   (el) => GL.QuizCulture.render(el),
       '/quiz/defi':            (el) => GL.Challenge.render(el),
       '/quiz/defi/:id':        (el, p) => GL.Challenge.renderChallenge(el, p),
       '/quiz/defi-groupe/:id': (el, p) => GL.GroupChallenge.renderChallenge(el, p),
@@ -112,6 +113,7 @@ GL.App = {
     set('navQuizMap',   t('nav.quiz.map'));
     set('navQuizNight',      t('nav.quiz.nightmare'));
     set('navQuizUltimate',   t('nav.quiz.ultimate'));
+    set('navQuizCulture',    t('nav.quiz.culture'));
     set('navQuizChallenge',  '⚔️ Défi');
     const quizBtn = document.getElementById('navQuizBtn');
     if (quizBtn) quizBtn.childNodes[0].textContent = t('nav.quiz') + ' ';
@@ -198,6 +200,11 @@ GL.App = {
                 <div class="quiz-pick-icon">⚔️</div>
                 <div class="quiz-pick-name">Défi <span class="beta-badge">Béta</span></div>
                 <div class="quiz-pick-desc">1V1 ou jusqu'à 5 joueurs avec classement</div>
+              </a>
+              <a href="#/quiz/culture" class="quiz-pick-item quiz-pick-culture">
+                <div class="quiz-pick-icon">🧭</div>
+                <div class="quiz-pick-name">${t('feat.culture.title')}</div>
+                <div class="quiz-pick-desc">${t('feat.culture.desc')}</div>
               </a>
             </div>
           </div>
@@ -344,6 +351,14 @@ GL.App = {
                   <div class="feature-card-title">${t('feat.ultimate.title')}</div>
                   <div class="feature-card-desc">${t('feat.ultimate.desc')}</div>
                   <div class="feature-card-arrow">${t('feat.ultimate.link')}</div>
+                </div>
+              </a>
+              <a href="#/quiz/culture" style="text-decoration:none;">
+                <div class="feature-card" style="border-color:rgba(217,119,6,0.4);background:linear-gradient(135deg,rgba(217,119,6,0.08),rgba(180,83,9,0.06));">
+                  <div class="feature-card-icon">🧭</div>
+                  <div class="feature-card-title">${t('feat.culture.title')}</div>
+                  <div class="feature-card-desc">${t('feat.culture.desc')}</div>
+                  <div class="feature-card-arrow">${t('feat.culture.link')}</div>
                 </div>
               </a>
             </div>

@@ -60,6 +60,7 @@ GL.I18N = {
       'nav.quiz.map': '📍 Quiz Carte',
       'nav.quiz.nightmare': '💀 Quiz Cauchemar',
       'nav.quiz.ultimate': '👑 Quiz Ultime',
+      'nav.quiz.culture': '🧭 Quiz Culture',
 
       // Continents
       'cont.all': 'Tous',
@@ -118,6 +119,9 @@ GL.I18N = {
       'feat.ultimate.title': 'Quiz Ultime',
       'feat.ultimate.desc': 'Le vrai défi : tous les pays du monde en une seule session — Drapeau, Capitale, Carte. Comptabilisé pour le classement.',
       'feat.ultimate.link': '👑 Relever le défi →',
+      'feat.culture.title': 'Quiz Culture',
+      'feat.culture.desc': 'Devinez les pays grâce à leurs anecdotes, fun facts et histoire.',
+      'feat.culture.link': '🧭 Jouer →',
       'feat.stats.title': 'Statistiques',
       'feat.stats.desc': 'Suivez vos progrès, identifiez vos points faibles et battez vos records.',
       'feat.stats.link': 'Voir →',
@@ -204,6 +208,19 @@ GL.I18N = {
       'quiz.map.qtype.name': 'Nom du pays',
       'quiz.map.qtype.flag': 'Drapeau',
       'quiz.map.qtype.both': 'Aléatoire',
+
+      // Quiz culture setup
+      'quiz.culture.title': 'Quiz Culture',
+      'quiz.culture.subtitle': 'Devinez les pays à travers leurs anecdotes, fun facts et histoire',
+      'quiz.culture.start': 'Jouer',
+      'quiz.culture.setup.mode': 'Mode de réponse',
+      'quiz.culture.mode.mc': 'Choix multiple',
+      'quiz.culture.mode.mc.desc': 'Choisissez parmi 4 pays',
+      'quiz.culture.mode.text': 'Écriture libre',
+      'quiz.culture.mode.text.desc': 'Écrivez le nom du pays',
+      'quiz.culture.question': 'De quel pays s\'agit-il ?',
+      'quiz.culture.placeholder': 'Nom du pays…',
+      'quiz.culture.nodata': 'Pas assez de faits culturels pour ce filtre.',
 
       // Quiz nightmare setup
       'quiz.nightmare.title': 'Quiz Cauchemar',
@@ -511,6 +528,7 @@ GL.I18N = {
       'nav.quiz.map': '📍 Map Quiz',
       'nav.quiz.nightmare': '💀 Nightmare Quiz',
       'nav.quiz.ultimate': '👑 Ultimate Quiz',
+      'nav.quiz.culture': '🧭 Culture Quiz',
 
       // Continents
       'cont.all': 'All',
@@ -569,6 +587,9 @@ GL.I18N = {
       'feat.ultimate.title': 'Ultimate Quiz',
       'feat.ultimate.desc': 'The real test: every country in the world in one session — Flag, Capital, Map. Counts towards the leaderboard.',
       'feat.ultimate.link': '👑 Accept the challenge →',
+      'feat.culture.title': 'Culture Quiz',
+      'feat.culture.desc': 'Guess countries from anecdotes, fun facts, and history.',
+      'feat.culture.link': '🧭 Play →',
       'feat.stats.title': 'Statistics',
       'feat.stats.desc': 'Track your progress, identify weak points and beat your records.',
       'feat.stats.link': 'View →',
@@ -655,6 +676,19 @@ GL.I18N = {
       'quiz.map.qtype.name': 'Country name',
       'quiz.map.qtype.flag': 'Flag',
       'quiz.map.qtype.both': 'Random',
+
+      // Quiz culture setup
+      'quiz.culture.title': 'Culture Quiz',
+      'quiz.culture.subtitle': 'Guess countries from their anecdotes, fun facts and history',
+      'quiz.culture.start': 'Play',
+      'quiz.culture.setup.mode': 'Answer mode',
+      'quiz.culture.mode.mc': 'Multiple choice',
+      'quiz.culture.mode.mc.desc': 'Choose from 4 countries',
+      'quiz.culture.mode.text': 'Free writing',
+      'quiz.culture.mode.text.desc': 'Write the country name',
+      'quiz.culture.question': 'Which country is this about?',
+      'quiz.culture.placeholder': 'Country name…',
+      'quiz.culture.nodata': 'Not enough cultural facts for this filter.',
 
       // Quiz nightmare setup
       'quiz.nightmare.title': 'Nightmare Quiz',
