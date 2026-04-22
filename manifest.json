@@ -1,0 +1,33 @@
+{
+  "name": "GeoLearn",
+  "short_name": "GeoLearn",
+  "description": "Apprends la géographie mondiale — drapeaux, capitales, carte du monde",
+  "start_url": "./",
+  "id": "./",
+  "display": "standalone",
+  "background_color": "#0a0f1e",
+  "theme_color": "#4f63ff",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "categories": ["education", "games"],
+  "shortcuts": [
+    {
+      "name": "Quiz Drapeaux",
+      "short_name": "Drapeaux",
+      "url": "./#/quiz/drapeaux",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Carte du Monde",
+      "short_name": "Carte",
+      "url": "./#/carte",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

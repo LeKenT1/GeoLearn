@@ -1,0 +1,426 @@
+/* =====================================================
+   MOBILE.CSS — GeoLearn PWA
+   Overrides for screens ≤ 768px
+   ===================================================== */
+
+:root {
+  --bottom-nav-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* =====================================================
+   BOTTOM NAVIGATION BAR
+   ===================================================== */
+#bottom-nav {
+  display: none;
+}
+
+#quiz-bottom-sheet {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* ── Show bottom nav ── */
+  #bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--bottom-nav-height) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: rgba(10, 15, 30, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    align-items: stretch;
+  }
+
+  .bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--text-muted);
+    text-decoration: none;
+    background: none;
+    border: none;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: color 0.18s ease;
+    padding: 8px 2px;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .bn-item:active { opacity: 0.65; }
+  .bn-item.active { color: var(--accent-light); }
+  .bn-item.active .bn-icon { transform: scale(1.12); }
+
+  .bn-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+    transition: transform 0.18s ease;
+    display: block;
+  }
+  .bn-label {
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  /* ── Center quiz FAB ── */
+  .bn-quiz { position: relative; }
+  .bn-quiz-active-indicator {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    display: none;
+  }
+  .bn-quiz.active .bn-quiz-active-indicator { display: block; }
+
+  .bn-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(79, 99, 255, 0.5);
+    margin-top: -16px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .bn-quiz:active .bn-icon-wrap {
+    transform: scale(0.92);
+    box-shadow: 0 2px 10px rgba(79, 99, 255, 0.35);
+  }
+  .bn-quiz .bn-icon {
+    font-size: 1.4rem;
+    transform: none !important;
+  }
+
+  /* Notification dot */
+  .bn-item.has-notif::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: calc(50% - 16px);
+    width: 7px;
+    height: 7px;
+    background: #e74c3c;
+    border-radius: 50%;
+    border: 2px solid #0a0f1e;
+  }
+
+  /* ── Top navbar: minimal on mobile ── */
+  #navbar {
+    padding: 0 1rem;
+  }
+  .nav-links {
+    display: none !important;
+  }
+  .nav-toggle {
+    display: none !important;
+  }
+  .nav-right {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  /* ── Adjust main content ── */
+  #app {
+    padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 0.5rem);
+  }
+
+  /* ── Toast above bottom nav ── */
+  #toast-container {
+    bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 0.75rem);
+    right: 1rem;
+    left: 1rem;
+    align-items: center;
+  }
+
+  /* Safe area insets for notch/home indicator */
+  #bottom-nav {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* =====================================================
+   QUIZ BOTTOM SHEET
+   ===================================================== */
+#quiz-bottom-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+}
+#quiz-bottom-sheet.open {
+  display: block;
+}
+.qbs-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.qbs-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 0.75rem 1.25rem calc(var(--bottom-nav-height) + var(--safe-bottom) + 1rem);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+#quiz-bottom-sheet.open .qbs-panel {
+  transform: translateY(0);
+}
+.qbs-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 1rem;
+}
+.qbs-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.9rem;
+  text-align: center;
+  color: var(--text-primary);
+}
+.qbs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+.qbs-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.9rem 0.6rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-top-width: 3px;
+  background: var(--bg-card);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+}
+.qbs-item:active { transform: scale(0.95); }
+.qbs-item-icon  { font-size: 1.5rem; line-height: 1; }
+.qbs-item-name  { font-size: 0.82rem; font-weight: 700; }
+.qbs-item-desc  { font-size: 0.67rem; color: var(--text-secondary); line-height: 1.3; }
+
+.qbs-flags   { border-top-color: var(--accent); }
+.qbs-caps    { border-top-color: var(--success); }
+.qbs-map     { border-top-color: var(--oceania); }
+.qbs-night   { border-top-color: #7c3aed; }
+.qbs-culture { border-top-color: var(--warning); }
+.qbs-defi    { border-top-color: #ef4444; }
+.qbs-ultime  { border-top-color: var(--warning); }
+
+/* =====================================================
+   GENERAL TOUCH & LAYOUT IMPROVEMENTS
+   ===================================================== */
+@media (max-width: 768px) {
+
+  /* Larger touch targets */
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 36px; }
+
+  /* Prevent iOS input zoom (font-size must be ≥ 16px) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Page spacing */
+  .page {
+    padding: 1.25rem 1rem;
+  }
+  .page-title { font-size: 1.6rem; }
+  .page-subtitle { font-size: 0.875rem; margin-bottom: 1.25rem; }
+
+  /* Hero */
+  .home-hero { padding: 2.5rem 1rem 2rem; }
+  .hero-title { font-size: clamp(2rem, 9vw, 3rem); }
+  .hero-subtitle { font-size: 1rem; }
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+  .hero-actions .btn { justify-content: center; }
+
+  /* Feature cards */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .feature-card { padding: 1.2rem; }
+
+  /* Home tracks */
+  .home-tracks {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Home pills */
+  .home-pills { gap: 0.35rem; }
+  .home-pill { font-size: 0.72rem; padding: 0.25rem 0.65rem; }
+
+  /* CTA banner */
+  .home-cta-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+  }
+  .home-cta-banner .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Stats page */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .stats-grid-5 { grid-template-columns: repeat(2, 1fr); }
+  .stat-card { padding: 1rem; }
+  .stat-card-number { font-size: 2rem; }
+
+  /* Continent cards */
+  .continent-cards-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .continent-ring-card { padding: 0.7rem 0.3rem 0.6rem; }
+  .continent-ring-name { font-size: 0.75rem; }
+  .continent-ring-sub { font-size: 0.62rem; }
+
+  /* Continent detail */
+  .continent-type-stats { grid-template-columns: 1fr; gap: 0.5rem; }
+  .type-cards-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .continent-detail-panel { padding: 1rem; }
+
+  /* Country progress list */
+  .country-progress-list {
+    grid-template-columns: 1fr 1fr;
+    max-height: 280px;
+  }
+
+  /* Hard country list */
+  .hard-country-item { padding: 0.9rem 1rem; }
+}
+
+/* =====================================================
+   QUIZ MOBILE
+   ===================================================== */
+@media (max-width: 768px) {
+
+  /* Quiz option grid */
+  .quiz-options {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.6rem !important;
+  }
+  .quiz-option {
+    min-height: 54px !important;
+    font-size: 0.875rem !important;
+    padding: 0.7rem 0.5rem !important;
+    text-align: center !important;
+  }
+
+  /* Large flag in quiz */
+  .quiz-flag-display { font-size: 5rem !important; }
+
+  /* Level selection */
+  .level-card { padding: 1.2rem !important; }
+  .level-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Quiz result rank card */
+  .rank-card { padding: 1.5rem 1rem !important; }
+}
+
+@media (max-width: 480px) {
+  /* On very small screens, quiz options go full width */
+  .quiz-options {
+    grid-template-columns: 1fr !important;
+  }
+  .quiz-option {
+    min-height: 50px !important;
+  }
+  .continent-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .country-progress-list { grid-template-columns: 1fr; }
+  .stats-grid-5 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =====================================================
+   FLAG LIST MOBILE
+   ===================================================== */
+@media (max-width: 480px) {
+  .flag-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  .flag-card { padding: 0.75rem 0.6rem !important; }
+}
+
+/* =====================================================
+   MAP MOBILE
+   ===================================================== */
+@media (max-width: 768px) {
+  /* Map takes full height minus top + bottom nav */
+  .map-wrapper, #map-container {
+    height: calc(100vh - var(--nav-height) - var(--bottom-nav-height) - var(--safe-bottom)) !important;
+  }
+}
+
+/* =====================================================
+   AUTH MODAL MOBILE
+   ===================================================== */
+@media (max-width: 768px) {
+  .auth-modal-content,
+  .modal-content {
+    margin: 1rem;
+    max-height: 88vh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+  }
+}
+
+/* =====================================================
+   LEADERBOARD MOBILE
+   ===================================================== */
+@media (max-width: 480px) {
+  .leaderboard-row { padding: 0.75rem !important; }
+  .leaderboard-rank { font-size: 1rem !important; }
+}
+
+/* =====================================================
+   PROFILE MOBILE
+   ===================================================== */
+@media (max-width: 480px) {
+  .profile-avatar { font-size: 3rem !important; }
+  .profile-card { padding: 1.25rem !important; }
+}

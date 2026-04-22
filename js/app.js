@@ -85,6 +85,8 @@ GL.App = {
     if (GL.GroupChallenge) GL.GroupChallenge.init();
     if (GL.Achievements) GL.Achievements.updateNavDot();
 
+    this._initBottomNav();
+
     // Lien test visible uniquement en local
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       const navLinks = document.getElementById('navLinks');
@@ -121,6 +123,73 @@ GL.App = {
     document.querySelectorAll('.lang-switch-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === GL.I18N.lang);
     });
+    // Bottom nav labels
+    set('bnLabelHome',    t('nav.home'));
+    set('bnLabelFlags',   t('nav.flags'));
+    set('bnLabelQuiz',    t('nav.quiz'));
+    set('bnLabelStats',   t('nav.stats'));
+    set('bnLabelProfile', t('nav.profile') || 'Profil');
+    // Quiz bottom sheet
+    set('qbsNameFlags',   t('nav.quiz.flags'));
+    set('qbsDescFlags',   t('feat.quizflags.desc'));
+    set('qbsNameCaps',    t('nav.quiz.capitals'));
+    set('qbsDescCaps',    t('feat.quizcap.desc'));
+    set('qbsNameMap',     t('nav.quiz.map'));
+    set('qbsDescMap',     t('feat.quizmap.desc'));
+    set('qbsNameCulture', t('nav.quiz.culture'));
+    set('qbsDescCulture', t('feat.culture.desc'));
+    set('qbsNameNight',   t('nav.quiz.nightmare'));
+    set('qbsDescNight',   t('feat.nightmare.desc'));
+    set('qbsNameUltime',  t('nav.quiz.ultimate'));
+    set('qbsDescUltime',  t('feat.ultimate.desc'));
+    set('qbsNameDefi',    '⚔️ Défi 1v1');
+    set('qbsDescDefi',    GL.I18N.lang === 'en' ? 'Play against a friend in real time' : 'Jouer contre un ami en temps réel');
+  },
+
+  _initBottomNav() {
+    const sheet = document.getElementById('quiz-bottom-sheet');
+    const bnQuiz = document.getElementById('bnQuiz');
+    const backdrop = document.getElementById('qbsBackdrop');
+
+    if (bnQuiz && sheet) {
+      bnQuiz.addEventListener('click', () => sheet.classList.add('open'));
+      backdrop.addEventListener('click', () => sheet.classList.remove('open'));
+      sheet.querySelectorAll('.qbs-item').forEach(a => {
+        a.addEventListener('click', () => sheet.classList.remove('open'));
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sheet.classList.contains('open')) {
+          sheet.classList.remove('open');
+        }
+      });
+    }
+
+    window.addEventListener('hashchange', () => this._updateBottomNav());
+    this._updateBottomNav();
+  },
+
+  _updateBottomNav() {
+    const hash = window.location.hash.slice(1) || '/';
+    const map = {
+      bnHome:    ['/'],
+      bnFlags:   ['/drapeaux'],
+      bnStats:   ['/stats'],
+      bnProfile: ['/profil'],
+    };
+
+    document.querySelectorAll('.bn-item').forEach(el => el.classList.remove('active'));
+
+    for (const [id, paths] of Object.entries(map)) {
+      if (paths.some(p => hash === p)) {
+        const el = document.getElementById(id);
+        if (el) { el.classList.add('active'); return; }
+      }
+    }
+
+    if (hash.startsWith('/quiz/')) {
+      const el = document.getElementById('bnQuiz');
+      if (el) el.classList.add('active');
+    }
   },
 
   renderHome(container) {

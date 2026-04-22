@@ -2,9 +2,22 @@
 <html lang="fr" id="htmlRoot">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GeoLearn</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f63ff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GeoLearn">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+
+  <!-- Favicon -->
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +25,7 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
   <div id="loading-screen">
@@ -62,6 +76,78 @@
   <main id="app"></main>
   <div id="toast-container"></div>
 
+  <!-- Mobile Bottom Navigation -->
+  <nav id="bottom-nav" aria-label="Navigation principale">
+    <a href="#/" class="bn-item" id="bnHome">
+      <span class="bn-icon">🏠</span>
+      <span class="bn-label" id="bnLabelHome">Accueil</span>
+    </a>
+    <a href="#/drapeaux" class="bn-item" id="bnFlags">
+      <span class="bn-icon">🚩</span>
+      <span class="bn-label" id="bnLabelFlags">Pays</span>
+    </a>
+    <button class="bn-item bn-quiz" id="bnQuiz" type="button" aria-label="Ouvrir les quiz">
+      <span class="bn-icon-wrap">
+        <span class="bn-icon">🎮</span>
+      </span>
+      <span class="bn-label" id="bnLabelQuiz">Quiz</span>
+    </button>
+    <a href="#/stats" class="bn-item" id="bnStats">
+      <span class="bn-icon">📊</span>
+      <span class="bn-label" id="bnLabelStats">Stats</span>
+    </a>
+    <a href="#/profil" class="bn-item" id="bnProfile">
+      <span class="bn-icon">👤</span>
+      <span class="bn-label" id="bnLabelProfile">Profil</span>
+    </a>
+  </nav>
+
+  <!-- Quiz Bottom Sheet (mobile) -->
+  <div id="quiz-bottom-sheet" role="dialog" aria-modal="true">
+    <div class="qbs-backdrop" id="qbsBackdrop"></div>
+    <div class="qbs-panel">
+      <div class="qbs-handle"></div>
+      <div class="qbs-title" id="qbsTitle">🎮 Choisir un Quiz</div>
+      <div class="qbs-grid">
+        <a href="#/quiz/drapeaux" class="qbs-item qbs-flags">
+          <span class="qbs-item-icon">🏁</span>
+          <span class="qbs-item-name" id="qbsNameFlags">Drapeaux</span>
+          <span class="qbs-item-desc" id="qbsDescFlags">Reconnaître les drapeaux</span>
+        </a>
+        <a href="#/quiz/capitales" class="qbs-item qbs-caps">
+          <span class="qbs-item-icon">🏛️</span>
+          <span class="qbs-item-name" id="qbsNameCaps">Capitales</span>
+          <span class="qbs-item-desc" id="qbsDescCaps">Deviner les capitales</span>
+        </a>
+        <a href="#/quiz/carte" class="qbs-item qbs-map">
+          <span class="qbs-item-icon">🗺️</span>
+          <span class="qbs-item-name" id="qbsNameMap">Carte</span>
+          <span class="qbs-item-desc" id="qbsDescMap">Localiser sur la carte</span>
+        </a>
+        <a href="#/quiz/culture" class="qbs-item qbs-culture">
+          <span class="qbs-item-icon">🧭</span>
+          <span class="qbs-item-name" id="qbsNameCulture">Culture</span>
+          <span class="qbs-item-desc" id="qbsDescCulture">Culture générale</span>
+        </a>
+        <a href="#/quiz/cauchemar" class="qbs-item qbs-night">
+          <span class="qbs-item-icon">💀</span>
+          <span class="qbs-item-name" id="qbsNameNight">Cauchemar</span>
+          <span class="qbs-item-desc" id="qbsDescNight">Mode extrême</span>
+        </a>
+        <a href="#/quiz/ultime" class="qbs-item qbs-ultime">
+          <span class="qbs-item-icon">👑</span>
+          <span class="qbs-item-name" id="qbsNameUltime">Ultime</span>
+          <span class="qbs-item-desc" id="qbsDescUltime">Le défi ultime</span>
+        </a>
+        <a href="#/quiz/defi" class="qbs-item qbs-defi" style="grid-column: 1 / -1">
+          <span class="qbs-item-icon">⚔️</span>
+          <span class="qbs-item-name" id="qbsNameDefi">Défi 1v1</span>
+          <span class="qbs-item-desc" id="qbsDescDefi">Jouer contre un ami en temps réel</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/config.js"></script>
   <script src="js/modules/i18n.js"></script>
@@ -91,5 +177,14 @@
   <script src="js/modules/auth.js"></script>
   <script src="js/modules/flagTest.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- Service Worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

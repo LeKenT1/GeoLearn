@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>GeoLearn — Générer les icônes PNG</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #0a0f1e; color: #f0f4ff; }
+    h1 { margin-bottom: 1rem; }
+    p { color: #8b9dc3; margin-bottom: 1rem; }
+    canvas { border: 1px solid #333; margin: 0.5rem; border-radius: 8px; }
+    .links { margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+    a { color: #7c8fff; font-weight: bold; }
+    .status { color: #10b981; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🌍 Générateur d'icônes GeoLearn</h1>
+  <p>Ouvrez ce fichier dans un navigateur. Les icônes PNG vont se télécharger automatiquement.<br>
+  Placez les fichiers téléchargés dans le dossier <code>icons/</code> du projet.</p>
+
+  <canvas id="c512" width="512" height="512"></canvas>
+  <canvas id="c192" width="192" height="192"></canvas>
+  <canvas id="cmask" width="512" height="512"></canvas>
+
+  <div class="links" id="links"></div>
+  <p class="status" id="status"></p>
+
+  <script>
+    function drawIcon(canvas, maskable) {
+      const size = canvas.width;
+      const ctx = canvas.getContext('2d');
+
+      if (maskable) {
+        // Full bleed — no rounding (system clips it)
+        const grad = ctx.createRadialGradient(size*0.4, size*0.35, 0, size/2, size/2, size*0.7);
+        grad.addColorStop(0, '#6776ff');
+        grad.addColorStop(1, '#0a0f1e');
+        ctx.fillStyle = '#0a0f1e';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+        ctx.font = `${Math.floor(size * 0.44)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🌍', size / 2, size / 2 + size * 0.04);
+      } else {
+        // Rounded corners
+        const r = size * 0.215;
+        const grad = ctx.createRadialGradient(size*0.4, size*0.35, 0, size/2, size/2, size*0.7);
+        grad.addColorStop(0, '#6776ff');
+        grad.addColorStop(1, '#0a0f1e');
+
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(0, 0, size, size, r);
+        } else {
+          ctx.moveTo(r, 0); ctx.lineTo(size-r, 0);
+          ctx.quadraticCurveTo(size, 0, size, r);
+          ctx.lineTo(size, size-r);
+          ctx.quadraticCurveTo(size, size, size-r, size);
+          ctx.lineTo(r, size); ctx.quadraticCurveTo(0, size, 0, size-r);
+          ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
+        }
+        ctx.closePath();
+        ctx.fillStyle = '#0a0f1e';
+        ctx.fill();
+
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(0, 0, size, size, r);
+        } else {
+          ctx.moveTo(r, 0); ctx.lineTo(size-r, 0);
+          ctx.quadraticCurveTo(size, 0, size, r);
+          ctx.lineTo(size, size-r);
+          ctx.quadraticCurveTo(size, size, size-r, size);
+          ctx.lineTo(r, size); ctx.quadraticCurveTo(0, size, 0, size-r);
+          ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
+        }
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.font = `${Math.floor(size * 0.5)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🌍', size / 2, size / 2 + size * 0.04);
+      }
+    }
+
+    function download(canvas, filename, delay) {
+      setTimeout(() => {
+        const a = document.createElement('a');
+        a.download = filename;
+        a.href = canvas.toDataURL('image/png');
+        a.textContent = `⬇ ${filename}`;
+        document.getElementById('links').appendChild(a);
+        a.click();
+      }, delay);
+    }
+
+    // Draw
+    drawIcon(document.getElementById('c512'), false);
+    drawIcon(document.getElementById('c192'), false);
+    drawIcon(document.getElementById('cmask'), true);
+
+    // Auto-download
+    download(document.getElementById('c512'),  'icon-512.png',     300);
+    download(document.getElementById('c192'),  'icon-192.png',     800);
+    download(document.getElementById('cmask'), 'icon-maskable.png', 1300);
+
+    setTimeout(() => {
+      document.getElementById('status').textContent =
+        '✅ 3 fichiers téléchargés. Placez-les dans le dossier icons/ du projet.';
+    }, 1500);
+  </script>
+</body>
+</html>
