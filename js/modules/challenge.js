@@ -1520,7 +1520,7 @@ GL.Challenge = {
     const myId = GL.Auth?._user?.id;
     if (!myId) {
       console.warn('[CH] _fetchUsers() — pas de session, abandon');
-      return [];
+      return null;
     }
 
     // Lit le token depuis localStorage — synchrone, aucun appel réseau
