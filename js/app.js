@@ -78,6 +78,7 @@ GL.App = {
       '/profil':         (el) => GL.Profile.render(el),
       '/classement':     (el) => GL.Leaderboard.render(el),
       '/test':           (el) => GL.FlagTest && GL.FlagTest.render(el),
+      '/app-mobile':     (el) => this.renderAppMobile(el),
     });
 
     GL.Profile.init();
@@ -872,7 +873,44 @@ GL.App = {
       });
     });
 
-  }
+  },
+
+  renderAppMobile(container) {
+    const APK_URL = 'https://github.com/LeKenT1/GeoLearn/releases/download/3.8/app-debug.apk';
+    container.innerHTML = `
+      <div class="page" style="max-width:560px;margin:0 auto;text-align:center;">
+        <div class="page-title">Application Mobile</div>
+        <p class="page-subtitle" style="margin-bottom:2rem;">
+          Télécharge GeoLearn sur ton appareil Android et joue où que tu sois.
+        </p>
+        <div id="qrcode-wrap" style="display:inline-block;padding:1rem;background:#fff;border-radius:var(--radius-lg);margin-bottom:1.5rem;box-shadow:0 4px 24px rgba(0,0,0,0.12);"></div>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem;">
+          Scanne ce QR code avec ton téléphone pour télécharger l'APK directement.
+        </p>
+        <a href="${APK_URL}" download class="btn btn-primary" style="display:inline-flex;gap:0.5rem;align-items:center;">
+          ⬇️ Télécharger l'APK (Android)
+        </a>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:1rem;">
+          Version 3.8.0 · Autoriser les sources inconnues requis
+        </p>
+      </div>
+    `;
+
+    const wrap = container.querySelector('#qrcode-wrap');
+    if (window.QRCode) {
+      new QRCode(wrap, {
+        text: APK_URL,
+        width: 220,
+        height: 220,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } else {
+      wrap.innerHTML = `<p style="color:var(--text-muted);font-size:0.85rem;">QR code indisponible</p>`;
+    }
+  },
+
 };
 
 // Start app when DOM is ready
