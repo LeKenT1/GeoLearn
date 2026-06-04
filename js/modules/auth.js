@@ -312,6 +312,8 @@ GL.Auth = {
       updated_at:   new Date().toISOString(),
     });
     if (error) {
+      // AbortError = timeout réseau ou navigation → silencieux
+      if (error.message?.includes('AbortError') || error.name === 'AbortError') return;
       console.error('[Auth] _push:', error.message);
       // Violation FK → le user_id n'existe plus dans auth.users (session orpheline)
       // On déconnecte pour purger la session invalide du localStorage Supabase
@@ -341,6 +343,7 @@ GL.Auth = {
       if (migrated) data = migrated;
     }
 
+    if (!data) return false;
 
     if (data.profile)      localStorage.setItem('gl_profile',      JSON.stringify(data.profile));
     if (data.stats)        localStorage.setItem('gl_stats',        JSON.stringify(data.stats));

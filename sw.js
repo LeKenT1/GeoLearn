@@ -63,6 +63,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
+  // Ignorer les schémas non-HTTP (chrome-extension://, etc.)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
   // Always network for Supabase API
   if (url.hostname.includes('supabase.co')) return;
 
