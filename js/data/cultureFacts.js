@@ -19,8 +19,8 @@ GL.CULTURE_FACTS = {
     en: ["Birthplace of the European Renaissance", "Country with the most UNESCO World Heritage Sites in Europe", "Invented the piano in Florence in the 18th century"]
   },
   'es': {
-    fr: ["A colonisé la majeure partie de l'Amérique du Sud au XVIe siècle", "Deuxième pays le plus visité au monde (avant la pandémie)", "Deuxième langue maternelle la plus parlée au monde (espagnol)"],
-    en: ["Colonized most of South America in the 16th century", "Second most visited country in the world (pre-pandemic)", "Spanish is the world's second most spoken native language"]
+    fr: ["A colonisé la majeure partie de l'Amérique du Sud au XVIe siècle", "Deuxième pays le plus visité au monde (avant la pandémie)", "Deuxième langue maternelle la plus parlée au monde, derrière le mandarin"],
+    en: ["Colonized most of South America in the 16th century", "Second most visited country in the world (pre-pandemic)", "Has the world's second most spoken native language, after Mandarin"]
   },
   'pt': {
     fr: ["A eu le plus grand empire maritime de l'histoire pendant deux siècles", "Inventeur de la caravelle, navire qui révolutionna l'exploration maritime", "A colonisé le Brésil, l'Angola, le Mozambique et le Cap-Vert"],
@@ -35,8 +35,8 @@ GL.CULTURE_FACTS = {
     en: ["Invented both the telescope and microscope in the 17th century", "A third of the country lies below sea level", "First country in the world to legalize same-sex marriage (2001)"]
   },
   'be': {
-    fr: ["A inventé les frites malgré leur nom « French Fries »", "Produit plus de 1 500 types de bières différentes", "Capitale de facto de l'Union Européenne (Bruxelles)"],
-    en: ["Invented French fries, despite the name", "Produces over 1,500 different types of beer", "De facto capital of the European Union (Brussels)"]
+    fr: ["A inventé les frites malgré leur nom « French Fries »", "Produit plus de 1 500 types de bières différentes", "Siège de la Commission européenne, du Parlement européen et du quartier général de l'OTAN"],
+    en: ["Invented French fries, despite the name", "Produces over 1,500 different types of beer", "Headquarters of the European Commission, the European Parliament, and NATO"]
   },
   'ch': {
     fr: ["A fondé la Croix-Rouge internationale (Henri Dunant, 1863)", "Pays le plus neutre politiquement au monde depuis 1815", "Produit les montres les plus renommées au monde"],
@@ -51,8 +51,8 @@ GL.CULTURE_FACTS = {
     en: ["Birthplace of Nicolaus Copernicus, who proved Earth orbits the Sun", "Home to Marie Curie, the only person to win two Nobel Prizes in different sciences", "Suffered the greatest proportional human loss in World War II"]
   },
   'cz': {
-    fr: ["A inventé les lentilles de contact souples (Otto Wichterle, 1961)", "Pays avec la consommation de bière per capita la plus élevée au monde", "Sa capitale Prague est surnommée « la Ville aux cent clochers »"],
-    en: ["Invented soft contact lenses (Otto Wichterle, 1961)", "Country with the world's highest per capita beer consumption", "Its capital Prague is known as 'the City of a Hundred Spires'"]
+    fr: ["A inventé les lentilles de contact souples (Otto Wichterle, 1961)", "Pays avec la consommation de bière per capita la plus élevée au monde", "Sa capitale est surnommée « la Ville aux cent clochers » pour ses innombrables flèches gothiques"],
+    en: ["Invented soft contact lenses (Otto Wichterle, 1961)", "Country with the world's highest per capita beer consumption", "Its capital is nicknamed 'the City of a Hundred Spires' for its countless Gothic spires"]
   },
   'se': {
     fr: ["Berceau de l'inventeur de la dynamite Alfred Nobel (fondateur du Prix Nobel)", "A inventé le pacemaker cardiaque, le Bluetooth et l'abri zipper", "Premier pays au monde à garantir la liberté de la presse (1766)"],
@@ -75,16 +75,16 @@ GL.CULTURE_FACTS = {
     en: ["Birthplace of democracy, philosophy, and the Olympic Games", "Contributed over 150,000 words to the English language", "Civilization that founded modern medicine, mathematics, and physics"]
   },
   'tr': {
-    fr: ["Seul pays au monde à chevaucher deux continents (Europe et Asie)", "Berceau de la cerise : le mot vient de Giresun (anciennement Kerasus)", "A la première cafégothèque du monde (Istanbul, 1554)"],
-    en: ["Only country in the world straddling two continents (Europe and Asia)", "Birthplace of the cherry: the word comes from Giresun (ancient Cerasus)", "Home to the world's first coffeehouse (Istanbul, 1554)"]
+    fr: ["Seul pays au monde à chevaucher deux continents (Europe et Asie)", "Berceau de la cerise : le mot vient de Giresun (anciennement Kerasus)", "A abrité la première cafégothèque du monde, ouverte en 1554"],
+    en: ["Only country in the world straddling two continents (Europe and Asia)", "Birthplace of the cherry: the word comes from Giresun (ancient Cerasus)", "Home to the world's first coffeehouse, opened in 1554"]
   },
   'ru': {
     fr: ["Plus grand pays du monde, couvrant 11 fuseaux horaires", "A lancé le premier satellite artificiel (Spoutnik, 1957) et envoyé le premier homme dans l'espace", "Le lac Baïkal contient 20 % des réserves mondiales d'eau douce de surface"],
     en: ["World's largest country, spanning 11 time zones", "Launched the first artificial satellite (Sputnik, 1957) and sent the first human to space", "Lake Baikal contains 20% of the world's surface fresh water"]
   },
   'ua': {
-    fr: ["Grenier à blé de l'Europe et premier exportateur mondial d'huile de tournesol", "Kiev est l'une des plus anciennes villes d'Europe de l'Est (fondée au IXe siècle)", "Possède la plus grande centrale nucléaire d'Europe (Zaporijjia)"],
-    en: ["Europe's breadbasket and world's largest sunflower oil exporter", "Kyiv is one of the oldest cities in Eastern Europe (founded in the 9th century)", "Home to Europe's largest nuclear power plant (Zaporizhzhia)"]
+    fr: ["Grenier à blé de l'Europe et premier exportateur mondial d'huile de tournesol", "Sa capitale est l'une des plus anciennes d'Europe de l'Est, fondée au IXe siècle", "Possède la plus grande centrale nucléaire d'Europe (Zaporijjia)"],
+    en: ["Europe's breadbasket and world's largest sunflower oil exporter", "Its capital is one of the oldest cities in Eastern Europe, founded in the 9th century", "Home to Europe's largest nuclear power plant (Zaporizhzhia)"]
   },
   'ro': {
     fr: ["Berceau du mythe de Dracula (inspiré du prince Vlad l'Empaleur)", "Pays de Nadia Comăneci, première gymnaste à obtenir un 10 parfait aux JO (1976)", "A la forêt de Hoia Baciu, considérée comme la forêt la plus hantée du monde"],
@@ -95,8 +95,8 @@ GL.CULTURE_FACTS = {
     en: ["Invented the Rubik's Cube (Ernő Rubik, 1974)", "Produces more chess world champions per capita than any other country", "Its language, Hungarian, is unlike any other Western European language"]
   },
   'hr': {
-    fr: ["A inventé la cravate (le mot vient de « Croate »)", "Berceau supposé de Marco Polo (île de Korčula)", "Ses chutes de Plitvice figurent parmi les plus belles d'Europe"],
-    en: ["Invented the necktie (the word comes from 'Croat')", "Claimed birthplace of Marco Polo (island of Korčula)", "Its Plitvice Lakes are among the most beautiful waterfalls in Europe"]
+    fr: ["A inventé la cravate, accessoire vestimentaire adopté dans toute l'Europe au XVIIe siècle", "Berceau supposé de Marco Polo (île de Korčula)", "Ses chutes de Plitvice figurent parmi les plus belles d'Europe"],
+    en: ["Invented the necktie, a fashion accessory adopted throughout Europe in the 17th century", "Claimed birthplace of Marco Polo (island of Korčula)", "Its Plitvice Lakes are among the most beautiful waterfalls in Europe"]
   },
   'ie': {
     fr: ["Pays d'origine d'Halloween (issu de la fête celtique de Samhain)", "Premier pays à légaliser le mariage homosexuel par référendum populaire (2015)", "A subi la Grande Famine de 1845 qui a réduit sa population de moitié"],
@@ -153,16 +153,16 @@ GL.CULTURE_FACTS = {
     en: ["South America's only landlocked country (since 1884)", "Home to the world's highest navigable lake: Lake Titicaca (3,800m)", "Known as the 'Tibet of the Americas' for its high Andean plateaus"]
   },
   'ec': {
-    fr: ["Traversé par l'équateur qui lui donne son nom", "Abrite les îles Galápagos, source d'inspiration de la théorie de l'évolution de Darwin", "Premier pays à inscrire les droits de la nature dans sa Constitution (2008)"],
-    en: ["Crossed by the equator that gives it its name", "Home to the Galápagos Islands, which inspired Darwin's theory of evolution", "First country to enshrine the rights of nature in its Constitution (2008)"]
+    fr: ["Premier exportateur mondial de roses à l'exportation, reconnu pour la qualité exceptionnelle de ses fleurs", "Abrite les îles Galápagos, source d'inspiration de la théorie de l'évolution de Darwin", "Premier pays à inscrire les droits de la nature dans sa Constitution (2008)"],
+    en: ["World's leading exporter of roses, renowned for the exceptional quality of its flowers", "Home to the Galápagos Islands, which inspired Darwin's theory of evolution", "First country to enshrine the rights of nature in its Constitution (2008)"]
   },
   've': {
     fr: ["Abrite le Salto Angel, la plus haute chute d'eau du monde (979 m)", "Possède les plus grandes réserves de pétrole prouvées au monde", "A un des plus grands carnavals d'Amérique latine (Carnaval de Barranquilla)"],
     en: ["Home to Angel Falls, the world's highest waterfall (979m)", "Has the world's largest proven oil reserves", "Has one of Latin America's greatest carnivals (Barranquilla Carnival)"]
   },
   'pa': {
-    fr: ["Abrite le canal de Panama, l'une des voies navigables les plus importantes au monde", "A donné son nom à un célèbre chapeau à larges bords, fabriqué en réalité en Équateur", "Pont terrestre entre l'Amérique du Nord et l'Amérique du Sud"],
-    en: ["Home to the Panama Canal, one of the world's most important waterways", "Gave its name to a famous wide-brimmed hat, despite it actually being made in Ecuador", "Land bridge connecting North and South America"]
+    fr: ["Abrite l'un des canaux maritimes les plus stratégiques au monde, reliant l'Atlantique et le Pacifique", "A donné son nom à un célèbre chapeau à larges bords, fabriqué en réalité en Équateur", "Pont terrestre entre l'Amérique du Nord et l'Amérique du Sud"],
+    en: ["Home to one of the world's most strategic canals, connecting the Atlantic and Pacific Oceans", "Gave its name to a famous wide-brimmed hat, despite it actually being made in Ecuador", "Land bridge connecting North and South America"]
   },
   'jm': {
     fr: ["Berceau du reggae et de Bob Marley", "Pays d'Usain Bolt, l'homme le plus rapide de l'histoire (9,58 s sur 100 m)", "Île ayant le plus de médailles olympiques par habitant en athlétisme"],
@@ -191,8 +191,8 @@ GL.CULTURE_FACTS = {
     en: ["World's largest archipelago with over 17,000 islands", "Fourth most populous country in the world", "Home to the Sumatran orangutan, one of the world's most endangered species"]
   },
   'th': {
-    fr: ["Seul pays d'Asie du Sud-Est à n'avoir jamais été colonisé par une puissance européenne", "Abrite le plus grand nombre de temples bouddhistes au monde", "Berceau de la boxe thaïlandaise (Muay Thai)"],
-    en: ["Only Southeast Asian country never colonized by a European power", "Home to the world's greatest number of Buddhist temples", "Birthplace of Thai boxing (Muay Thai)"]
+    fr: ["Seul pays d'Asie du Sud-Est à n'avoir jamais été colonisé par une puissance européenne", "Abrite le plus grand nombre de temples bouddhistes au monde", "Berceau d'un art martial millénaire utilisant poings, coudes, genoux et tibias, pratiqué dans le monde entier"],
+    en: ["Only Southeast Asian country never colonized by a European power", "Home to the world's greatest number of Buddhist temples", "Birthplace of an ancient martial art using fists, elbows, knees and shins, practiced worldwide"]
   },
   'vn': {
     fr: ["A repoussé successivement les armées de la France, des États-Unis et de la Chine au XXe siècle", "Deuxième producteur mondial de café après le Brésil", "Berceau du bánh mì, sandwich fusion franco-vietnamien célèbre dans le monde entier"],
@@ -369,8 +369,8 @@ GL.CULTURE_FACTS = {
     en: ["Had the highest economic growth rate in Africa between 1966 and 1999, thanks to diamonds", "Home to the Okavango Delta, one of the world's largest inland deltas and a wildlife sanctuary", "Transformed its diamond revenues into one of Africa's most developed education systems"]
   },
   'bf': {
-    fr: ["Son nom signifie « pays des hommes intègres » en mooré et en dioula", "Abrite le FESPACO, le plus grand festival de cinéma africain (Ouagadougou)", "Berceau du réalisateur Idrissa Ouédraogo, pionnier du cinéma africain primé à Cannes"],
-    en: ["Its name means 'land of upright people' in Mooré and Dioula", "Home to FESPACO, the largest African film festival (Ouagadougou)", "Birthplace of director Idrissa Ouédraogo, a pioneer of African cinema awarded at Cannes"]
+    fr: ["Son nom signifie « pays des hommes intègres » en mooré et en dioula", "Abrite dans sa capitale le FESPACO, le plus grand festival de cinéma africain", "Berceau du réalisateur Idrissa Ouédraogo, pionnier du cinéma africain primé à Cannes"],
+    en: ["Its name means 'land of upright people' in Mooré and Dioula", "Home to FESPACO, the largest African film festival, held in its capital", "Birthplace of director Idrissa Ouédraogo, a pioneer of African cinema awarded at Cannes"]
   },
   'bi': {
     fr: ["Abrite l'une des sources du Nil, le fleuve le plus long du monde", "Le tambour royal burundais (ingoma) est inscrit au patrimoine immatériel de l'UNESCO", "L'un des pays les plus densément peuplés d'Afrique malgré ses collines et ses forêts"],
@@ -393,12 +393,12 @@ GL.CULTURE_FACTS = {
     en: ["World's largest ylang-ylang producer, a flower used in luxury perfumes including Chanel No. 5", "Volcanic archipelago nicknamed 'the islands of the moon' by Arab navigators in the Middle Ages", "Its flag is the only one in the world to feature a crescent with four stars symbolizing its islands"]
   },
   'cd': {
-    fr: ["Abrite la deuxième plus grande forêt tropicale du monde après l'Amazonie", "Le fleuve Congo est le plus profond du monde (plus de 220 m) et le deuxième en débit", "Possède les plus grandes réserves mondiales de coltan, minerai indispensable à la fabrication des smartphones"],
-    en: ["Home to the world's second largest tropical rainforest, after the Amazon", "The Congo River is the world's deepest (over 220m) and second highest flow river", "Has the world's largest coltan reserves, a mineral essential for smartphone manufacturing"]
+    fr: ["Abrite la deuxième plus grande forêt tropicale du monde après l'Amazonie", "Son fleuve principal est le plus profond du monde (plus de 220 m) et le deuxième en débit après l'Amazonie", "Possède les plus grandes réserves mondiales de coltan, minerai indispensable à la fabrication des smartphones"],
+    en: ["Home to the world's second largest tropical rainforest, after the Amazon", "Its main river is the world's deepest (over 220m) and has the second highest flow rate, after the Amazon", "Has the world's largest coltan reserves, a mineral essential for smartphone manufacturing"]
   },
   'cg': {
-    fr: ["Abrite le Pool Malebo (Stanley Pool), gigantesque lac naturel sur le fleuve Congo face à Kinshasa", "A l'une des plus grandes réserves de tourbières au monde, stockant d'énormes quantités de carbone", "A organisé la première Coupe d'Afrique des Nations de football (1972)"],
-    en: ["Home to Pool Malebo (Stanley Pool), a vast natural lake on the Congo River opposite Kinshasa", "Has one of the world's largest peatland reserves, storing enormous amounts of carbon", "Hosted the first Africa Cup of Nations football tournament (1972)"]
+    fr: ["Abrite le Pool Malebo, gigantesque lac naturel sur le grand fleuve qui borde sa frontière avec la RDC", "A l'une des plus grandes réserves de tourbières au monde, stockant d'énormes quantités de carbone", "A organisé la première Coupe d'Afrique des Nations de football (1972)"],
+    en: ["Home to Pool Malebo, a vast natural lake on the great river forming its border with the DRC", "Has one of the world's largest peatland reserves, storing enormous amounts of carbon", "Hosted the first Africa Cup of Nations football tournament (1972)"]
   },
   'ci': {
     fr: ["Premier producteur mondial de cacao, fournissant 40 % de la production mondiale", "Abrite la Basilique Notre-Dame de la Paix de Yamoussoukro, le plus grand bâtiment religieux d'Afrique", "Yamoussoukro est la capitale officielle mais Abidjan reste la capitale économique et la plus grande ville"],
@@ -461,8 +461,8 @@ GL.CULTURE_FACTS = {
     en: ["Last country in the world to criminalize slavery (2007), still widely practiced unofficially", "Home to Chinguetti, the 7th holiest city in Islam and a historical trans-Saharan caravan crossroads", "90% covered by the Sahara, with some of the world's largest sand dunes"]
   },
   'mu': {
-    fr: ["Île volcanique où vivait le dodo, oiseau symbole des extinctions causées par l'Homme (disparu au XVIIe siècle)", "Mark Twain écrivit : « Dieu créa Maurice d'abord, puis le Paradis, en s'inspirant de Maurice »", "L'un des pays africains avec le PIB par habitant le plus élevé, grâce au tourisme et aux services financiers"],
-    en: ["Volcanic island home to the dodo, the iconic symbol of human-caused extinction (disappeared in the 17th century)", "Mark Twain wrote: 'God created Mauritius first, then Paradise, by copying Mauritius'", "One of Africa's highest GDP per capita countries, thanks to tourism and financial services"]
+    fr: ["Île volcanique où vivait le dodo, oiseau symbole des extinctions causées par l'Homme (disparu au XVIIe siècle)", "Mark Twain écrivit que cette île était si belle que Dieu avait créé le Paradis en s'en inspirant", "L'un des pays africains avec le PIB par habitant le plus élevé, grâce au tourisme et aux services financiers"],
+    en: ["Volcanic island home to the dodo, the iconic symbol of human-caused extinction (disappeared in the 17th century)", "Mark Twain wrote that God created Paradise by copying this island, so beautiful it was", "One of Africa's highest GDP per capita countries, thanks to tourism and financial services"]
   },
   'mz': {
     fr: ["Son drapeau est le seul au monde à représenter une arme à feu (une kalachnikov AK-47)", "A été le premier producteur mondial de noix de cajou pendant plusieurs décennies", "Possède une des côtes les plus longues d'Afrique de l'Est (2 500 km sur l'océan Indien)"],
@@ -473,8 +473,8 @@ GL.CULTURE_FACTS = {
     en: ["Home to the Namib Desert, the world's oldest desert (over 55 million years old)", "First country in the world to enshrine environmental protection in its Constitution (1990)", "Has the lowest population density in Africa (3 people/km²)"]
   },
   'ne': {
-    fr: ["A été le premier producteur mondial d'uranium pendant plusieurs années", "Abrite des fossiles de dinosaures géants parmi les plus grands jamais découverts (Jobaria, Nigersaurus)", "Le fleuve Niger, qui lui donne son nom, est le troisième plus long fleuve d'Afrique"],
-    en: ["Was the world's largest uranium producer for several years", "Home to giant dinosaur fossils among the largest ever discovered (Jobaria, Nigersaurus)", "The Niger River, which gives the country its name, is Africa's third longest river"]
+    fr: ["A été le premier producteur mondial d'uranium pendant plusieurs années", "Abrite des fossiles de dinosaures parmi les plus extraordinaires jamais découverts en Afrique", "Traversé par l'un des plus grands fleuves d'Afrique de l'Ouest, le troisième plus long du continent"],
+    en: ["Was the world's largest uranium producer for several years", "Home to some of the most extraordinary dinosaur fossils ever discovered in Africa", "Crossed by one of West Africa's greatest rivers, the third longest on the continent"]
   },
   'st': {
     fr: ["Seul pays d'Afrique traversé à la fois par l'équateur et le méridien de Greenwich (point 0°/0°)", "Surnommé « l'île chocolat » pour ses cacaos d'exception issus d'anciennes plantations coloniales", "Deuxième plus petit pays d'Afrique, premier à avoir produit du cacao de qualité en Afrique tropicale"],
@@ -699,8 +699,8 @@ GL.CULTURE_FACTS = {
     en: ["Birthplace of Marc Chagall, a major expressionist painter of the 20th century born in Vitebsk", "Home to Białowieża Forest (shared with Poland), Europe's last primeval forest and refuge of the European bison", "Nicknamed 'the lungs of Europe' for its vast and still-preserved forests"]
   },
   'ba': {
-    fr: ["L'assassinat de l'archiduc François-Ferdinand à Sarajevo en 1914 a déclenché la Première Guerre mondiale", "Sarajevo a accueilli les Jeux Olympiques d'hiver de 1984, apogée symbolique de la Yougoslavie", "Abrite Mostar et son pont Stari Most du XVIe siècle, inscrit au patrimoine mondial de l'UNESCO"],
-    en: ["The assassination of Archduke Franz Ferdinand in Sarajevo in 1914 triggered World War I", "Sarajevo hosted the 1984 Winter Olympic Games, the symbolic peak of Yugoslavia", "Home to Mostar and its 16th-century Stari Most bridge, inscribed on the UNESCO World Heritage List"]
+    fr: ["L'assassinat de l'archiduc François-Ferdinand en 1914 dans sa capitale a déclenché la Première Guerre mondiale", "Sa capitale a accueilli les Jeux Olympiques d'hiver de 1984, apogée symbolique de la Yougoslavie", "Abrite Mostar et son pont Stari Most du XVIe siècle, inscrit au patrimoine mondial de l'UNESCO"],
+    en: ["The assassination of Archduke Franz Ferdinand in 1914 in its capital triggered World War I", "Its capital hosted the 1984 Winter Olympic Games, the symbolic peak of Yugoslavia", "Home to Mostar and its 16th-century Stari Most bridge, inscribed on the UNESCO World Heritage List"]
   },
   'bg': {
     fr: ["Berceau de l'alphabet cyrillique (Saints Cyrille et Méthode, IXe siècle), aujourd'hui utilisé par plus de 250 millions de personnes", "A inventé le yaourt : les bactéries Lactobacillus bulgaricus portent le nom du pays", "Parmi les premiers producteurs mondiaux d'huile de rose, utilisée dans la parfumerie de luxe"],
@@ -751,8 +751,8 @@ GL.CULTURE_FACTS = {
     en: ["Its name means 'black mountain' (Monte Negro in Venetian), reflecting its dark appearance on old maps", "Home to the Tara River Canyon, Europe's second deepest canyon (1,300m) and a UNESCO site", "One of the few European states to have militarily resisted the Ottoman Empire for centuries"]
   },
   'mk': {
-    fr: ["Patrie d'Alexandre le Grand, qui a bâti l'un des plus grands empires de l'Antiquité au IVe siècle av. J.-C.", "Berceau de Mère Teresa (née Anjezë Bojaxhiu à Skopje en 1910), Prix Nobel de la Paix 1979", "Abrite le lac d'Ohrid, l'un des plus anciens lacs d'Europe (3 à 5 millions d'années) et site double UNESCO"],
-    en: ["Homeland of Alexander the Great, who built one of the greatest empires of antiquity in the 4th century BC", "Birthplace of Mother Teresa (born Anjezë Bojaxhiu in Skopje in 1910), Nobel Peace Prize 1979", "Home to Lake Ohrid, one of Europe's oldest lakes (3-5 million years) and a double UNESCO site"]
+    fr: ["Patrie d'Alexandre le Grand, qui a bâti l'un des plus grands empires de l'Antiquité au IVe siècle av. J.-C.", "Berceau de Mère Teresa (née Anjezë Bojaxhiu en 1910), Prix Nobel de la Paix 1979", "Abrite le lac d'Ohrid, l'un des plus anciens lacs d'Europe (3 à 5 millions d'années) et site double UNESCO"],
+    en: ["Homeland of Alexander the Great, who built one of the greatest empires of antiquity in the 4th century BC", "Birthplace of Mother Teresa (born Anjezë Bojaxhiu in 1910), Nobel Peace Prize 1979", "Home to Lake Ohrid, one of Europe's oldest lakes (3-5 million years) and a double UNESCO site"]
   },
   'sm': {
     fr: ["Le plus ancien pays souverain du monde encore en existence, fondé selon la tradition en 301 ap. J.-C.", "Plus ancienne République du monde en exercice continu (démocratie sans interruption depuis 1243)", "Entièrement enclavé dans l'Italie, avec le mont Titano comme emblème national et forteresse médiévale"],

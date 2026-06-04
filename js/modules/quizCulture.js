@@ -27,12 +27,21 @@ GL.QuizCulture = {
     const selected = shuffled.slice(0, count);
     const lang = GL.I18N ? GL.I18N.lang : 'fr';
 
+    // Pool élargi pour les distracteurs (tous les pays, pas seulement ceux avec des facts)
+    const allCountries = GL.COUNTRIES || [];
+
     const questions = selected.map(country => {
       const factsArr = GL.CULTURE_FACTS[country.code][lang];
       const fact = factsArr[Math.floor(Math.random() * factsArr.length)];
-      const options = config.mode === 'mc'
-        ? GL.QuizEngine.generateOptions(country, pool, 4)
-        : null;
+
+      let options = null;
+      if (config.mode === 'mc') {
+        // Préférer des distracteurs du même continent pour éviter les choix triviaux
+        const sameContinent = allCountries.filter(c => c.continent === country.continent && c.code !== country.code);
+        const distractorPool = sameContinent.length >= 3 ? sameContinent : allCountries;
+        options = GL.QuizEngine.generateOptions(country, [country, ...distractorPool], 4);
+      }
+
       return {
         type: config.mode === 'mc' ? 'mc' : 'text',
         country,
