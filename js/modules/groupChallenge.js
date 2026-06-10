@@ -515,6 +515,7 @@ GL.GroupChallenge = {
       })
       .subscribe(async (status, err) => {
         if (status !== 'SUBSCRIBED') return;
+        clearInterval(poll); // Realtime actif — arrêt du polling fallback
         // Guard : recharger les participants au cas où des réponses sont arrivées
         // pendant la navigation vers cet écran
         const { data: fresh, error: freshErr } = await client
@@ -532,7 +533,7 @@ GL.GroupChallenge = {
         await checkAllResponded();
       });
 
-    // Polling fallback : si les events Realtime n'arrivent pas (RLS/réseau), on recheck toutes les 2s
+    // Polling fallback : uniquement si Realtime ne s'abonne pas (RLS/réseau)
     poll = setInterval(async () => {
       const { data: fresh } = await client
         .from('group_challenge_participants').select('*').eq('challenge_id', challenge.id);
@@ -547,7 +548,7 @@ GL.GroupChallenge = {
         if (listEl) listEl.innerHTML = renderRows(currentParts);
         await checkAllResponded();
       }
-    }, 2000);
+    }, 8000);
 
     this._gcChannel = ch;
     GL._onRouteLeave = () => {
@@ -638,6 +639,7 @@ GL.GroupChallenge = {
       })
       .subscribe(async (status, err) => {
         if (status !== 'SUBSCRIBED') return;
+        clearInterval(poll); // Realtime actif — arrêt du polling fallback
         // Guard : l'événement a peut-être été envoyé avant que l'abonnement soit prêt
         const { data, error: gErr } = await client
           .from('group_challenges').select('status').eq('id', challenge.id).single();
@@ -645,14 +647,14 @@ GL.GroupChallenge = {
         else if (data?.status === 'cancelled') cancel();
       });
 
-    // Polling fallback toutes les 2s (si Realtime ne délivre pas l'event)
+    // Polling fallback : uniquement si Realtime ne s'abonne pas (RLS/réseau)
     poll = setInterval(async () => {
       if (gone) { clearInterval(poll); return; }
       const { data } = await client
         .from('group_challenges').select('status').eq('id', challenge.id).single();
       if (data?.status === 'active')    go();
       else if (data?.status === 'cancelled') cancel();
-    }, 2000);
+    }, 8000);
 
     this._gcChannel = ch;
     GL._onRouteLeave = () => { gone = true; clearInterval(poll); client.removeChannel(ch); this._gcChannel = null; };

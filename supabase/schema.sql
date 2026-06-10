@@ -41,5 +41,18 @@ create policy "Lecture publique pour le classement"
 create index if not exists user_data_ranked_xp_idx on public.user_data ((stats->>'rankedXP'));
 create index if not exists user_data_username_idx  on public.user_data (username);
 
+-- Index sur les tables de défi (réduisent les full-table scans → moins de Disk IO)
+create index if not exists gc_participants_challenge_id_idx
+  on public.group_challenge_participants(challenge_id);
+
+create index if not exists challenge_results_challenge_id_idx
+  on public.challenge_results(challenge_id);
+
+create index if not exists challenges_challenger_id_idx
+  on public.challenges(challenger_id);
+
+create index if not exists challenges_challenged_id_idx
+  on public.challenges(challenged_id);
+
 -- ⚠ Rappel : activer Anonymous Sign-ins dans
 --   Authentication > Providers > Anonymous Sign-ins
